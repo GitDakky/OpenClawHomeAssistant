@@ -40,17 +40,39 @@ jobs:
 
       - name: Normalize metadata
         id: normalize
+        env:
+          RAW_DESCRIPTION: ${{ steps.info.outputs.description }}
+          RAW_IMAGE: ${{ steps.info.outputs.image }}
+          RAW_NAME: ${{ steps.info.outputs.name }}
+          RAW_URL: ${{ steps.info.outputs.url }}
+          RAW_VERSION: ${{ steps.info.outputs.version }}
         run: |
-          image="${{ steps.info.outputs.image }}"
-          echo "image_name=${image##*/}" >> "$GITHUB_OUTPUT"
-          echo "registry_prefix=${image%/*}" >> "$GITHUB_OUTPUT"
-          echo "version=${{ steps.info.outputs.version }}" >> "$GITHUB_OUTPUT"
-          echo "name=${{ steps.info.outputs.name }}" >> "$GITHUB_OUTPUT"
-          echo "description=${{ steps.info.outputs.description }}" >> "$GITHUB_OUTPUT"
-          url="${{ steps.info.outputs.url }}"
-          if [[ -n "$url" && "$url" != "null" ]]; then
-            echo "url=${url}" >> "$GITHUB_OUTPUT"
-          fi
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          def clean(value: str) -> str:
+              value = value.strip()
+              if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                  return value[1:-1]
+              return value
+
+          image = clean(os.environ["RAW_IMAGE"])
+          version = clean(os.environ["RAW_VERSION"])
+          name = clean(os.environ["RAW_NAME"])
+          description = clean(os.environ["RAW_DESCRIPTION"])
+          url = clean(os.environ["RAW_URL"])
+
+          output = Path(os.environ["GITHUB_OUTPUT"])
+          with output.open("a", encoding="utf-8") as handle:
+              print(f"image_name={image.rsplit('/', 1)[-1]}", file=handle)
+              print(f"registry_prefix={image.rsplit('/', 1)[0]}", file=handle)
+              print(f"version={version}", file=handle)
+              print(f"name={name}", file=handle)
+              print(f"description={description}", file=handle)
+              if url and url != "null":
+                  print(f"url={url}", file=handle)
+          PY
 
       - name: Prepare multi-arch build matrix
         id: matrix
