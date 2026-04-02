@@ -68,6 +68,7 @@ For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.m
 - Home Assistant ingress for the landing page and operational entry point
 - `nginx` + `ttyd` for browser-based setup and terminal access
 - OpenClaw gateway for chat, skills, MCP, and the OpenAI-compatible endpoint
+- First-start state reconciliation for older single-agent OpenClaw layouts so legacy auth/session data lands in `agents/main/...`
 - Persistent `/config` storage so updates do not wipe the working environment
 
 ## Supported architectures
@@ -83,7 +84,14 @@ For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.m
 - This fork uses a distinct app name, slug, and image so it does not masquerade as the legacy add-on.
 - Clean installs now default to different host-network ports from the legacy add-on: gateway `18790`, terminal `7682`, ingress `48109`.
 - On a first boot, if the legacy `openclaw_assistant` install is detected and this fork has no existing state, it will try to stop the old add-on and import its add-on config automatically.
+- On startup, the add-on now also reconciles older OpenClaw `agent/` and `sessions/` layouts into the current `agents/main/...` structure before the gateway comes up.
 - If the legacy add-on is still running and automatic migration fails, stop or uninstall the old add-on before starting this fork to avoid host-network port conflicts.
+
+## First-start recovery
+
+- If a freshly hatched agent reports missing provider keys from `agents/main/agent/auth-profiles.json`, restart the add-on once so the legacy-to-current state reconciliation can run.
+- If local terminal or TUI access shows `pairing required` on a loopback-style install, restart once and retry. This fork now auto-approves same-host local operator pairing requests after the gateway starts.
+- Full operator guidance lives in [DOCS.md](DOCS.md).
 
 ## Read next
 

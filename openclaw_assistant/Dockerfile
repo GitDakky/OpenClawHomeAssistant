@@ -120,6 +120,8 @@ USER root
 ENV OPENCLAW_BUNDLED_VERSION="${OPENCLAW_VERSION}"
 RUN npm config set fund false && npm config set audit false \
     && npm install -g "openclaw@${OPENCLAW_VERSION}" \
+    && install -d /usr/local/share \
+    && printf '%s\n' "${OPENCLAW_VERSION}" > /usr/local/share/openclaw-bundled-version \
     && openclaw --version \
     && openclaw --version | grep -F "OpenClaw ${OPENCLAW_VERSION}"
 

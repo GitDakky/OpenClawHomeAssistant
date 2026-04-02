@@ -15,6 +15,34 @@ import subprocess
 from pathlib import Path
 
 
+def resolve_bundled_openclaw_version() -> str:
+    env_value = os.environ.get('OPENCLAW_BUNDLED_VERSION', '').strip()
+    if env_value and env_value.lower() != 'unknown':
+        return env_value
+
+    version_file = Path('/usr/local/share/openclaw-bundled-version')
+    if version_file.exists():
+        file_value = version_file.read_text(encoding='utf-8').strip()
+        if file_value:
+            return file_value
+
+    try:
+        output = subprocess.check_output(
+            ['openclaw', '--version'],
+            text=True,
+            timeout=4,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        return 'unknown'
+
+    for token in output.replace('—', ' ').split():
+        if token[:1].isdigit():
+            return token
+
+    return 'unknown'
+
+
 def main():
     tpl = Path('/etc/nginx/nginx.conf.tpl').read_text()
     landing_tpl = Path('/etc/nginx/landing.html.tpl').read_text()
@@ -32,7 +60,7 @@ def main():
     disk_avail = os.environ.get('DISK_AVAIL', '')
     disk_pct = os.environ.get('DISK_PCT', '')
     nginx_log_level = os.environ.get('NGINX_LOG_LEVEL', 'minimal')
-    bundled_openclaw_version = os.environ.get('OPENCLAW_BUNDLED_VERSION', 'unknown')
+    bundled_openclaw_version = resolve_bundled_openclaw_version()
 
     # Token comes from environment (best-effort CLI query in run.sh)
     token = os.environ.get('GW_TOKEN', '')

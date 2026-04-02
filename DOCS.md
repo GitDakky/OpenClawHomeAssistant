@@ -894,6 +894,36 @@ Go to **Settings → Apps → OpenClaw Super Home Assistant → Log** tab. Logs 
    openclaw devices approve <requestId>
    ```
 
+### New agent says "No API key found for provider ..."
+
+**Symptom**: After hatching or opening a new TUI session, the agent reports `No API key found for provider "anthropic"` (or another provider) and points at `agents/main/agent/auth-profiles.json`.
+
+**Cause**: Current OpenClaw stores model credentials per-agent under `agents/<agentId>/agent/auth-profiles.json`. Older installs often kept auth and sessions in the legacy single-agent layout (`/config/.openclaw/agent/` and `/config/.openclaw/sessions/`).
+
+**Fix**:
+1. Restart the add-on once. This fork now reconciles legacy single-agent state into `agents/main/...` before the gateway starts.
+2. If the warning persists, run:
+   ```sh
+   openclaw doctor --non-interactive
+   ```
+3. If you still need to compare files manually, check:
+   - legacy auth store: `/config/.openclaw/agent/auth-profiles.json`
+   - current auth store: `/config/.openclaw/agents/main/agent/auth-profiles.json`
+4. Restart the add-on and hatch the TUI again.
+
+### Local TUI says "pairing required" after hatch
+
+**Symptom**: The local TUI connects, but operator actions or local command execution fail with `gateway closed (1008): pairing required`.
+
+**Fix**:
+1. Restart the add-on once so the new same-host pairing helper is active.
+2. Retry the TUI session.
+3. If you still see it, inspect and approve pending requests manually:
+   ```sh
+   openclaw devices list --json
+   openclaw devices approve --latest
+   ```
+
 ### Gateway UI shows "Unauthorized"
 
 **Fix**: Get the correct token and use it:

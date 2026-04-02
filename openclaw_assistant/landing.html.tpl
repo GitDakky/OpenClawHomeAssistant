@@ -5,182 +5,608 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OpenClaw Super Home Assistant</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:16px;background:#0b0f14;color:#e6edf3}
+    :root{
+      --bg:#04070d;
+      --bg-accent:#091322;
+      --panel:#0b1220cc;
+      --panel-strong:#0f1728;
+      --panel-soft:#111b2f;
+      --line:#20314b;
+      --line-strong:#32527a;
+      --text:#eef4ff;
+      --muted:#97a8c4;
+      --accent:#57a6ff;
+      --accent-strong:#2b7cff;
+      --accent-soft:#7ce7d2;
+      --warn:#ffb24a;
+      --danger:#ff6d6d;
+      --success:#51d9a6;
+      --code:#08111d;
+      --shadow:0 24px 80px rgba(0,0,0,.42);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%}
+    body{
+      font-family:"Space Grotesk","Avenir Next","Segoe UI",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(42,96,255,.22), transparent 34%),
+        radial-gradient(circle at top right, rgba(66,214,177,.12), transparent 28%),
+        linear-gradient(180deg, #07101c 0%, #04070d 55%, #020409 100%);
+      padding:28px 18px 36px;
+    }
     a,button{font:inherit}
-    .card{max-width:1100px;margin:0 auto;background:#111827;border:1px solid #1f2937;border-radius:12px;padding:16px}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .btn{background:#2563eb;color:white;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;text-decoration:none;display:inline-block;font-size:14px}
-    .btn.secondary{background:#334155}
-    .btn.green{background:#059669}
-    .btn.amber{background:#d97706}
-    .btn:hover{filter:brightness(1.15)}
-    .muted{color:#9ca3af;font-size:14px}
-    .term{margin-top:14px;height:60vh;min-height:360px;border:1px solid #1f2937;border-radius:10px;overflow:hidden}
-    iframe{width:100%;height:100%;border:0;background:black}
-    code{background:#0b1220;padding:2px 6px;border-radius:6px;font-size:13px}
-    .status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0}
-    .status-item{padding:10px 14px;border-radius:10px;background:#0d1117;border:1px solid #1f2937;font-size:14px;display:flex;align-items:center;gap:8px}
-    .status-item .icon{font-size:18px;flex-shrink:0}
-    .banner{padding:12px 16px;border-radius:10px;margin:10px 0;font-size:14px;line-height:1.5}
-    .banner.info{background:#1e3a5f;border:1px solid #2563eb}
-    .banner.warn{background:#422006;border:1px solid #d97706}
-    .banner.error{background:#3b0d0d;border:1px solid #dc2626}
-    .banner.success{background:#052e16;border:1px solid #059669}
-    .wizard{background:#0d1117;border:1px solid #1f2937;border-radius:10px;padding:14px;margin:12px 0}
-    .wizard h3{margin:0 0 8px;font-size:15px}
-    .wizard ol{margin:6px 0;padding-left:22px;font-size:14px;line-height:1.8}
-    .wizard code{font-size:12px}
-    details{margin:8px 0}
-    details>summary{cursor:pointer;font-size:14px;color:#60a5fa;font-weight:500}
-    details>summary:hover{text-decoration:underline}
+    code,pre{
+      font-family:"SFMono-Regular","JetBrains Mono","Cascadia Code",monospace;
+    }
+    .shell{
+      max-width:1280px;
+      margin:0 auto;
+      display:grid;
+      gap:22px;
+    }
+    .hero{
+      display:grid;
+      grid-template-columns:minmax(0,1.28fr) minmax(320px,.92fr);
+      gap:20px;
+      align-items:stretch;
+    }
+    .panel{
+      position:relative;
+      overflow:hidden;
+      border-radius:var(--radius);
+      border:1px solid rgba(110,145,190,.18);
+      background:linear-gradient(180deg, rgba(12,19,33,.96), rgba(8,14,24,.96));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(14px);
+    }
+    .panel::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:linear-gradient(140deg, rgba(87,166,255,.08), transparent 35%, rgba(124,231,210,.06));
+    }
+    .hero-main{
+      padding:30px 30px 28px;
+      display:grid;
+      gap:22px;
+      min-height:360px;
+    }
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      color:var(--accent-soft);
+      font-size:13px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+    }
+    .eyebrow::before{
+      content:"";
+      width:34px;
+      height:2px;
+      border-radius:999px;
+      background:linear-gradient(90deg, var(--accent), var(--accent-soft));
+      box-shadow:0 0 18px rgba(87,166,255,.5);
+    }
+    h1{
+      margin:0;
+      font-size:clamp(38px, 5vw, 64px);
+      line-height:.96;
+      letter-spacing:-.05em;
+      max-width:10ch;
+    }
+    .lede{
+      margin:0;
+      max-width:58ch;
+      color:#cad7ea;
+      font-size:17px;
+      line-height:1.65;
+    }
+    .hero-copy{
+      display:grid;
+      gap:14px;
+    }
+    .chip-row,
+    .action-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      min-height:42px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(9,18,32,.88);
+      border:1px solid rgba(103,137,179,.22);
+      color:var(--muted);
+      font-size:13px;
+    }
+    .chip code{
+      color:var(--text);
+      background:transparent;
+      padding:0;
+      font-size:13px;
+    }
+    .hero-note{
+      display:grid;
+      gap:10px;
+      max-width:64ch;
+      padding:18px 20px;
+      border-radius:20px;
+      background:linear-gradient(180deg, rgba(11,22,38,.84), rgba(8,16,29,.78));
+      border:1px solid rgba(87,166,255,.16);
+    }
+    .hero-note b{
+      color:var(--text);
+      font-size:15px;
+    }
+    .hero-note p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+      font-size:14px;
+    }
+    .hero-side{
+      padding:24px;
+      display:grid;
+      gap:14px;
+      align-content:start;
+    }
+    .mini-card{
+      position:relative;
+      border-radius:20px;
+      padding:18px 18px 16px;
+      background:linear-gradient(180deg, rgba(14,24,40,.94), rgba(8,15,26,.9));
+      border:1px solid rgba(108,145,191,.18);
+    }
+    .mini-card h2{
+      margin:0 0 6px;
+      font-size:15px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#d3deee;
+    }
+    .mini-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+    .status-grid{
+      display:grid;
+      gap:12px;
+    }
+    .status-item{
+      display:grid;
+      grid-template-columns:28px 1fr;
+      gap:12px;
+      align-items:start;
+      padding:16px 16px 15px;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(12,19,33,.92), rgba(8,14,24,.88));
+      border:1px solid rgba(88,114,146,.18);
+      min-height:82px;
+      font-size:14px;
+      line-height:1.55;
+    }
+    .status-item .icon{
+      display:grid;
+      place-items:center;
+      width:28px;
+      height:28px;
+      border-radius:10px;
+      background:rgba(87,166,255,.12);
+      font-size:15px;
+    }
+    .status-item b{color:var(--text)}
+    .status-label{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+      margin-bottom:6px;
+      display:block;
+    }
+    .action-row .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      min-height:48px;
+      padding:0 18px;
+      border:0;
+      border-radius:16px;
+      text-decoration:none;
+      cursor:pointer;
+      transition:transform .18s ease, filter .18s ease, box-shadow .18s ease;
+    }
+    .btn:hover{transform:translateY(-1px);filter:brightness(1.07)}
+    .btn.primary{
+      color:#07111f;
+      font-weight:700;
+      background:linear-gradient(135deg, #64b3ff, #7ce7d2);
+      box-shadow:0 12px 28px rgba(87,166,255,.22);
+    }
+    .btn.secondary{
+      color:var(--text);
+      background:rgba(17,27,47,.92);
+      border:1px solid rgba(88,114,146,.22);
+    }
+    .btn.ghost{
+      color:#d9f0ff;
+      background:rgba(18,35,57,.72);
+      border:1px solid rgba(124,231,210,.18);
+    }
+    .banner-stack{
+      display:grid;
+      gap:14px;
+    }
+    .banner{
+      padding:16px 18px;
+      border-radius:18px;
+      border:1px solid transparent;
+      font-size:14px;
+      line-height:1.65;
+    }
+    .banner.info{
+      background:linear-gradient(180deg, rgba(18,35,57,.86), rgba(10,20,34,.82));
+      border-color:rgba(87,166,255,.26);
+      color:#d8e7ff;
+    }
+    .banner.warn{
+      background:linear-gradient(180deg, rgba(57,34,12,.82), rgba(34,20,7,.78));
+      border-color:rgba(255,178,74,.34);
+      color:#ffe2b7;
+    }
+    .banner.error{
+      background:linear-gradient(180deg, rgba(59,16,20,.82), rgba(34,10,12,.78));
+      border-color:rgba(255,109,109,.34);
+      color:#ffd0d0;
+    }
+    .banner.success{
+      background:linear-gradient(180deg, rgba(9,44,33,.82), rgba(5,25,19,.78));
+      border-color:rgba(81,217,166,.3);
+      color:#d8fff0;
+    }
+    .wizard{
+      padding:20px 22px;
+      border-radius:22px;
+      border:1px solid rgba(110,145,190,.18);
+      background:linear-gradient(180deg, rgba(12,19,33,.96), rgba(9,15,25,.94));
+      box-shadow:var(--shadow);
+    }
+    .wizard h3{
+      margin:0 0 10px;
+      font-size:18px;
+      letter-spacing:-.02em;
+    }
+    .wizard p,
+    .wizard li{
+      color:var(--muted);
+      line-height:1.75;
+      font-size:14px;
+    }
+    .wizard ol,
+    .wizard ul{
+      margin:8px 0 0;
+      padding-left:22px;
+    }
+    .guides{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:18px;
+    }
+    .guide-card{
+      padding:18px 18px 10px;
+    }
+    details{
+      border-radius:18px;
+      background:rgba(9,17,30,.72);
+      border:1px solid rgba(88,114,146,.18);
+      overflow:hidden;
+    }
+    details > summary{
+      cursor:pointer;
+      padding:16px 18px;
+      font-size:15px;
+      font-weight:700;
+      color:#dfe9f8;
+      list-style:none;
+    }
+    details > summary::-webkit-details-marker{display:none}
+    details > div{
+      padding:0 18px 18px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.7;
+    }
+    pre{
+      margin:10px 0 0;
+      overflow:auto;
+      border-radius:16px;
+      padding:14px;
+      background:var(--code);
+      border:1px solid rgba(88,114,146,.18);
+      color:#d8e8ff;
+      font-size:12px;
+      line-height:1.6;
+    }
+    code{
+      background:rgba(7,17,31,.9);
+      padding:2px 6px;
+      border-radius:8px;
+      color:#d8e8ff;
+      font-size:12px;
+    }
+    .terminal-shell{
+      padding:22px;
+      display:grid;
+      gap:16px;
+    }
+    .terminal-head{
+      display:flex;
+      gap:14px;
+      justify-content:space-between;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .terminal-head h3{
+      margin:4px 0 0;
+      font-size:28px;
+      letter-spacing:-.04em;
+    }
+    .terminal-head p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      max-width:64ch;
+      line-height:1.65;
+    }
+    .term{
+      height:64vh;
+      min-height:420px;
+      border-radius:20px;
+      border:1px solid rgba(84,121,166,.24);
+      overflow:hidden;
+      background:#020409;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    iframe{
+      width:100%;
+      height:100%;
+      border:0;
+      background:#020409;
+    }
     .hidden{display:none}
-    .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600;vertical-align:middle}
-    .badge.secure{background:#059669;color:#fff}
-    .badge.insecure{background:#dc2626;color:#fff}
-    .badge.mode{background:#2563eb;color:#fff}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:32px;
+      padding:0 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .badge.secure{background:rgba(81,217,166,.16);color:#b4ffd9;border:1px solid rgba(81,217,166,.28)}
+    .badge.insecure{background:rgba(255,109,109,.14);color:#ffc8c8;border:1px solid rgba(255,109,109,.26)}
+    .badge.mode{background:rgba(87,166,255,.16);color:#dbeaff;border:1px solid rgba(87,166,255,.28)}
+    .subtle{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+    @media (max-width: 1040px){
+      .hero{grid-template-columns:1fr}
+      .guides{grid-template-columns:1fr}
+    }
+    @media (max-width: 720px){
+      body{padding:18px 12px 24px}
+      .hero-main,.hero-side,.terminal-shell{padding:18px}
+      .status-item{min-height:unset}
+      h1{max-width:none}
+      .terminal-head h3{font-size:24px}
+      .term{height:56vh;min-height:340px}
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2 style="margin:0 0 4px 0">OpenClaw Super Home Assistant</h2>
-    <div class="muted" style="margin-bottom:8px">Bundled OpenClaw: <code>__OPENCLAW_BUNDLED_VERSION__</code></div>
-    <div class="banner info" style="margin-top:0">
-      <b>GitDakky fork:</b> This app is intentionally separate from the legacy OpenClaw Assistant add-on.
-      On a first start, it will try to stop the legacy add-on and import its add-on config automatically before claiming ports.
-    </div>
-    <div style="margin-bottom:10px">
-      <span class="badge mode" id="modeBadge">__ACCESS_MODE__</span>
-      <span class="badge" id="secureBadge"></span>
-    </div>
+  <div class="shell">
+    <section class="hero">
+      <div class="panel hero-main">
+        <div class="hero-copy">
+          <div class="eyebrow">GitDakky Fork Operator Console</div>
+          <h1>OpenClaw Super Home Assistant</h1>
+          <p class="lede">
+            Modernized Home Assistant runtime for OpenClaw with a darker operator-first shell,
+            cleaner migration handling, and a clearer separation from the legacy add-on line.
+          </p>
+        </div>
 
-    <!-- ==================== STATUS GRID ==================== -->
-    <div class="status-grid">
-      <div class="status-item" id="statusGateway">
-        <span class="icon">⏳</span>
-        <span>Gateway: checking&hellip;</span>
+        <div class="chip-row">
+          <div class="chip">Bundled OpenClaw <code>__OPENCLAW_BUNDLED_VERSION__</code></div>
+          <div class="chip">Gateway mode <code>__ACCESS_MODE__</code></div>
+          <span class="badge mode" id="modeBadge">__ACCESS_MODE__</span>
+          <span class="badge" id="secureBadge"></span>
+        </div>
+
+        <div class="action-row">
+          <a class="btn primary" id="gwbtn" href="__GATEWAY_PUBLIC_URL____GW_PUBLIC_URL_PATH__?token=__GATEWAY_TOKEN__" target="_blank" rel="noopener noreferrer">Open Gateway Web UI</a>
+          <a class="btn secondary" href="./terminal/" target="_self">Open Terminal (full page)</a>
+          <a class="btn ghost hidden" id="certBtn" href="" target="_blank" rel="noopener noreferrer">Download CA Certificate</a>
+        </div>
+
+        <div class="hero-note">
+          <b>Fork identity and migration</b>
+          <p>
+            This install is intentionally separate from the legacy OpenClaw Assistant add-on.
+            On a first start, the fork tries to stop the old add-on, import its add-on config,
+            and continue from the migrated state without reusing the old identity.
+          </p>
+          <p>
+            Clean installs also default to separate ports so the fork does not collide with the abandoned line before migration runs.
+          </p>
+        </div>
       </div>
-      <div class="status-item" id="statusSecure">
-        <span class="icon">🔒</span>
-        <span>Secure context: checking&hellip;</span>
+
+      <aside class="panel hero-side">
+        <div class="mini-card">
+          <h2>Runtime Snapshot</h2>
+          <p>
+            Live status, secure-context state, access mode, and disk pressure are surfaced here first so
+            operators can see the next action without digging through logs.
+          </p>
+        </div>
+
+        <div class="status-grid">
+          <div class="status-item" id="statusGateway">
+            <span class="icon">GW</span>
+            <span><span class="status-label">Gateway</span>Checking runtime health...</span>
+          </div>
+          <div class="status-item" id="statusSecure">
+            <span class="icon">TLS</span>
+            <span><span class="status-label">Secure Context</span>Checking browser security requirements...</span>
+          </div>
+          <div class="status-item" id="statusAccess">
+            <span class="icon">CFG</span>
+            <span><span class="status-label">Access Mode</span><b>__ACCESS_MODE__</b></span>
+          </div>
+          <div class="status-item" id="statusDisk">
+            <span class="icon" id="diskIcon">DSK</span>
+            <span id="diskText"><span class="status-label">Disk</span>__DISK_USED__ / __DISK_TOTAL__ (__DISK_PCT__) - __DISK_AVAIL__ free</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="banner-stack">
+      <div class="banner warn hidden" id="migrationBanner">
+        <b>Migration note:</b> OpenClaw requires HTTPS or localhost for the Control UI.
+        Plain HTTP LAN access will be rejected. Switch <code>access_mode</code> to <b>lan_https</b>
+        for the cleanest built-in secure path.
       </div>
-      <div class="status-item" id="statusAccess">
-        <span class="icon">📡</span>
-        <span>Access mode: <b>__ACCESS_MODE__</b></span>
+      <div class="banner warn hidden" id="diskBanner">
+        <b>Low disk space:</b> <span id="diskBannerText"></span><br>
+        Open the terminal and run <code>oc-cleanup</code>. For Docker-level cleanup, use a host root shell and run
+        <code>docker image prune -a</code>.
       </div>
-      <div class="status-item" id="statusDisk">
-        <span class="icon" id="diskIcon">💾</span>
-        <span id="diskText">Disk: __DISK_USED__ / __DISK_TOTAL__ (__DISK_PCT__) — __DISK_AVAIL__ free</span>
-      </div>
+      <div class="banner error hidden" id="errorBanner"></div>
+      <div class="banner success hidden" id="successBanner"></div>
     </div>
 
-    <!-- ==================== ACTION BUTTONS ==================== -->
-    <div class="row" style="margin-bottom:6px">
-      <a class="btn" id="gwbtn" href="__GATEWAY_PUBLIC_URL____GW_PUBLIC_URL_PATH__?token=__GATEWAY_TOKEN__" target="_blank" rel="noopener noreferrer">Open Gateway Web UI</a>
-      <a class="btn secondary" href="./terminal/" target="_self">Open Terminal (full page)</a>
-      <a class="btn green hidden" id="certBtn" href="" target="_blank" rel="noopener noreferrer">Download CA Certificate</a>
-    </div>
-
-    <!-- ==================== MIGRATION BANNER ==================== -->
-    <div class="banner warn hidden" id="migrationBanner">
-      <b>⚠️ Migration notice:</b> OpenClaw v2026.2.21+ requires HTTPS or localhost for Control UI.
-      Plain HTTP LAN access no longer works. Switch <code>access_mode</code> to <b>lan_https</b>
-      in add-on Configuration for one-click secure LAN access, then restart.
-    </div>
-
-    <!-- ==================== LOW DISK SPACE BANNER ==================== -->
-    <div class="banner warn hidden" id="diskBanner">
-      <b>⚠️ Low disk space:</b> <span id="diskBannerText"></span><br>
-      Add-on updates and Docker builds may fail. Open the terminal and run <code>oc-cleanup</code> to free space.
-      For Docker-level cleanup, open a <strong>host root shell</strong> (Advanced SSH add-on with Protection Mode off, or type <code>login</code> at the HAOS console) and run <code>docker image prune -a</code>.
-    </div>
-
-    <!-- ==================== ERROR BANNER (populated by JS) ==================== -->
-    <div class="banner error hidden" id="errorBanner"></div>
-
-    <!-- ==================== SUCCESS BANNER ==================== -->
-    <div class="banner success hidden" id="successBanner"></div>
-
-    <!-- ==================== ACCESS WIZARD ==================== -->
-    <div class="wizard hidden" id="wizard">
-      <h3>🧭 Quick-Start: Secure LAN Access</h3>
+    <section class="wizard hidden" id="wizard">
+      <h3>Recommended next step</h3>
       <div id="wizardContent"></div>
-    </div>
+    </section>
 
-    <!-- ==================== TIPS ==================== -->
-    <details>
-      <summary>Tips &amp; token help</summary>
-      <div class="muted" style="margin-top:6px">
-        The gateway UI opens in a separate tab to avoid websocket/proxy issues with Ingress.
-        Set <code>gateway_public_url</code> in add-on options if the button URL is wrong.
+    <section class="guides">
+      <div class="panel guide-card">
+        <details>
+          <summary>Token and access quick help</summary>
+          <div>
+            <p>
+              The Gateway UI opens in a separate tab to avoid Home Assistant ingress websocket quirks.
+              If the launch URL is wrong, set <code>gateway_public_url</code> in the app configuration.
+            </p>
+            <p>
+              If the Gateway UI says <b>Unauthorized</b>, retrieve the token in the embedded terminal:
+            </p>
+            <pre>jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json</pre>
+            <p class="subtle">
+              Since OpenClaw v2026.2.22+, <code>openclaw config get</code> redacts secrets, so read the file directly.
+            </p>
+          </div>
+        </details>
       </div>
-      <div class="muted" style="margin-top:6px">
-        If the Gateway UI says <b>Unauthorized</b>, get your token from the terminal:<br>
-        <code>jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json</code><br>
-        <small style="color:#6b7280">(Since OpenClaw v2026.2.22+, <code>openclaw config get</code> redacts secrets — read the file directly instead.)</small>
-      </div>
-    </details>
 
-    <!-- ==================== PROXY RECIPES ==================== -->
-    <details>
-      <summary>MCP setup (Home Assistant control)</summary>
-      <div style="margin-top:8px;font-size:13px;color:#9ca3af;line-height:1.7">
-        <p><b>MCP (Model Context Protocol)</b> lets OpenClaw control Home Assistant entities, services, and automations directly.</p>
-
-        <b>Automatic (recommended)</b>
-        <ol style="margin:4px 0;padding-left:22px;line-height:1.8">
-          <li>Create a <b>Long-Lived Access Token</b> in HA: click your profile avatar → scroll to <b>Long-Lived Access Tokens</b> → <b>Create Token</b></li>
-          <li>Paste it into add-on option <code>homeassistant_token</code> in <b>Settings → Apps → OpenClaw Super Home Assistant → Configuration</b></li>
-          <li>Set <code>auto_configure_mcp</code> to <b>ON</b> in add-on Configuration</li>
-          <li>Restart the add-on — MCP is configured automatically</li>
-        </ol>
-
-        <b>Manual (terminal)</b>
-        <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px">mcporter config add HA "http://localhost:8123/api/mcp" \
+      <div class="panel guide-card">
+        <details>
+          <summary>MCP setup (Home Assistant control)</summary>
+          <div>
+            <p><b>MCP</b> lets OpenClaw control Home Assistant entities, services, and automations directly.</p>
+            <p><b>Automatic:</b> create a long-lived access token in Home Assistant, paste it into <code>homeassistant_token</code>, enable <code>auto_configure_mcp</code>, and restart the app.</p>
+            <p><b>Manual:</b></p>
+            <pre>mcporter config add HA "http://localhost:8123/api/mcp" \
   --header "Authorization=Bearer YOUR_LONG_LIVED_TOKEN" \
   --scope home</pre>
-
-        <b>After upgrades</b> — if OpenClaw has stale HA data:
-        <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px">mcporter call home-assistant.GetLiveContext</pre>
-
-        <p><b>Tip:</b> The first MCP session needs a capable model (Gemini 3.1 Pro, Claude Sonnet 4, GPT-4.1). After setup, cheaper models work fine.</p>
+            <p><b>After upgrades:</b></p>
+            <pre>mcporter call home-assistant.GetLiveContext</pre>
+          </div>
+        </details>
       </div>
-    </details>
 
-    <details>
-      <summary>Reverse-proxy recipes (NPM / Caddy / Traefik / Tailscale)</summary>
-      <div style="margin-top:8px;font-size:13px;color:#9ca3af;line-height:1.7">
-
-        <b>Nginx Proxy Manager (NPM)</b>
-        <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px">Scheme:   https
+      <div class="panel guide-card">
+        <details>
+          <summary>Reverse-proxy recipes (NPM / Caddy / Traefik / Tailscale)</summary>
+          <div>
+            <p><b>Nginx Proxy Manager</b></p>
+            <pre>Scheme:   https
 Forward:  &lt;HA-IP&gt;:18790
 WS:       ON
-SSL tab:  Request a new SSL certificate (Let's Encrypt or custom)</pre>
-
-        <b>Caddy</b>
-        <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px">openclaw.example.com {
+SSL tab:  Request a new SSL certificate</pre>
+            <p><b>Caddy</b></p>
+            <pre>openclaw.example.com {
     reverse_proxy &lt;HA-IP&gt;:18790
 }</pre>
-
-        <b>Traefik (docker labels)</b>
-        <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px">- "traefik.http.routers.openclaw.rule=Host(`openclaw.example.com`)"
+            <p><b>Traefik</b></p>
+            <pre>- "traefik.http.routers.openclaw.rule=Host(`openclaw.example.com`)"
 - "traefik.http.routers.openclaw.tls.certresolver=le"
 - "traefik.http.services.openclaw.loadbalancer.server.port=18790"</pre>
-
-        <b>Tailscale HTTPS</b>
-        <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px"># 1. Set access_mode to tailnet_https in add-on configuration
-# 2. Enable Tailscale HTTPS in your Tailnet admin: DNS → HTTPS Certificates
-# 3. On the HA host:  tailscale cert &lt;machine-name&gt;.ts.net
+            <p><b>Tailscale HTTPS</b></p>
+            <pre># 1. Set access_mode to tailnet_https
+# 2. Enable Tailscale HTTPS certificates
+# 3. tailscale cert &lt;machine-name&gt;.ts.net
 # 4. Set gateway_public_url to https://&lt;machine-name&gt;.ts.net:18790</pre>
+          </div>
+        </details>
       </div>
-    </details>
 
-    <!-- ==================== TERMINAL ==================== -->
-    <div class="term">
-      <iframe src="./terminal/" title="Terminal"></iframe>
-    </div>
+      <div class="panel guide-card">
+        <details>
+          <summary>Operator notes</summary>
+          <div>
+            <p>
+              If you migrated from the older add-on line, the fork now reconciles legacy single-agent state into the current per-agent
+              OpenClaw layout so sessions, auth, and model state continue to work under <code>agents/main</code>.
+            </p>
+            <p>
+              Same-host CLI and TUI pairing requests are auto-approved on loopback-style installs to reduce local operator friction without opening remote pairing.
+            </p>
+            <p>
+              For a full recovery pass, run <code>openclaw doctor --non-interactive</code> from the embedded terminal.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel terminal-shell">
+      <div class="terminal-head">
+        <div>
+          <div class="eyebrow">Embedded Terminal</div>
+          <h3>Direct operator console</h3>
+        </div>
+        <p>
+          Keep onboarding, doctor runs, token inspection, and migration recovery inside the add-on.
+          The terminal remains first-class here; the page around it just stops looking like a default admin stub.
+        </p>
+      </div>
+      <div class="term">
+        <iframe src="./terminal/" title="Terminal"></iframe>
+      </div>
+    </section>
   </div>
 
-  <!-- ==================== CLIENT-SIDE LOGIC ==================== -->
   <script>
   (function() {
     const ACCESS_MODE = '__ACCESS_MODE__';
@@ -194,69 +620,65 @@ SSL tab:  Request a new SSL certificate (Let's Encrypt or custom)</pre>
 
     const $ = id => document.getElementById(id);
 
-    // ---------- Secure context detection ----------
     const isSecure = window.isSecureContext;
     const secureBadge = $('secureBadge');
     const statusSecure = $('statusSecure');
     if (isSecure) {
-      secureBadge.textContent = 'secure';
+      secureBadge.textContent = 'Secure';
       secureBadge.className = 'badge secure';
-      statusSecure.innerHTML = '<span class="icon">✅</span><span>Secure context: <b>yes</b></span>';
+      statusSecure.innerHTML = '<span class="icon">TLS</span><span><span class="status-label">Secure Context</span>Browser context is <b>ready</b> for device identity and Control UI auth.</span>';
     } else {
-      secureBadge.textContent = 'not secure';
+      secureBadge.textContent = 'Not Secure';
       secureBadge.className = 'badge insecure';
-      statusSecure.innerHTML = '<span class="icon">❌</span><span>Secure context: <b>no</b> — HTTPS required for Control UI</span>';
+      statusSecure.innerHTML = '<span class="icon">TLS</span><span><span class="status-label">Secure Context</span>Browser context is <b>not secure</b>. Control UI requires HTTPS or localhost.</span>';
     }
 
-    // ---------- Gateway health check ----------
     (async function checkGateway() {
       const statusEl = $('statusGateway');
       try {
         const url = GW_PUBLIC_URL
-          ? GW_PUBLIC_URL.replace(/\/$/, '') + '/api/health'
-          : '/api/health'; // fallback to relative (only works if proxied)
+          ? GW_PUBLIC_URL.replace(/\/$/, '') + '/api/health' + (GW_TOKEN ? ('?token=' + encodeURIComponent(GW_TOKEN)) : '')
+          : '/api/health';
         const r = await fetch(url, { mode: 'no-cors', cache: 'no-store' }).catch(() => null);
         if (r && (r.ok || r.type === 'opaque')) {
-          statusEl.innerHTML = '<span class="icon">✅</span><span>Gateway: <b>running</b></span>';
+          statusEl.innerHTML = '<span class="icon">GW</span><span><span class="status-label">Gateway</span>Gateway runtime looks <b>reachable</b>.</span>';
         } else {
-          statusEl.innerHTML = '<span class="icon">⚠️</span><span>Gateway: <b>unreachable</b> (may still be starting)</span>';
+          statusEl.innerHTML = '<span class="icon">GW</span><span><span class="status-label">Gateway</span>Gateway is <b>still starting</b> or not yet reachable from this page.</span>';
         }
       } catch {
-        statusEl.innerHTML = '<span class="icon">❌</span><span>Gateway: <b>unreachable</b></span>';
+        statusEl.innerHTML = '<span class="icon">GW</span><span><span class="status-label">Gateway</span>Gateway is <b>unreachable</b> from this page right now.</span>';
       }
     })();
 
-    // ---------- Error translation ----------
     const ERROR_MAP = {
       'control ui requires device identity': {
         friendly: 'The Gateway UI requires HTTPS or localhost (secure context). Plain HTTP over LAN is blocked since OpenClaw v2026.2.21.',
         fix: ACCESS_MODE === 'lan_https'
-          ? 'Your add-on is configured for lan_https. Open the gateway via the HTTPS URL above and install the CA certificate on your device.'
-          : 'Switch <code>access_mode</code> to <b>lan_https</b> in add-on Configuration, then restart. This enables a built-in HTTPS proxy for LAN access.'
+          ? 'Your app is configured for lan_https. Open the gateway via the HTTPS URL above and install the CA certificate on your device.'
+          : 'Switch <code>access_mode</code> to <b>lan_https</b> in app Configuration, then restart. This enables a built-in HTTPS proxy for LAN access.'
       },
       'requires secure context': {
         friendly: 'The browser is not in a secure context. HTTPS or localhost is required.',
-        fix: 'Use the HTTPS URL provided by the add-on, or set up a reverse proxy with TLS.'
+        fix: 'Use the HTTPS URL provided by the app, or place the gateway behind a reverse proxy with TLS.'
       },
       'pairing required': {
         friendly: 'The Gateway requires device pairing before the Control UI can connect.',
         fix: ACCESS_MODE === 'lan_https'
-          ? 'Restart the add-on — by default it sets <code>controlUi.dangerouslyDisableDeviceAuth: true</code> to skip pairing (token auth is still enforced). You can change this via <code>controlui_disable_device_auth</code> in add-on options. <br><small>Note: v2026.2.22+ shows an <em>expected</em> security warning for this flag in the gateway logs — it is safe to ignore.</small>'
-          : 'Set <code>access_mode</code> to <b>lan_https</b> and restart. Or from the terminal: edit <code>/config/.openclaw/openclaw.json</code> and set <code>gateway.controlUi.dangerouslyDisableDeviceAuth: true</code>, then restart the gateway.'
+          ? 'Restart the app — by default it sets <code>controlUi.dangerouslyDisableDeviceAuth: true</code> in lan_https mode to reduce LAN pairing friction while keeping token auth enabled.'
+          : 'Use <b>lan_https</b> for the simplest path, or approve pending devices manually from the embedded terminal.'
       },
       'origin not allowed': {
         friendly: 'The Gateway rejected the browser origin. The Control UI URL is not in the allow-list.',
         fix: ACCESS_MODE === 'lan_https'
-          ? 'Restart the add-on — it auto-adds HTTPS origins to <code>controlUi.allowedOrigins</code>. If you changed your LAN IP, a restart regenerates the config.'
-          : 'Manually add your origin: <code>openclaw config set gateway.controlUi.allowedOrigins \'["https://YOUR_IP:18790"]\' </code>'
+          ? 'Restart the app so it can refresh HTTPS origins and certificates for the current LAN IP.'
+          : 'Manually add your origin: <code>openclaw config set gateway.controlUi.allowedOrigins \'["https://YOUR_IP:18790"]\'</code>'
       },
       '1008': {
-        friendly: 'WebSocket disconnected (1008).',
-        fix: 'Ensure you are connecting over HTTPS. Check the add-on logs for the specific sub-error (device identity / origin / pairing).'
+        friendly: 'The websocket closed with code 1008.',
+        fix: 'Check whether the problem is secure context, origin policy, or pairing approval in the app logs.'
       }
     };
 
-    // Expose for manual use: translateError('1008')
     window.translateError = function(rawError) {
       const lower = (rawError || '').toLowerCase();
       for (const [pattern, info] of Object.entries(ERROR_MAP)) {
@@ -267,96 +689,82 @@ SSL tab:  Request a new SSL certificate (Let's Encrypt or custom)</pre>
       return null;
     };
 
-    // ---------- Migration banner ----------
     if (ACCESS_MODE === 'custom') {
       $('migrationBanner').classList.remove('hidden');
     }
 
-    // ---------- Disk space monitoring ----------
     if (DISK_PCT) {
       const pctNum = parseInt(DISK_PCT, 10);
       const diskIcon = $('diskIcon');
       const statusDisk = $('statusDisk');
       if (pctNum >= 90) {
-        diskIcon.textContent = '🔴';
-        statusDisk.style.borderColor = '#dc2626';
+        diskIcon.textContent = 'WRN';
+        statusDisk.style.borderColor = 'rgba(255,109,109,.4)';
         $('diskBanner').classList.remove('hidden');
         $('diskBannerText').textContent =
           `Disk is ${DISK_PCT} full (${DISK_AVAIL} free of ${DISK_TOTAL}).`;
       } else if (pctNum >= 75) {
-        diskIcon.textContent = '🟡';
-        statusDisk.style.borderColor = '#d97706';
+        diskIcon.textContent = 'OBS';
+        statusDisk.style.borderColor = 'rgba(255,178,74,.42)';
         $('diskBanner').classList.remove('hidden');
         $('diskBannerText').textContent =
-          `Disk is ${DISK_PCT} full (${DISK_AVAIL} free of ${DISK_TOTAL}). Consider cleaning up soon.`;
+          `Disk is ${DISK_PCT} full (${DISK_AVAIL} free of ${DISK_TOTAL}). Consider cleanup before the next image update.`;
       } else {
-        diskIcon.textContent = '🟢';
+        diskIcon.textContent = 'OK';
       }
     }
 
-    // ---------- CA certificate download ----------
     if (ACCESS_MODE === 'lan_https' && HTTPS_PORT) {
       const certBtn = $('certBtn');
-      // Build cert URL relative to the gateway's HTTPS port
       const host = window.location.hostname || 'homeassistant.local';
       certBtn.href = 'https://' + host + ':' + HTTPS_PORT + '/cert/ca.crt';
       certBtn.classList.remove('hidden');
     }
 
-    // ---------- Access wizard ----------
     const wizardEl = $('wizard');
     const wizardContent = $('wizardContent');
 
     if (ACCESS_MODE === 'lan_https') {
       wizardEl.classList.remove('hidden');
       wizardContent.innerHTML = `
-        <div class="banner success">✅ Built-in HTTPS proxy is active on port <b>${HTTPS_PORT}</b>.</div>
+        <div class="banner success">Built-in HTTPS proxy is active on port <b>${HTTPS_PORT}</b>.</div>
         <ol>
-          <li>Click <b>Open Gateway Web UI</b> above — it will use HTTPS automatically.</li>
-          <li>Your browser may show a certificate warning the first time. Click <b>Advanced → Proceed</b> to continue.</li>
-          <li><b>For phones/tablets (one-time):</b> Click <b>Download CA Certificate</b>, then install it:
-            <ul style="margin:4px 0;padding-left:18px">
-              <li><b>Android:</b> Settings → Security → Install certificate → CA certificate → select the file</li>
-              <li><b>iOS:</b> Open the .crt file → Install Profile → Settings → General → About → Certificate Trust Settings → enable</li>
-            </ul>
-            After installing the CA, the browser will trust the gateway without warnings.
-          </li>
+          <li>Use <b>Open Gateway Web UI</b> above. The link will target HTTPS automatically.</li>
+          <li>If the browser warns on first load, proceed once or install the local CA certificate for trust.</li>
+          <li>For phones and tablets, use <b>Download CA Certificate</b> once and install it so the gateway opens cleanly after that.</li>
         </ol>`;
     } else if (ACCESS_MODE === 'lan_reverse_proxy') {
       wizardEl.classList.remove('hidden');
       wizardContent.innerHTML = `
         <ol>
-          <li>Configure your reverse proxy (NPM / Caddy / Traefik) to forward HTTPS to <code>&lt;HA-IP&gt;:${GW_PUBLIC_URL ? new URL(GW_PUBLIC_URL).port || '18790' : '18790'}</code>.</li>
-          <li>Set <code>gateway_public_url</code> to your HTTPS URL (e.g. <code>https://openclaw.example.com</code>).</li>
-          <li>Set <code>gateway_trusted_proxies</code> to your proxy's IP/CIDR.</li>
-          <li>Restart the add-on. See <b>Reverse-proxy recipes</b> below for copy-paste configs.</li>
+          <li>Point your HTTPS reverse proxy at <code>&lt;HA-IP&gt;:${GW_PUBLIC_URL ? new URL(GW_PUBLIC_URL).port || '18790' : '18790'}</code>.</li>
+          <li>Set <code>gateway_public_url</code> to the final HTTPS hostname.</li>
+          <li>Set <code>gateway_trusted_proxies</code> to your proxy IP or CIDR.</li>
+          <li>Restart the app after saving the configuration.</li>
         </ol>`;
     } else if (ACCESS_MODE === 'tailnet_https') {
       wizardEl.classList.remove('hidden');
       wizardContent.innerHTML = `
         <ol>
-          <li>Ensure Tailscale is installed on the HA host and this device.</li>
-          <li>Enable HTTPS certificates in Tailnet admin: <b>DNS → HTTPS Certificates</b>.</li>
-          <li>On the HA host: <code>tailscale cert &lt;machine-name&gt;.ts.net</code></li>
-          <li>Set <code>gateway_public_url</code> to <code>https://&lt;machine-name&gt;.ts.net:18790</code></li>
-          <li>Restart the add-on.</li>
+          <li>Confirm Tailscale is running on the Home Assistant host.</li>
+          <li>Enable HTTPS certificates in Tailnet admin.</li>
+          <li>Issue a certificate for the machine and set <code>gateway_public_url</code> to the final HTTPS host.</li>
+          <li>Restart the app once the URL is in place.</li>
         </ol>`;
     } else if (ACCESS_MODE === 'local_only') {
       wizardEl.classList.remove('hidden');
       wizardContent.innerHTML = `
-        <div class="banner info">Gateway is bound to localhost only. Use the embedded terminal or Ingress.</div>
-        <p style="font-size:14px;">To access from phones or other devices, switch <code>access_mode</code> to <b>lan_https</b> in add-on Configuration.</p>`;
+        <div class="banner info">Gateway is loopback-only. Use the embedded terminal or the same host for direct operator work.</div>
+        <p>To reach the Control UI from phones or other browsers, switch <code>access_mode</code> to <b>lan_https</b>.</p>`;
     } else if (ACCESS_MODE === 'custom' && !isSecure) {
       wizardEl.classList.remove('hidden');
       wizardContent.innerHTML = `
-        <div class="banner warn">You are using custom settings and this page is not in a secure context.
-        The Gateway Control UI will reject connections over plain HTTP.</div>
-        <p style="font-size:14px"><b>Recommended:</b> Go to <b>Settings → Apps → OpenClaw Super Home Assistant → Configuration</b>
-        and set <code>access_mode</code> to one of:</p>
-        <ul style="font-size:14px;line-height:1.8;padding-left:22px">
-          <li><b>lan_https</b> — easiest, adds built-in HTTPS proxy (no external setup needed)</li>
-          <li><b>lan_reverse_proxy</b> — if you already have NPM / Caddy / Traefik</li>
-          <li><b>tailnet_https</b> — if you use Tailscale</li>
+        <div class="banner warn">This page is not in a secure context, so the browser cannot satisfy current Control UI requirements over plain LAN HTTP.</div>
+        <p><b>Recommended:</b> switch <code>access_mode</code> to one of these in <b>Settings -> Apps -> OpenClaw Super Home Assistant -> Configuration</b>:</p>
+        <ul>
+          <li><b>lan_https</b> for the easiest built-in HTTPS path</li>
+          <li><b>lan_reverse_proxy</b> if you already run NPM, Caddy, or Traefik</li>
+          <li><b>tailnet_https</b> if your remote path is Tailscale-first</li>
         </ul>`;
     }
 

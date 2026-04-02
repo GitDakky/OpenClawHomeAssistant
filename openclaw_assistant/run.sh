@@ -297,6 +297,94 @@ export XDG_CONFIG_HOME=/config
 
 mkdir -p /config/.openclaw /config/.openclaw/identity /config/clawd /config/keys /config/secrets
 
+DEFAULT_AGENT_ID="main"
+DEFAULT_AGENT_ROOT="/config/.openclaw/agents/${DEFAULT_AGENT_ID}"
+DEFAULT_AGENT_STATE_DIR="${DEFAULT_AGENT_ROOT}/agent"
+DEFAULT_AGENT_SESSIONS_DIR="${DEFAULT_AGENT_ROOT}/sessions"
+LEGACY_AGENT_STATE_DIR="/config/.openclaw/agent"
+LEGACY_SESSIONS_DIR="/config/.openclaw/sessions"
+LEGACY_STATE_MIGRATION_MARKER="/config/.openclaw/.gitdakky-agent-layout-migration"
+
+ensure_default_agent_layout() {
+  mkdir -p "$DEFAULT_AGENT_STATE_DIR" "$DEFAULT_AGENT_SESSIONS_DIR"
+  chmod 700 "$DEFAULT_AGENT_ROOT" "$DEFAULT_AGENT_STATE_DIR" "$DEFAULT_AGENT_SESSIONS_DIR" 2>/dev/null || true
+}
+
+legacy_agent_state_needs_migration() {
+  if [ -d "$LEGACY_AGENT_STATE_DIR" ] && [ ! -f "$DEFAULT_AGENT_STATE_DIR/auth-profiles.json" ] && [ -f "$LEGACY_AGENT_STATE_DIR/auth-profiles.json" ]; then
+    return 0
+  fi
+
+  if [ -d "$LEGACY_SESSIONS_DIR" ] && find "$LEGACY_SESSIONS_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null | grep -q .; then
+    if ! find "$DEFAULT_AGENT_SESSIONS_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null | grep -q .; then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+run_safe_doctor_state_migration() {
+  local log_file="/tmp/openclaw-doctor-migration.log"
+
+  if ! legacy_agent_state_needs_migration; then
+    return 0
+  fi
+
+  echo "INFO: Running safe OpenClaw doctor migration for legacy agent/session layout..."
+  if openclaw doctor --non-interactive >"$log_file" 2>&1; then
+    echo "INFO: OpenClaw doctor completed safe migrations."
+  else
+    echo "WARN: openclaw doctor --non-interactive did not complete cleanly; falling back to direct state sync."
+    tail -n 20 "$log_file" 2>/dev/null || true
+  fi
+}
+
+fallback_sync_default_agent_state() {
+  local migrated_any=false
+
+  ensure_default_agent_layout
+
+  if [ -d "$LEGACY_AGENT_STATE_DIR" ]; then
+    echo "INFO: Syncing legacy agent state into ${DEFAULT_AGENT_STATE_DIR} ..."
+    rsync -a --ignore-existing "${LEGACY_AGENT_STATE_DIR}/" "${DEFAULT_AGENT_STATE_DIR}/"
+    migrated_any=true
+  fi
+
+  if [ -d "$LEGACY_SESSIONS_DIR" ]; then
+    echo "INFO: Syncing legacy sessions into ${DEFAULT_AGENT_SESSIONS_DIR} ..."
+    rsync -a --ignore-existing "${LEGACY_SESSIONS_DIR}/" "${DEFAULT_AGENT_SESSIONS_DIR}/"
+    migrated_any=true
+  fi
+
+  if [ -f "$DEFAULT_AGENT_STATE_DIR/auth-profiles.json" ]; then
+    chmod 600 "$DEFAULT_AGENT_STATE_DIR/auth-profiles.json" 2>/dev/null || true
+  fi
+
+  if [ "$migrated_any" = true ]; then
+    {
+      echo "migrated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      echo "source_agent_dir=${LEGACY_AGENT_STATE_DIR}"
+      echo "source_sessions_dir=${LEGACY_SESSIONS_DIR}"
+    } > "$LEGACY_STATE_MIGRATION_MARKER"
+  fi
+}
+
+reconcile_default_agent_state() {
+  ensure_default_agent_layout
+
+  if ! legacy_agent_state_needs_migration; then
+    return 0
+  fi
+
+  run_safe_doctor_state_migration
+
+  if legacy_agent_state_needs_migration; then
+    echo "INFO: Legacy state still present after doctor; copying missing files into agents/${DEFAULT_AGENT_ID}/..."
+    fallback_sync_default_agent_state
+  fi
+}
+
 # ------------------------------------------------------------------------------
 # Sync built-in OpenClaw skills from image to persistent storage
 # On each startup, copy new/updated built-in skills so they survive rebuilds.
@@ -619,6 +707,7 @@ GW_PID=""
 GW_RELAY_PID=""
 NGINX_PID=""
 TTYD_PID=""
+LOCAL_PAIRING_APPROVER_PID=""
 SHUTTING_DOWN="false"
 
 shutdown() {
@@ -633,6 +722,11 @@ shutdown() {
   if [ -n "${TTYD_PID}" ] && kill -0 "${TTYD_PID}" >/dev/null 2>&1; then
     kill -TERM "${TTYD_PID}" >/dev/null 2>&1 || true
     wait "${TTYD_PID}" || true
+  fi
+
+  if [ -n "${LOCAL_PAIRING_APPROVER_PID}" ] && kill -0 "${LOCAL_PAIRING_APPROVER_PID}" >/dev/null 2>&1; then
+    kill -TERM "${LOCAL_PAIRING_APPROVER_PID}" >/dev/null 2>&1 || true
+    wait "${LOCAL_PAIRING_APPROVER_PID}" 2>/dev/null || true
   fi
 
   if [ -n "${GW_PID}" ] && kill -0 "${GW_PID}" >/dev/null 2>&1; then
@@ -695,6 +789,8 @@ cfg_path.write_text(json.dumps(cfg, indent=2) + "\n", encoding='utf-8')
 print("INFO: Wrote minimal OpenClaw config (gateway.mode=local, auth.token generated)")
 PY
 fi
+
+reconcile_default_agent_state
 
 # ------------------------------------------------------------------------------
 # Apply gateway LAN mode settings safely using helper script
@@ -1008,6 +1104,89 @@ stop_gw_relay() {
   fi
 }
 
+auto_approve_local_pairings_once() {
+  local devices_json request_ids request_id approved_count=0
+
+  if [ "$GATEWAY_MODE" != "local" ]; then
+    return 0
+  fi
+
+  case "$GATEWAY_BIND_MODE" in
+    loopback)
+      ;;
+    *)
+      if [ "$ENABLE_HTTPS_PROXY" != "true" ] && [ "$ACCESS_MODE" != "local_only" ]; then
+        return 0
+      fi
+      ;;
+  esac
+
+  devices_json="$(openclaw devices list --json 2>/dev/null || true)"
+  if [ -z "$devices_json" ]; then
+    return 0
+  fi
+
+  request_ids="$(printf '%s' "$devices_json" | jq -r '
+    .pending[]?
+    | select(
+        (
+          (.remoteIp // "") == "127.0.0.1"
+          or (.remoteIp // "") == "::1"
+          or ((.remoteIp // "") | startswith("::ffff:127."))
+          or (
+            (.remoteIp // "") == ""
+            and (
+              (.clientId // "") == "cli"
+              or (.clientMode // "") == "cli"
+              or (.clientId // "") == "openclaw-control-ui"
+              or (.clientId // "") == "clawdbot-control-ui"
+              or (.clientMode // "") == "webchat"
+            )
+          )
+        )
+        and (
+          (.role // "") == "operator"
+          or ((.roles // []) | index("operator"))
+        )
+      )
+    | .requestId
+  ' 2>/dev/null)" || true
+
+  if [ -z "$request_ids" ]; then
+    return 0
+  fi
+
+  while IFS= read -r request_id; do
+    [ -n "$request_id" ] || continue
+    if openclaw devices approve "$request_id" >/dev/null 2>&1; then
+      approved_count=$((approved_count + 1))
+      echo "INFO: Auto-approved same-host OpenClaw device pairing request ${request_id}."
+    fi
+  done <<EOF
+$request_ids
+EOF
+
+  if [ "$approved_count" -gt 0 ]; then
+    echo "INFO: Auto-approved ${approved_count} local device pairing request(s) for CLI/TUI access."
+  fi
+}
+
+start_local_pairing_approver() {
+  if [ "$GATEWAY_MODE" != "local" ]; then
+    return 0
+  fi
+
+  auto_approve_local_pairings_once || true
+
+  (
+    while true; do
+      sleep 8
+      auto_approve_local_pairings_once || true
+    done
+  ) &
+  LOCAL_PAIRING_APPROVER_PID=$!
+}
+
 # Find a running gateway daemon's PID using multiple detection methods.
 # Used by the supervisor loop to detect self-restarts (SIGUSR1) without
 # spawning duplicate gateway instances that collide on the port.
@@ -1060,6 +1239,7 @@ if ! start_openclaw_runtime; then
 fi
 
 start_gw_relay
+start_local_pairing_approver
 
 # Start web terminal (optional)
 TTYD_PID_FILE="/var/run/openclaw-ttyd.pid"

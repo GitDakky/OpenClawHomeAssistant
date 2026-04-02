@@ -2,6 +2,16 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.6.1] - 2026-04-02
+
+### Added
+- Added a safer startup reconciliation path for legacy single-agent OpenClaw state so older `agent/` and `sessions/` layouts are migrated into `agents/main/...` before the gateway starts.
+- Added a same-host device-pairing helper for local CLI/TUI operator requests on loopback-style installs to reduce spurious local `pairing required` failures.
+
+### Changed
+- Rebuilt the add-on landing page into a darker, more modern operator console while keeping the embedded terminal as a first-class section.
+- Made bundled OpenClaw version rendering resilient by resolving it from the runtime, a build-time version file, or the CLI when the environment value is missing.
+
 ## [0.6.0] - 2026-04-02
 
 ### Changed
