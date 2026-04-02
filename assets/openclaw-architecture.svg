@@ -1,0 +1,108 @@
+<svg width="1280" height="420" viewBox="0 0 1280 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="archTitle archDesc">
+  <title id="archTitle">OpenClaw Assistant architecture overview</title>
+  <desc id="archDesc">Animated architecture diagram showing Home Assistant ingress, the landing page, OpenClaw gateway, and persistent configuration.</desc>
+  <defs>
+    <linearGradient id="archBg" x1="80" y1="40" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071218"/>
+      <stop offset="1" stop-color="#10252C"/>
+    </linearGradient>
+    <linearGradient id="archLine" x1="218" y1="214" x2="1048" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#24D3B5"/>
+      <stop offset="0.5" stop-color="#1ABDE4"/>
+      <stop offset="1" stop-color="#FF9C52"/>
+    </linearGradient>
+    <filter id="archGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      .ui {
+        font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      }
+      .stream {
+        stroke-dasharray: 12 14;
+        animation: flow 6.5s linear infinite;
+      }
+      .packet-a {
+        animation: packetA 5s linear infinite;
+      }
+      .packet-b {
+        animation: packetB 5s linear infinite;
+      }
+      .breathe {
+        animation: breathe 4.8s ease-in-out infinite;
+      }
+      @keyframes flow {
+        to { stroke-dashoffset: -520; }
+      }
+      @keyframes packetA {
+        0% { transform: translateX(0px); opacity: 0; }
+        10% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { transform: translateX(834px); opacity: 0; }
+      }
+      @keyframes packetB {
+        0% { transform: translateX(0px); opacity: 0; }
+        22% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateX(834px); opacity: 0; }
+      }
+      @keyframes breathe {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-4px); }
+      }
+    </style>
+  </defs>
+
+  <rect width="1280" height="420" rx="28" fill="url(#archBg)"/>
+  <g class="ui">
+    <text x="78" y="82" fill="#24D3B5" font-size="18" font-weight="700" letter-spacing="0.12em">RUNTIME MAP</text>
+    <text x="78" y="126" fill="#F7FBFC" font-size="42" font-weight="800">How the add-on fits together inside Home Assistant</text>
+    <text x="78" y="158" fill="#ADC7CD" font-size="20">Ingress gives you the landing page and terminal. OpenClaw runs as the gateway runtime.</text>
+    <text x="78" y="186" fill="#ADC7CD" font-size="20">Persistent data stays under /config so updates do not wipe your workspace.</text>
+  </g>
+
+  <g transform="translate(78 228)" class="ui">
+    <g class="breathe">
+      <rect x="0" y="0" width="176" height="116" rx="22" fill="#0E1B21" stroke="#214D56"/>
+      <text x="24" y="38" fill="#F7FBFC" font-size="18" font-weight="700">Home Assistant</text>
+      <text x="24" y="64" fill="#8FB4BC" font-size="14">Add-on page</text>
+      <text x="24" y="84" fill="#8FB4BC" font-size="14">settings and logs</text>
+    </g>
+
+    <g class="breathe" transform="translate(230 0)">
+      <rect x="0" y="0" width="196" height="116" rx="22" fill="#0E1B21" stroke="#214D56"/>
+      <text x="24" y="38" fill="#F7FBFC" font-size="18" font-weight="700">nginx + ttyd</text>
+      <text x="24" y="64" fill="#8FB4BC" font-size="14">Landing page, health,</text>
+      <text x="24" y="84" fill="#8FB4BC" font-size="14">embedded terminal</text>
+    </g>
+
+    <g class="breathe" transform="translate(498 0)">
+      <rect x="0" y="0" width="224" height="116" rx="22" fill="#0E1B21" stroke="#214D56"/>
+      <text x="24" y="38" fill="#F7FBFC" font-size="18" font-weight="700">OpenClaw Gateway</text>
+      <text x="24" y="64" fill="#8FB4BC" font-size="14">Auth, Control UI, MCP,</text>
+      <text x="24" y="84" fill="#8FB4BC" font-size="14">OpenAI-compatible API</text>
+    </g>
+
+    <g class="breathe" transform="translate(804 0)">
+      <rect x="0" y="0" width="280" height="116" rx="22" fill="#0E1B21" stroke="#214D56"/>
+      <text x="24" y="38" fill="#F7FBFC" font-size="18" font-weight="700">Persistent /config state</text>
+      <text x="24" y="64" fill="#8FB4BC" font-size="14">openclaw.json, skills,</text>
+      <text x="24" y="84" fill="#8FB4BC" font-size="14">workspace, keys, tokens</text>
+    </g>
+  </g>
+
+  <path class="stream" d="M254 286H308M504 286H576M800 286H882" stroke="url(#archLine)" stroke-width="4" stroke-linecap="round"/>
+  <g transform="translate(254 286)" filter="url(#archGlow)">
+    <circle class="packet-a" cx="0" cy="0" r="7" fill="#24D3B5"/>
+    <circle class="packet-b" cx="0" cy="0" r="7" fill="#FF9C52"/>
+  </g>
+
+  <g class="ui">
+    <text x="934" y="118" fill="#FFB16E" font-size="15" font-weight="700">ACCESS MODES</text>
+    <text x="934" y="142" fill="#D1E0E4" font-size="15">local_only, lan_https, lan_reverse_proxy, tailnet_https</text>
+  </g>
+</svg>

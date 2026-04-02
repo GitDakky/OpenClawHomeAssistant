@@ -1,52 +1,78 @@
-# OpenClaw Assistant – Home Assistant App/Add-on
+# OpenClaw Assistant for Home Assistant
 
-## [Join our Discord Server!](https://discord.gg/xeHeKu9jYp)
-<img width="1038" height="597" alt="image" src="https://github.com/user-attachments/assets/6dae3918-7bad-4e89-9695-c7f549e8abda" />
-<img width="1536" height="542" alt="ChatGPT Image Feb 25, 2026, 11_37_02 PM" src="https://github.com/user-attachments/assets/ea662d87-5414-4c01-ac48-cb8f731a4988" />
+![OpenClaw Assistant hero](assets/openclaw-hero.svg)
 
+OpenClaw Assistant is a Home Assistant add-on that runs **OpenClaw** inside **HAOS** with a secure gateway, embedded terminal, browser automation stack, and persistent workspace.
 
-### OpenClaw Home Assistant integration is available now!  https://github.com/techartdev/OpenClawHomeAssistantIntegration
+This fork exists to keep pace with OpenClaw releases and improve the operator experience around them. Faster updates. Cleaner docs. Better presentation. No leftover filler.
 
-This repository contains a Home Assistant add-on that runs **OpenClaw** inside **Home Assistant OS (HAOS)**.
+[Documentation](DOCS.md) · [Security](SECURITY.md) · [Changelog](openclaw_assistant/CHANGELOG.md) · [Issues](https://github.com/GitDakky/OpenClawHomeAssistant/issues)
 
-> Upstream rename history (FYI): clawdbot → moltbot → **openclaw** (final).
+## Fork mission
 
-## Key Features
+- Keep this add-on close to current OpenClaw releases instead of lagging behind.
+- Make the Home Assistant experience operationally sound: ingress, HTTPS, token auth, reverse proxy, Tailscale, ttyd, persistence.
+- Replace throwaway repo presentation with branding that looks deliberate.
 
-- **AI Gateway** — OpenClaw server with chat, skills, and automation capabilities
-- **Web Terminal** — browser-based terminal embedded in Home Assistant
-- **Assist Pipeline** — use OpenClaw as a conversation agent via the OpenAI-compatible API
-- **Browser Automation** — Chromium included for web scraping and automation skills
-- **Proxy Support** — optional outbound `http_proxy` setting for HTTP/HTTPS traffic
-- **Persistent Storage** — skills, config, and workspace survive add-on updates
-- **Bundled Tools** — git, vim, nano, bat, fd, ripgrep, curl, jq, python3, pnpm, Homebrew
+## What this add-on gives you
 
-## Supported Architectures
+| Capability | What it gives you |
+|---|---|
+| Secure gateway access | Token auth, `lan_https`, reverse proxy support, and tailnet-friendly modes |
+| Embedded terminal | `ttyd` inside Home Assistant for onboarding, recovery, and live ops |
+| Automation runtime | OpenClaw gateway, skills, MCP support, and OpenAI-compatible API access |
+| Browser tooling | Chromium bundled for automation and web-driven workflows |
+| Persistent state | Config, skills, agent workspace, keys, and tokens survive add-on updates |
+| Useful CLI stack | `git`, `jq`, `python3`, `ripgrep`, `curl`, `pnpm`, Homebrew, and more |
+
+## Install in 60 seconds
+
+1. In Home Assistant, open **Settings -> Add-ons -> Add-on Store**.
+2. Open the menu in the top-right and choose **Repositories**.
+3. Add this repository:
+   - `https://github.com/GitDakky/OpenClawHomeAssistant`
+4. Install **OpenClaw Assistant**.
+5. Start the add-on, open the embedded terminal, and run:
+
+```sh
+openclaw onboard
+```
+
+6. Retrieve the gateway token:
+
+```sh
+jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json
+```
+
+For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.md](DOCS.md).
+
+## Runtime
+
+![OpenClaw Assistant architecture](assets/openclaw-architecture.svg)
+
+- Home Assistant ingress for the landing page and operational entry point
+- `nginx` + `ttyd` for browser-based setup and terminal access
+- OpenClaw gateway for chat, skills, MCP, and the OpenAI-compatible endpoint
+- Persistent `/config` storage so updates do not wipe the working environment
+
+## Supported architectures
 
 | Architecture | Supported |
 |---|---|
-| amd64 | ✅ |
-| aarch64 (RPi 4/5) | ✅ |
-| armv7 (RPi 3) | ✅ |
+| `amd64` | Yes |
+| `aarch64` | Yes |
+| `armv7` | Yes |
 
-## Documentation
+## Read next
 
-- **[Full documentation →](DOCS.md)** — installation, configuration, use cases, troubleshooting, and more
-- **[Security Risks & Disclaimer →](SECURITY.md)** — important risks to understand before using this add-on
+- [DOCS.md](DOCS.md): installation, configuration, access modes, MCP, persistence, troubleshooting
+- [SECURITY.md](SECURITY.md): risk model, exposure guidance, and safe operating practices
+- [openclaw_assistant/CHANGELOG.md](openclaw_assistant/CHANGELOG.md): release notes for add-on versions
 
-## Install
+## Companion integration
 
-1. Home Assistant → **Settings → Add-ons → Add-on store**
-2. **⋮ → Repositories**
-3. Add this repo:
-   - `https://github.com/techartdev/OpenClawHomeAssistant`
-4. Install **OpenClaw Assistant**
+The companion integration lives here:
 
-## Star History
+- [OpenClawHomeAssistantIntegration](https://github.com/techartdev/OpenClawHomeAssistantIntegration)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=techartdev/OpenClawHomeAssistant&type=date&legend=top-left)](https://www.star-history.com/#techartdev/OpenClawHomeAssistant&type=date&legend=top-left)
-
-## Support / Donations
-
-If you find this useful and you want to bring me a coffee to make more useful things, or support the project, use the link below:
-- https://revolut.me/vanyo6dhw
+It can connect to this add-on or to any other reachable OpenClaw gateway.

@@ -2,6 +2,12 @@
 
 All notable changes to the OpenClaw Assistant Home Assistant Add-on will be documented in this file.
 
+## [0.5.64] - 2026-04-02
+
+### Changed
+- Repointed repository metadata and installation guidance to the `GitDakky/OpenClawHomeAssistant` fork so Home Assistant users land on the actively maintained repo.
+- Rebuilt the repository README with animated SVG branding, a cleaner quick-start path, and no leftover raster showcase graphic.
+
 ## [0.5.63] - 2026-03-14
 
 ### Changed
@@ -270,4 +276,4 @@ This update contains lots of changes. It is adviced to backup before installing!
 
 ---
 
-For the full commit history, see [GitHub commits](https://github.com/techartdev/OpenClawHomeAssistant/commits/main).
+For the full commit history, see [GitHub commits](https://github.com/GitDakky/OpenClawHomeAssistant/commits/main).
