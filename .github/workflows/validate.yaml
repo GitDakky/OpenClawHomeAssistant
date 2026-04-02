@@ -1,0 +1,61 @@
+name: Validate add-on
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate repo metadata
+        run: python3 scripts/validate_release_metadata.py
+
+      - name: Bash syntax check
+        run: bash -n openclaw_assistant/run.sh
+
+      - name: Python compile check
+        run: python3 -m py_compile openclaw_assistant/oc_config_helper.py openclaw_assistant/render_nginx.py
+
+      - name: SVG parse check
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          ET.parse("assets/openclaw-hero.svg")
+          ET.parse("assets/openclaw-architecture.svg")
+          print("svg-ok")
+          PY
+
+  docker-smoke-amd64:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build add-on image (amd64 smoke test)
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --build-arg BUILD_ARCH=amd64 \
+            -f openclaw_assistant/Dockerfile \
+            -t openclaw-assistant-ci:amd64 \
+            openclaw_assistant
+
+      - name: Smoke test bundled tooling
+        run: |
+          docker run --rm --entrypoint /bin/bash openclaw-assistant-ci:amd64 -lc '
+            test -x /run.sh
+            test -f /oc_config_helper.py
+            test -f /render_nginx.py
+            openclaw --version
+            node -v
+            python3 --version
+          '

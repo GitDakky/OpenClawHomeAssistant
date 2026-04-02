@@ -14,11 +14,11 @@ Respect guidelines in AGENTS.md
 
 ## Source of Truth
 
-- Add-on options/schema: `openclaw_assistant_dev/config.yaml`
-- Runtime boot logic: `openclaw_assistant_dev/run.sh`
-- Safe OpenClaw config edits: `openclaw_assistant_dev/oc_config_helper.py`
-- nginx + landing rendering: `openclaw_assistant_dev/render_nginx.py`
-- UI text in Home Assistant: `openclaw_assistant_dev/translations/*.yaml`
+- Add-on options/schema: `openclaw_assistant/config.yaml`
+- Runtime boot logic: `openclaw_assistant/run.sh`
+- Safe OpenClaw config edits: `openclaw_assistant/oc_config_helper.py`
+- nginx + landing rendering: `openclaw_assistant/render_nginx.py`
+- UI text in Home Assistant: `openclaw_assistant/translations/*.yaml`
 - User-facing docs: `DOCS.md`
 
 ## Required Sync Rules
@@ -48,9 +48,9 @@ When changing landing/nginx placeholders:
 ## Validation Commands
 
 ```sh
-bash -n openclaw_assistant_dev/run.sh
-python3 -m py_compile openclaw_assistant_dev/oc_config_helper.py
-python3 -m py_compile openclaw_assistant_dev/render_nginx.py
+bash -n openclaw_assistant/run.sh
+python3 -m py_compile openclaw_assistant/oc_config_helper.py
+python3 -m py_compile openclaw_assistant/render_nginx.py
 ```
 
-If behavior changes are user-visible, update `openclaw_assistant_dev/CHANGELOG.md`.
+If behavior changes are user-visible, update `openclaw_assistant/CHANGELOG.md`.

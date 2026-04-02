@@ -1,5 +1,7 @@
-ARG BUILD_FROM
-FROM ${BUILD_FROM}
+ARG BUILD_ARCH=amd64
+FROM ghcr.io/home-assistant/${BUILD_ARCH}-base-debian:bookworm
+ARG BUILD_ARCH
+ARG OPENCLAW_VERSION=2026.4.1
 
 # Base image is Debian Bookworm (glibc). This avoids musl-related native module issues
 # that occur on Alpine (e.g. clipboard, node-llama-cpp).
@@ -33,7 +35,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 22 LTS from NodeSource (Debian Bookworm ships Node 18, but OpenClaw requires 20+)
+# Install Node.js 22 LTS from NodeSource (Debian Bookworm ships Node 18, but current
+# OpenClaw releases require Node 22.16+ and upstream recommends Node 24 or 22.16+)
 # Use explicit keyring + apt source instead of setup_22.x pipe script for deterministic builds.
 RUN mkdir -p /etc/apt/keyrings \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
@@ -112,9 +115,13 @@ RUN if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then \
     fi
 USER root
 
-# Install OpenClaw globally
+# Install OpenClaw globally.
+# Keep the version pin in one place so future bumps are explicit and reviewable.
+ENV OPENCLAW_BUNDLED_VERSION="${OPENCLAW_VERSION}"
 RUN npm config set fund false && npm config set audit false \
-    && npm install -g openclaw@2026.3.13
+    && npm install -g "openclaw@${OPENCLAW_VERSION}" \
+    && openclaw --version \
+    && openclaw --version | grep -F "OpenClaw ${OPENCLAW_VERSION}"
 
 # Shell aliases and color options for interactive use
 RUN tee -a /etc/bash.bashrc <<'EOF'

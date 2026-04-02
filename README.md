@@ -8,6 +8,13 @@ This fork exists to keep pace with OpenClaw releases and improve the operator ex
 
 [Documentation](DOCS.md) · [Security](SECURITY.md) · [Changelog](openclaw_assistant/CHANGELOG.md) · [Issues](https://github.com/GitDakky/OpenClawHomeAssistant/issues)
 
+## Bundled version
+
+- Bundled OpenClaw: `2026.4.1`
+- Previous add-on lineage pin: `2026.3.13`
+- Check the live version inside the add-on with `openclaw --version`
+- Published image: `ghcr.io/gitdakky/openclaw-assistant`
+
 ## Contribute
 
 Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an issue, send a fix, improve the docs, test releases, or contribute code.
@@ -17,6 +24,7 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 - Keep this add-on close to current OpenClaw releases instead of lagging behind.
 - Make the Home Assistant experience operationally sound: ingress, HTTPS, token auth, reverse proxy, Tailscale, ttyd, persistence.
 - Replace throwaway repo presentation with branding that looks deliberate.
+- Ship a real CI/CD path: validate every change, build the add-on image in CI, and publish the multi-arch image from `main`.
 
 ## What this add-on gives you
 
@@ -72,6 +80,7 @@ For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.m
 - [DOCS.md](DOCS.md): installation, configuration, access modes, MCP, persistence, troubleshooting
 - [SECURITY.md](SECURITY.md): risk model, exposure guidance, and safe operating practices
 - [openclaw_assistant/CHANGELOG.md](openclaw_assistant/CHANGELOG.md): release notes for add-on versions
+- [MAINTENANCE.md](MAINTENANCE.md): how this fork pins, bumps, validates, and releases OpenClaw updates
 
 ## Companion integration
 

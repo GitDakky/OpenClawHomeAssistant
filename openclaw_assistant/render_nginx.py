@@ -6,7 +6,8 @@ Called by run.sh with the following env vars:
   GW_PUBLIC_URL, GW_TOKEN, TERMINAL_PORT,
   ENABLE_HTTPS_PROXY, HTTPS_PROXY_PORT,
   GATEWAY_INTERNAL_PORT, ACCESS_MODE,
-  DISK_TOTAL, DISK_USED, DISK_AVAIL, DISK_PCT
+  DISK_TOTAL, DISK_USED, DISK_AVAIL, DISK_PCT,
+  OPENCLAW_BUNDLED_VERSION
 """
 
 import os
@@ -31,6 +32,7 @@ def main():
     disk_avail = os.environ.get('DISK_AVAIL', '')
     disk_pct = os.environ.get('DISK_PCT', '')
     nginx_log_level = os.environ.get('NGINX_LOG_LEVEL', 'minimal')
+    bundled_openclaw_version = os.environ.get('OPENCLAW_BUNDLED_VERSION', 'unknown')
 
     # Token comes from environment (best-effort CLI query in run.sh)
     token = os.environ.get('GW_TOKEN', '')
@@ -115,6 +117,7 @@ def main():
     landing = landing.replace('__DISK_USED__', disk_used)
     landing = landing.replace('__DISK_AVAIL__', disk_avail)
     landing = landing.replace('__DISK_PCT__', disk_pct)
+    landing = landing.replace('__OPENCLAW_BUNDLED_VERSION__', bundled_openclaw_version)
 
     out_dir = Path('/etc/nginx/html')
     out_dir.mkdir(parents=True, exist_ok=True)

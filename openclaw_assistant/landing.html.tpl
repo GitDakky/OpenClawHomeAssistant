@@ -43,6 +43,7 @@
 <body>
   <div class="card">
     <h2 style="margin:0 0 4px 0">OpenClaw Assistant</h2>
+    <div class="muted" style="margin-bottom:8px">Bundled OpenClaw: <code>__OPENCLAW_BUNDLED_VERSION__</code></div>
     <div style="margin-bottom:10px">
       <span class="badge mode" id="modeBadge">__ACCESS_MODE__</span>
       <span class="badge" id="secureBadge"></span>

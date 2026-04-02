@@ -7,6 +7,7 @@ Safely reads/writes openclaw.json without corrupting it.
 import json
 import os
 import re
+import secrets
 import sys
 from pathlib import Path
 
@@ -105,7 +106,7 @@ def apply_gateway_settings(mode: str, remote_url: str, bind_mode: str, port: int
     remote_cfg = gateway["remote"]
 
     # auth should be nested inside gateway
-    if "auth" not in gateway:
+    if "auth" not in gateway or not isinstance(gateway.get("auth"), dict):
         gateway["auth"] = {}
 
     # http.endpoints.chatCompletions should be nested inside gateway
@@ -133,6 +134,7 @@ def apply_gateway_settings(mode: str, remote_url: str, bind_mode: str, port: int
     current_auth_mode = auth.get("mode", "token")
     current_trusted_proxies = gateway.get("trustedProxies", [])
     current_trusted_proxy_cfg = auth.get("trustedProxy")
+    current_token = auth.get("token")
     
     changes = []
     
@@ -165,9 +167,25 @@ def apply_gateway_settings(mode: str, remote_url: str, bind_mode: str, port: int
         changes.append(f"trustedProxies: {current_trusted_proxies} -> {trusted_proxies}")
 
     if auth_mode == "trusted-proxy":
+        # OpenClaw 2026.4.x rejects trusted-proxy when a shared token is also configured.
+        if "token" in auth:
+            del auth["token"]
+            changes.append("auth.token: removed for trusted-proxy mode")
+        if "password" in auth:
+            del auth["password"]
+            changes.append("auth.password: removed for trusted-proxy mode")
         if current_trusted_proxy_cfg != trusted_proxy_cfg_default:
             auth["trustedProxy"] = trusted_proxy_cfg_default
             changes.append("auth.trustedProxy: configured default userHeader=x-forwarded-user")
+    elif auth_mode == "token":
+        # If the add-on previously switched through trusted-proxy, the shared token may
+        # no longer exist. Generate one so the gateway can still boot safely.
+        if not isinstance(current_token, str) or not current_token.strip():
+            auth["token"] = secrets.token_urlsafe(24)
+            changes.append("auth.token: generated new shared token for token mode")
+        if "trustedProxy" in auth:
+            del auth["trustedProxy"]
+            changes.append("auth.trustedProxy: removed for token mode")
     
     if changes:
         if write_config(cfg):

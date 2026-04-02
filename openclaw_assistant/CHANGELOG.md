@@ -2,6 +2,19 @@
 
 All notable changes to the OpenClaw Assistant Home Assistant Add-on will be documented in this file.
 
+## [0.5.66] - 2026-04-02
+
+### Changed
+- Bumped bundled OpenClaw from `2026.3.13` to `2026.4.1`, the newest upstream version currently published on npm.
+- Moved the OpenClaw pin into a single Dockerfile build argument and added a build-time version smoke check.
+- Surfaced the bundled OpenClaw version on the landing page and in the docs so users can verify what the image contains.
+- Added maintainer documentation and CI validation to make future OpenClaw bumps safer and more repeatable.
+- Migrated the add-on build off deprecated `build.yaml`, added a published image reference, and added a multi-arch GitHub Actions release workflow for `main`.
+
+### Fixed
+- `trusted-proxy` mode now removes incompatible shared token/password auth from `openclaw.json`, which OpenClaw 2026.4.x rejects at runtime.
+- Switching back to token auth now re-generates a shared token automatically if a previous `trusted-proxy` run removed it.
+
 ## [0.5.65] - 2026-04-02
 
 ### Changed

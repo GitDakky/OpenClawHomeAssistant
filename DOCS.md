@@ -2,6 +2,10 @@
 
 This add-on runs [OpenClaw](https://github.com/openclaw/openclaw) inside Home Assistant OS (HAOS). It provides a fully self-contained environment with a web terminal, gateway server, and all the tools OpenClaw needs — no manual Docker setup required.
 
+**Bundled OpenClaw version in this fork:** `2026.4.1`
+
+**Published add-on image:** `ghcr.io/gitdakky/openclaw-assistant`
+
 **Table of Contents**
 
 1. [Architecture Overview](#1-architecture-overview)
@@ -741,6 +745,7 @@ Home Assistant checks for add-on updates automatically. When an update is availa
 - Everything under `/config/` is preserved (config, skills, workspace, keys)
 - Homebrew and brew-installed packages are preserved (synced to `/config/.linuxbrew/`)
 - The OpenClaw binary is updated to the version in the new image
+- This fork tracks OpenClaw by rebuilding the add-on image; `openclaw update` inside the container is not the supported maintenance path because container-local package changes do not survive image replacement.
 
 ### Checking your version
 
@@ -749,6 +754,12 @@ The add-on version is shown on the add-on page in Home Assistant. To check the O
 ```sh
 openclaw --version
 ```
+
+The landing page inside the add-on also shows the bundled OpenClaw version from the image metadata.
+
+### Maintenance posture
+
+This fork is maintained as an image-pinned Home Assistant add-on, not as an in-container self-updater. Future OpenClaw bumps should update the pinned version in the add-on image, validate wrapper compatibility, and ship a new add-on release. See [MAINTENANCE.md](MAINTENANCE.md) for the exact bump workflow.
 
 ### Backup
 
