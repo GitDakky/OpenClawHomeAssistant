@@ -8,6 +8,10 @@ This fork exists to keep pace with OpenClaw releases and improve the operator ex
 
 [Documentation](DOCS.md) · [Security](SECURITY.md) · [Changelog](openclaw_assistant/CHANGELOG.md) · [Issues](https://github.com/GitDakky/OpenClawHomeAssistant/issues)
 
+## Contribute
+
+Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an issue, send a fix, improve the docs, test releases, or contribute code.
+
 ## Fork mission
 
 - Keep this add-on close to current OpenClaw releases instead of lagging behind.

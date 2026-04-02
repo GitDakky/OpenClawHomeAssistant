@@ -1,152 +1,119 @@
 <svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="heroTitle heroDesc">
   <title id="heroTitle">OpenClaw Assistant hero banner</title>
-  <desc id="heroDesc">Animated banner showing Home Assistant, a secure OpenClaw gateway, terminal access, and automation capabilities.</desc>
+  <desc id="heroDesc">Animated banner for the OpenClaw Assistant Home Assistant add-on with a cleaner, balanced layout.</desc>
   <defs>
-    <linearGradient id="bg" x1="96" y1="48" x2="1184" y2="592" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#07131A"/>
-      <stop offset="0.55" stop-color="#0D2630"/>
-      <stop offset="1" stop-color="#13292B"/>
+    <linearGradient id="heroBg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07151C"/>
+      <stop offset="0.55" stop-color="#0C2430"/>
+      <stop offset="1" stop-color="#142F2D"/>
     </linearGradient>
-    <linearGradient id="beam" x1="278" y1="352" x2="1012" y2="352" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#24D3B5" stop-opacity="0"/>
-      <stop offset="0.2" stop-color="#24D3B5"/>
-      <stop offset="0.5" stop-color="#FF9C52"/>
-      <stop offset="0.8" stop-color="#24D3B5"/>
-      <stop offset="1" stop-color="#24D3B5" stop-opacity="0"/>
+    <linearGradient id="heroPanel" x1="790" y1="108" x2="1160" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#112831"/>
+      <stop offset="1" stop-color="#0C1E27"/>
     </linearGradient>
-    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
+    <linearGradient id="heroLine" x1="846" y1="290" x2="1094" y2="290" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#24D3B5"/>
+      <stop offset="0.5" stop-color="#19BFE6"/>
+      <stop offset="1" stop-color="#FF9C52"/>
+    </linearGradient>
+    <filter id="heroGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M48 0H0V48" stroke="#1B3E47" stroke-width="1"/>
+    <pattern id="heroGrid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" stroke="#1C404B" stroke-width="1"/>
     </pattern>
     <style>
       .ui {
         font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       }
-      .beam {
-        stroke-dasharray: 18 16;
-        animation: dash 8s linear infinite;
-      }
-      .pulse {
-        transform-origin: center;
-        animation: pulse 4.2s ease-in-out infinite;
-      }
-      .float-a {
-        animation: driftA 13s ease-in-out infinite;
-      }
-      .float-b {
-        animation: driftB 16s ease-in-out infinite;
-      }
-      .scan {
-        animation: scan 6s ease-in-out infinite;
-      }
-      .orbit {
-        animation: orbit 14s linear infinite;
-        transform-origin: 900px 174px;
-      }
-      .glint {
-        animation: glint 5.4s ease-in-out infinite;
-      }
-      @keyframes dash {
-        to { stroke-dashoffset: -680; }
-      }
-      @keyframes pulse {
-        0%, 100% { transform: scale(0.96); opacity: 0.75; }
-        50% { transform: scale(1.03); opacity: 1; }
-      }
-      @keyframes driftA {
-        0%, 100% { transform: translateY(0px) translateX(0px); }
-        50% { transform: translateY(-10px) translateX(12px); }
-      }
-      @keyframes driftB {
-        0%, 100% { transform: translateY(0px) translateX(0px); }
-        50% { transform: translateY(14px) translateX(-10px); }
-      }
-      @keyframes scan {
-        0%, 100% { transform: translateX(-22px); opacity: 0.35; }
-        50% { transform: translateX(22px); opacity: 0.95; }
-      }
-      @keyframes orbit {
-        from { transform: rotate(0deg) translateX(74px) rotate(0deg); }
-        to { transform: rotate(360deg) translateX(74px) rotate(-360deg); }
-      }
-      @keyframes glint {
-        0%, 100% { opacity: 0.3; }
-        50% { opacity: 1; }
-      }
     </style>
   </defs>
 
-  <rect width="1280" height="640" rx="28" fill="url(#bg)"/>
-  <rect width="1280" height="640" rx="28" fill="url(#grid)" opacity="0.25"/>
-  <circle class="float-a" cx="123" cy="122" r="88" fill="#24D3B5" opacity="0.06"/>
-  <circle class="float-b" cx="1120" cy="520" r="126" fill="#FF9C52" opacity="0.08"/>
-  <circle class="float-a" cx="1032" cy="120" r="64" fill="#1CC9FF" opacity="0.08"/>
+  <rect width="1280" height="640" rx="28" fill="url(#heroBg)"/>
+  <rect width="1280" height="640" rx="28" fill="url(#heroGrid)" opacity="0.22"/>
+
+  <circle cx="114" cy="110" r="88" fill="#1CD0C5" opacity="0.07">
+    <animate attributeName="cy" values="110;96;110" dur="13s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1150" cy="534" r="126" fill="#FF9C52" opacity="0.08">
+    <animate attributeName="cx" values="1150;1120;1150" dur="16s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1028" cy="116" r="70" fill="#19BFE6" opacity="0.08">
+    <animate attributeName="cy" values="116;130;116" dur="10s" repeatCount="indefinite"/>
+  </circle>
 
   <g class="ui">
-    <text x="88" y="122" fill="#24D3B5" font-size="18" font-weight="700" letter-spacing="0.14em">HOME ASSISTANT ADD-ON</text>
-    <text x="88" y="208" fill="#F7FBFC" font-size="62" font-weight="800">OpenClaw Assistant</text>
-    <text x="88" y="258" fill="#C5D6DA" font-size="26" font-weight="500">Fast-moving fork for Home Assistant operators who need OpenClaw updates,</text>
-    <text x="88" y="293" fill="#C5D6DA" font-size="26" font-weight="500">secure gateway access, and a real terminal in one add-on.</text>
+    <text x="86" y="116" fill="#29D8C4" font-size="18" font-weight="700" letter-spacing="0.14em">HOME ASSISTANT ADD-ON</text>
+    <text x="86" y="198" fill="#F7FBFC" font-size="76" font-weight="800">OpenClaw</text>
+    <text x="86" y="276" fill="#F7FBFC" font-size="76" font-weight="800">Assistant</text>
+    <text x="86" y="332" fill="#C9D8DC" font-size="25" font-weight="500">Current OpenClaw builds for Home Assistant.</text>
+    <text x="86" y="366" fill="#C9D8DC" font-size="25" font-weight="500">Secure access, persistence, and terminal control.</text>
 
-    <g opacity="0.95">
-      <rect x="88" y="350" width="176" height="108" rx="20" fill="#0F2027" stroke="#1F5057"/>
-      <rect x="304" y="350" width="176" height="108" rx="20" fill="#0F2027" stroke="#1F5057"/>
-      <rect x="520" y="350" width="176" height="108" rx="20" fill="#0F2027" stroke="#1F5057"/>
-      <rect x="736" y="350" width="176" height="108" rx="20" fill="#0F2027" stroke="#1F5057"/>
-      <rect x="952" y="350" width="176" height="108" rx="20" fill="#0F2027" stroke="#1F5057"/>
+    <g transform="translate(86 406)">
+      <rect x="0" y="0" width="182" height="50" rx="16" fill="#0D1C23" stroke="#23525D"/>
+      <text x="24" y="31" fill="#E8F4F6" font-size="18" font-weight="700">Secure gateway</text>
+    </g>
+    <g transform="translate(286 406)">
+      <rect x="0" y="0" width="174" height="50" rx="16" fill="#0D1C23" stroke="#23525D"/>
+      <text x="24" y="31" fill="#E8F4F6" font-size="18" font-weight="700">Embedded ttyd</text>
+    </g>
+    <g transform="translate(478 406)">
+      <rect x="0" y="0" width="192" height="50" rx="16" fill="#0D1C23" stroke="#23525D"/>
+      <text x="24" y="31" fill="#E8F4F6" font-size="18" font-weight="700">Persistent /config</text>
+    </g>
 
-      <text x="112" y="388" fill="#F7FBFC" font-size="17" font-weight="700">HA Ingress UI</text>
-      <text x="112" y="415" fill="#8EB1B9" font-size="14">Embedded landing page</text>
-      <text x="112" y="435" fill="#8EB1B9" font-size="14">for setup and recovery</text>
-
-      <text x="328" y="388" fill="#F7FBFC" font-size="17" font-weight="700">Secure Gateway</text>
-      <text x="328" y="415" fill="#8EB1B9" font-size="14">Token auth, LAN HTTPS,</text>
-      <text x="328" y="435" fill="#8EB1B9" font-size="14">reverse proxy, tailnet</text>
-
-      <text x="544" y="388" fill="#F7FBFC" font-size="17" font-weight="700">Web Terminal</text>
-      <text x="544" y="415" fill="#8EB1B9" font-size="14">ttyd inside Home Assistant</text>
-      <text x="544" y="435" fill="#8EB1B9" font-size="14">for onboarding and ops</text>
-
-      <text x="760" y="388" fill="#F7FBFC" font-size="17" font-weight="700">Automation Stack</text>
-      <text x="760" y="415" fill="#8EB1B9" font-size="14">OpenAI API, MCP, skills,</text>
-      <text x="760" y="435" fill="#8EB1B9" font-size="14">browser workflows</text>
-
-      <text x="976" y="388" fill="#F7FBFC" font-size="17" font-weight="700">Persistent State</text>
-      <text x="976" y="415" fill="#8EB1B9" font-size="14">Config, skills, workspace,</text>
-      <text x="976" y="435" fill="#8EB1B9" font-size="14">tokens under /config</text>
+    <g transform="translate(86 490)">
+      <rect x="0" y="0" width="572" height="84" rx="22" fill="#0D1A20" stroke="#214A53"/>
+      <text x="28" y="33" fill="#29D8C4" font-size="14" font-weight="700" letter-spacing="0.12em">FORK DIRECTION</text>
+      <text x="28" y="58" fill="#D7E7EB" font-size="20" font-weight="600">Faster release tracking, cleaner docs,</text>
+      <text x="28" y="82" fill="#D7E7EB" font-size="20" font-weight="600">and a sharper Home Assistant operator experience.</text>
     </g>
   </g>
 
-  <path class="beam" d="M278 404H1012" stroke="url(#beam)" stroke-width="4" stroke-linecap="round"/>
-  <circle class="pulse" cx="392" cy="404" r="9" fill="#24D3B5" filter="url(#softGlow)"/>
-  <circle class="pulse" cx="608" cy="404" r="9" fill="#FF9C52" filter="url(#softGlow)"/>
-  <circle class="pulse" cx="824" cy="404" r="9" fill="#24D3B5" filter="url(#softGlow)"/>
+  <g transform="translate(760 104)">
+    <rect x="0" y="0" width="432" height="428" rx="28" fill="url(#heroPanel)" stroke="#285A63"/>
 
-  <g transform="translate(864 86)">
-    <circle cx="92" cy="92" r="86" fill="#0E1E24" stroke="#255C64"/>
-    <circle cx="92" cy="92" r="56" fill="none" stroke="#1ABDE4" stroke-width="2" opacity="0.32"/>
-    <circle class="scan" cx="92" cy="92" r="56" fill="none" stroke="#1ABDE4" stroke-width="4" stroke-linecap="round" stroke-dasharray="84 268"/>
-    <circle class="orbit" cx="166" cy="92" r="9" fill="#FF9C52"/>
-    <circle cx="92" cy="92" r="21" fill="#24D3B5" opacity="0.16"/>
-    <circle class="pulse" cx="92" cy="92" r="12" fill="#24D3B5"/>
-    <path d="M92 62V122" stroke="#DDF5F2" stroke-width="4" stroke-linecap="round"/>
-    <path d="M62 92H122" stroke="#DDF5F2" stroke-width="4" stroke-linecap="round"/>
-  </g>
+    <g transform="translate(34 34)">
+      <text class="ui" x="0" y="18" fill="#FFB16E" font-size="15" font-weight="700" letter-spacing="0.1em">LIVE STACK</text>
+      <text class="ui" x="0" y="54" fill="#F7FBFC" font-size="34" font-weight="800">Everything wired for HAOS</text>
+    </g>
 
-  <g transform="translate(100 505)">
-    <rect x="0" y="0" width="340" height="56" rx="16" fill="#0E1A20" stroke="#214C55"/>
-    <text class="ui" x="28" y="35" fill="#E7F3F5" font-size="18" font-weight="700">Mission:</text>
-    <text class="ui" x="112" y="35" fill="#B8CED3" font-size="18">track OpenClaw faster and operate cleanly in HAOS</text>
-  </g>
+    <g transform="translate(34 108)">
+      <rect x="0" y="0" width="364" height="76" rx="22" fill="#112028" stroke="#244D57"/>
+      <circle cx="34" cy="38" r="9" fill="#24D3B5" filter="url(#heroGlow)">
+        <animate attributeName="r" values="8;10;8" dur="3.5s" repeatCount="indefinite"/>
+      </circle>
+      <text class="ui" x="60" y="34" fill="#F4FAFB" font-size="22" font-weight="700">Gateway access</text>
+      <text class="ui" x="60" y="58" fill="#9DB8BE" font-size="16">token auth, LAN HTTPS, reverse proxy, tailnet</text>
+    </g>
 
-  <g class="glint">
-    <path d="M1014 54L1044 84" stroke="#FFB16E" stroke-width="2" stroke-linecap="round"/>
-    <path d="M1044 54L1014 84" stroke="#FFB16E" stroke-width="2" stroke-linecap="round"/>
+    <g transform="translate(34 206)">
+      <rect x="0" y="0" width="364" height="76" rx="22" fill="#112028" stroke="#244D57"/>
+      <circle cx="34" cy="38" r="9" fill="#19BFE6" filter="url(#heroGlow)">
+        <animate attributeName="cy" values="38;34;38" dur="4s" repeatCount="indefinite"/>
+      </circle>
+      <text class="ui" x="60" y="34" fill="#F4FAFB" font-size="22" font-weight="700">Operator terminal</text>
+      <text class="ui" x="60" y="58" fill="#9DB8BE" font-size="16">embedded ttyd for onboarding, recovery, and live fixes</text>
+    </g>
+
+    <g transform="translate(34 304)">
+      <rect x="0" y="0" width="364" height="76" rx="22" fill="#112028" stroke="#244D57"/>
+      <circle cx="34" cy="38" r="9" fill="#FF9C52" filter="url(#heroGlow)">
+        <animate attributeName="cx" values="34;38;34" dur="3.8s" repeatCount="indefinite"/>
+      </circle>
+      <text class="ui" x="60" y="34" fill="#F4FAFB" font-size="22" font-weight="700">Persistent runtime</text>
+      <text class="ui" x="60" y="58" fill="#9DB8BE" font-size="16">skills, workspace, keys, and config survive image updates</text>
+    </g>
+
+    <line x1="86" y1="186" x2="334" y2="186" stroke="url(#heroLine)" stroke-width="4" stroke-linecap="round" stroke-dasharray="14 14">
+      <animate attributeName="stroke-dashoffset" values="0;-224" dur="7s" repeatCount="indefinite"/>
+    </line>
+    <circle cx="150" cy="186" r="6" fill="#24D3B5" filter="url(#heroGlow)">
+      <animate attributeName="cx" values="150;326;150" dur="6s" repeatCount="indefinite"/>
+    </circle>
   </g>
 </svg>

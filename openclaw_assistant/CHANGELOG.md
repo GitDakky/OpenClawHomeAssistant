@@ -2,6 +2,12 @@
 
 All notable changes to the OpenClaw Assistant Home Assistant Add-on will be documented in this file.
 
+## [0.5.65] - 2026-04-02
+
+### Changed
+- Simplified the animated README SVG graphics so they render cleanly without layout collisions.
+- Added a contribution-first README note that explicitly asks people to help via issues, docs, testing, or code instead of donations or sponsorship.
+
 ## [0.5.64] - 2026-04-02
 
 ### Changed
