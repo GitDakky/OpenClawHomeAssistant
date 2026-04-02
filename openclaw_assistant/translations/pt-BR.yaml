@@ -13,7 +13,7 @@ configuration:
   
   gateway_public_url:
     name: URL Pública do Gateway
-    description: URL base pública para abrir a interface web do Gateway em uma nova aba (não incorporada). Exemplo - https://exemplo.duckdns.org:12345 ou http://192.168.1.10:18790
+    description: URL opcional de override para abrir a interface web do Gateway. Na maioria das instalações locais o add-on detecta isso automaticamente a partir do host atual do Home Assistant. Configure apenas se precisar de um hostname diferente de reverse proxy, HTTPS ou Tailscale.
   
   homeassistant_token:
     name: Token do Home Assistant
@@ -117,3 +117,27 @@ configuration:
   auto_configure_mcp:
     name: Configurar MCP automaticamente para o Home Assistant
     description: "Quando LIGADO e o token do Home Assistant estiver definido, registra automaticamente o Home Assistant como servidor MCP a cada inicialização. Isso permite que o OpenClaw controle entidades, serviços e automações do HA via Model Context Protocol. Desative apenas se você gerencia a configuração do mcporter manualmente."
+  enable_context7:
+    name: Ativar modo Context7
+    description: "Quando LIGADO, o workspace e o pacote de skills instruem o assistente a usar o Context7 para documentação atual quando uma chave de API estiver configurada."
+  context7_api_key:
+    name: Chave de API do Context7
+    description: Opcional - chave de API para consultas de documentação via Context7
+  domotz_api_key:
+    name: Chave de API do Domotz
+    description: Opcional - chave de API para inventário de rede e monitoramento do Domotz
+  domotz_site_id:
+    name: ID do site Domotz
+    description: Opcional - identificador do site usado com a chave de API do Domotz
+  mqtt_broker_url:
+    name: URL do broker MQTT
+    description: Opcional - URL de broker MQTT externo (exemplo - mqtts://cluster.s2.eu.hivemq.cloud:8883)
+  mqtt_username:
+    name: Usuário MQTT
+    description: Opcional - usuário para o broker MQTT configurado
+  mqtt_password:
+    name: Senha MQTT
+    description: Opcional - senha para o broker MQTT configurado
+  enable_bacnet_scout:
+    name: Ativar BACnet Scout
+    description: "Quando LIGADO, adiciona orientação BACnet/IP, status no painel e base do grafo. Não faz varredura silenciosa da rede."

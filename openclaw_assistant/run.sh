@@ -14,6 +14,9 @@ MIGRATED_OPTIONS_FILE="/tmp/openclaw-super-home-assistant-options.json"
 DEFAULT_TERMINAL_PORT="7682"
 DEFAULT_GATEWAY_PORT="18790"
 DEFAULT_INGRESS_PORT="48109"
+DEFAULT_DASHBOARD_API_PORT="48110"
+BOOTSTRAP_SOURCE_DIR="/opt/openclaw-super/bootstrap-workspace"
+BUNDLED_SKILLS_SOURCE_DIR="/opt/openclaw-super/bundled-skills"
 
 if [ ! -f "$OPTIONS_FILE" ]; then
   echo "Missing $OPTIONS_FILE (add-on options)."
@@ -208,6 +211,14 @@ FORCE_IPV4_DNS=$(jq -r '.force_ipv4_dns // true' "$OPTIONS_FILE")
 ACCESS_MODE=$(jq -r '.access_mode // "custom"' "$OPTIONS_FILE")
 NGINX_LOG_LEVEL=$(jq -r '.nginx_log_level // "minimal"' "$OPTIONS_FILE")
 AUTO_CONFIGURE_MCP=$(jq -r '.auto_configure_mcp // false' "$OPTIONS_FILE")
+ENABLE_CONTEXT7=$(jq -r '.enable_context7 // false' "$OPTIONS_FILE")
+CONTEXT7_API_KEY=$(jq -r '.context7_api_key // empty' "$OPTIONS_FILE")
+DOMOTZ_API_KEY=$(jq -r '.domotz_api_key // empty' "$OPTIONS_FILE")
+DOMOTZ_SITE_ID=$(jq -r '.domotz_site_id // empty' "$OPTIONS_FILE")
+MQTT_BROKER_URL=$(jq -r '.mqtt_broker_url // empty' "$OPTIONS_FILE")
+MQTT_USERNAME=$(jq -r '.mqtt_username // empty' "$OPTIONS_FILE")
+MQTT_PASSWORD=$(jq -r '.mqtt_password // empty' "$OPTIONS_FILE")
+ENABLE_BACNET_SCOUT=$(jq -r '.enable_bacnet_scout // false' "$OPTIONS_FILE")
 GW_ENV_VARS_TYPE=$(jq -r 'if .gateway_env_vars == null then "null" else (.gateway_env_vars | type) end' "$OPTIONS_FILE")
 GW_ENV_VARS_RAW=$(jq -r '.gateway_env_vars // empty' "$OPTIONS_FILE")
 GW_ENV_VARS_JSON=$(jq -c '.gateway_env_vars // []' "$OPTIONS_FILE")
@@ -295,8 +306,30 @@ export HOME=/config
 export OPENCLAW_CONFIG_DIR=/config/.openclaw
 export OPENCLAW_WORKSPACE_DIR=/config/clawd
 export XDG_CONFIG_HOME=/config
+export OPENCLAW_SKILLS_DIR=/config/.openclaw/skills
+export OPENCLAW_SYSTEM_GRAPH_PATH=/config/.openclaw/gitdakky-system-graph.sqlite3
 
 mkdir -p /config/.openclaw /config/.openclaw/identity /config/clawd /config/keys /config/secrets
+
+seed_managed_workspace_files() {
+  if [ ! -d "$BOOTSTRAP_SOURCE_DIR" ]; then
+    echo "WARN: Managed workspace bootstrap directory missing at $BOOTSTRAP_SOURCE_DIR"
+    return 0
+  fi
+
+  mkdir -p "$OPENCLAW_WORKSPACE_DIR"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --ignore-existing "${BOOTSTRAP_SOURCE_DIR}/" "${OPENCLAW_WORKSPACE_DIR}/" 2>/dev/null || true
+  else
+    find "$BOOTSTRAP_SOURCE_DIR" -maxdepth 1 -type f -name '*.md' -print0 | while IFS= read -r -d '' source_file; do
+      target_file="${OPENCLAW_WORKSPACE_DIR}/$(basename "$source_file")"
+      [ -f "$target_file" ] || cp "$source_file" "$target_file"
+    done
+  fi
+  echo "INFO: Seeded managed workspace bootstrap files into ${OPENCLAW_WORKSPACE_DIR}"
+}
+
+seed_managed_workspace_files
 
 DEFAULT_AGENT_ID="main"
 DEFAULT_AGENT_ROOT="/config/.openclaw/agents/${DEFAULT_AGENT_ID}"
@@ -415,6 +448,26 @@ elif [ -L "$IMAGE_SKILLS_DIR" ]; then
 else
   echo "WARN: Built-in skills directory not found at $IMAGE_SKILLS_DIR"
 fi
+
+seed_bundled_skill_pack() {
+  if [ ! -d "$BUNDLED_SKILLS_SOURCE_DIR" ]; then
+    echo "WARN: Managed bundled skills directory missing at $BUNDLED_SKILLS_SOURCE_DIR"
+    return 0
+  fi
+
+  mkdir -p "$PERSISTENT_SKILLS_DIR"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --ignore-existing "${BUNDLED_SKILLS_SOURCE_DIR}/" "${PERSISTENT_SKILLS_DIR}/" 2>/dev/null || true
+  else
+    find "$BUNDLED_SKILLS_SOURCE_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | while IFS= read -r -d '' source_dir; do
+      target_dir="${PERSISTENT_SKILLS_DIR}/$(basename "$source_dir")"
+      [ -d "$target_dir" ] || cp -R "$source_dir" "$target_dir"
+    done
+  fi
+  echo "INFO: Seeded GitDakky bundled skills into ${PERSISTENT_SKILLS_DIR}"
+}
+
+seed_bundled_skill_pack
 
 # ------------------------------------------------------------------------------
 # Persist user-installed node skills across Docker image rebuilds
@@ -685,6 +738,107 @@ if [ -n "$HA_TOKEN" ]; then
   printf '%s' "$HA_TOKEN" > /config/secrets/homeassistant.token
 fi
 
+write_secret_file() {
+  local target_path="$1"
+  local secret_value="$2"
+
+  mkdir -p "$(dirname "$target_path")"
+  if [ -n "$secret_value" ]; then
+    umask 077
+    printf '%s' "$secret_value" > "$target_path"
+  else
+    rm -f "$target_path"
+  fi
+}
+
+configure_external_integrations() {
+  write_secret_file /config/secrets/context7.api_key "$CONTEXT7_API_KEY"
+  write_secret_file /config/secrets/domotz.api_key "$DOMOTZ_API_KEY"
+  write_secret_file /config/secrets/domotz.site_id "$DOMOTZ_SITE_ID"
+  write_secret_file /config/secrets/mqtt.broker_url "$MQTT_BROKER_URL"
+  write_secret_file /config/secrets/mqtt.username "$MQTT_USERNAME"
+  write_secret_file /config/secrets/mqtt.password "$MQTT_PASSWORD"
+
+  export CONTEXT7_ENABLED=false
+  export DOMOTZ_ENABLED=false
+  export MQTT_ENABLED=false
+  export BACNET_SCOUT_ENABLED=false
+  export MQTT_USERNAME_CONFIGURED=false
+  export MQTT_PASSWORD_CONFIGURED=false
+  export HA_MCP_ENABLED=false
+
+  if [ "$ENABLE_CONTEXT7" = "true" ] || [ "$ENABLE_CONTEXT7" = "1" ]; then
+    export CONTEXT7_ENABLED=true
+  fi
+  if [ -n "$CONTEXT7_API_KEY" ]; then
+    export CONTEXT7_API_KEY
+    export CONTEXT7_API_KEY_FILE=/config/secrets/context7.api_key
+  fi
+
+  if [ -n "$DOMOTZ_API_KEY" ] || [ -n "$DOMOTZ_SITE_ID" ]; then
+    export DOMOTZ_ENABLED=true
+  fi
+  if [ -n "$DOMOTZ_API_KEY" ]; then
+    export DOMOTZ_API_KEY
+    export DOMOTZ_API_KEY_FILE=/config/secrets/domotz.api_key
+  fi
+  if [ -n "$DOMOTZ_SITE_ID" ]; then
+    export DOMOTZ_SITE_ID
+    export DOMOTZ_SITE_ID_FILE=/config/secrets/domotz.site_id
+  fi
+
+  if [ -n "$MQTT_BROKER_URL" ]; then
+    export MQTT_ENABLED=true
+    export MQTT_BROKER_URL
+    export MQTT_BROKER_URL_FILE=/config/secrets/mqtt.broker_url
+  fi
+  if [ -n "$MQTT_USERNAME" ]; then
+    export MQTT_USERNAME
+    export MQTT_USERNAME_FILE=/config/secrets/mqtt.username
+    export MQTT_USERNAME_CONFIGURED=true
+  fi
+  if [ -n "$MQTT_PASSWORD" ]; then
+    export MQTT_PASSWORD
+    export MQTT_PASSWORD_FILE=/config/secrets/mqtt.password
+    export MQTT_PASSWORD_CONFIGURED=true
+  fi
+
+  if [ "$ENABLE_BACNET_SCOUT" = "true" ] || [ "$ENABLE_BACNET_SCOUT" = "1" ]; then
+    export BACNET_SCOUT_ENABLED=true
+  fi
+
+  if [ "$AUTO_CONFIGURE_MCP" = "true" ] && [ -n "$HA_TOKEN" ]; then
+    export HA_MCP_ENABLED=true
+  fi
+
+  cat > /config/.openclaw/gitdakky-integrations.json <<EOF
+{
+  "context7": {
+    "enabled": ${CONTEXT7_ENABLED},
+    "apiKeyConfigured": $( [ -n "$CONTEXT7_API_KEY" ] && echo true || echo false )
+  },
+  "domotz": {
+    "enabled": ${DOMOTZ_ENABLED},
+    "siteId": $(printf '%s' "$DOMOTZ_SITE_ID" | jq -Rs .),
+    "apiKeyConfigured": $( [ -n "$DOMOTZ_API_KEY" ] && echo true || echo false )
+  },
+  "mqtt": {
+    "enabled": ${MQTT_ENABLED},
+    "brokerUrl": $(printf '%s' "$MQTT_BROKER_URL" | jq -Rs .),
+    "usernameConfigured": ${MQTT_USERNAME_CONFIGURED},
+    "passwordConfigured": ${MQTT_PASSWORD_CONFIGURED}
+  },
+  "bacnet": {
+    "enabled": ${BACNET_SCOUT_ENABLED}
+  }
+}
+EOF
+
+  echo "INFO: Prepared external integration secrets and runtime flags."
+}
+
+configure_external_integrations
+
 
 # ------------------------------------------------------------------------------
 # OpenClaw config is managed by OpenClaw itself (onboarding / configure).
@@ -709,6 +863,7 @@ GW_RELAY_PID=""
 NGINX_PID=""
 TTYD_PID=""
 LOCAL_PAIRING_APPROVER_PID=""
+DASHBOARD_API_PID=""
 SHUTTING_DOWN="false"
 
 shutdown() {
@@ -728,6 +883,11 @@ shutdown() {
   if [ -n "${LOCAL_PAIRING_APPROVER_PID}" ] && kill -0 "${LOCAL_PAIRING_APPROVER_PID}" >/dev/null 2>&1; then
     kill -TERM "${LOCAL_PAIRING_APPROVER_PID}" >/dev/null 2>&1 || true
     wait "${LOCAL_PAIRING_APPROVER_PID}" 2>/dev/null || true
+  fi
+
+  if [ -n "${DASHBOARD_API_PID}" ] && kill -0 "${DASHBOARD_API_PID}" >/dev/null 2>&1; then
+    kill -TERM "${DASHBOARD_API_PID}" >/dev/null 2>&1 || true
+    wait "${DASHBOARD_API_PID}" 2>/dev/null || true
   fi
 
   if [ -n "${GW_PID}" ] && kill -0 "${GW_PID}" >/dev/null 2>&1; then
@@ -1199,6 +1359,25 @@ start_local_pairing_approver() {
   LOCAL_PAIRING_APPROVER_PID=$!
 }
 
+start_dashboard_api() {
+  local api_port="${DASHBOARD_API_PORT:-$DEFAULT_DASHBOARD_API_PORT}"
+  if [ ! -f /dashboard_api.py ]; then
+    echo "WARN: dashboard_api.py not found; operator file editor will be unavailable"
+    return 0
+  fi
+
+  export OPENCLAW_DASHBOARD_API_PORT="$api_port"
+  python3 /dashboard_api.py &
+  DASHBOARD_API_PID=$!
+  sleep 1
+  if kill -0 "$DASHBOARD_API_PID" >/dev/null 2>&1; then
+    echo "INFO: Dashboard API started on 127.0.0.1:${api_port}"
+  else
+    echo "WARN: Dashboard API failed to start; file/schedule widgets may be unavailable"
+    DASHBOARD_API_PID=""
+  fi
+}
+
 # Find a running gateway daemon's PID using multiple detection methods.
 # Used by the supervisor loop to detect self-restarts (SIGUSR1) without
 # spawning duplicate gateway instances that collide on the port.
@@ -1252,6 +1431,7 @@ fi
 
 start_gw_relay
 start_local_pairing_approver
+start_dashboard_api
 
 # Start web terminal (optional)
 TTYD_PID_FILE="/var/run/openclaw-ttyd.pid"
@@ -1347,9 +1527,11 @@ fi
 
 GW_PUBLIC_URL="$GW_PUBLIC_URL" GW_TOKEN="$GW_TOKEN" TERMINAL_PORT="$TERMINAL_PORT" \
   ENABLE_HTTPS_PROXY="$ENABLE_HTTPS_PROXY" HTTPS_PROXY_PORT="$GATEWAY_PORT" \
-  GATEWAY_INTERNAL_PORT="$GATEWAY_INTERNAL_PORT" ACCESS_MODE="$ACCESS_MODE" \
+  GATEWAY_INTERNAL_PORT="$GATEWAY_INTERNAL_PORT" GATEWAY_PORT="$GATEWAY_PORT" \
+  GATEWAY_MODE="$GATEWAY_MODE" GATEWAY_BIND_MODE="$GATEWAY_BIND_MODE" ACCESS_MODE="$ACCESS_MODE" \
   DISK_TOTAL="$DISK_TOTAL" DISK_USED="$DISK_USED" DISK_AVAIL="$DISK_AVAIL" DISK_PCT="$DISK_PCT" \
   OPENCLAW_BUNDLED_VERSION="${OPENCLAW_BUNDLED_VERSION:-unknown}" \
+  DASHBOARD_API_PORT="${OPENCLAW_DASHBOARD_API_PORT:-$DEFAULT_DASHBOARD_API_PORT}" \
   NGINX_LOG_LEVEL="$NGINX_LOG_LEVEL" \
   python3 /render_nginx.py
 

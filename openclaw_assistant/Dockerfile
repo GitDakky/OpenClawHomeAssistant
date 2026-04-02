@@ -32,6 +32,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bat \
     less \
     openssl \
+    sqlite3 \
+    mosquitto-clients \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -146,11 +148,14 @@ EOF
 COPY run.sh /run.sh
 COPY oc_config_helper.py /oc_config_helper.py
 COPY render_nginx.py /render_nginx.py
+COPY dashboard_api.py /dashboard_api.py
 COPY oc-cleanup.sh /usr/local/bin/oc-cleanup
 COPY openclaw-proxy-shim.cjs /usr/local/lib/openclaw-proxy-shim.cjs
 COPY nginx.conf.tpl /etc/nginx/nginx.conf.tpl
 COPY landing.html.tpl /etc/nginx/landing.html.tpl
-RUN chmod +x /run.sh /oc_config_helper.py /render_nginx.py /usr/local/bin/oc-cleanup \
+COPY bootstrap-workspace /opt/openclaw-super/bootstrap-workspace
+COPY bundled-skills /opt/openclaw-super/bundled-skills
+RUN chmod +x /run.sh /oc_config_helper.py /render_nginx.py /dashboard_api.py /usr/local/bin/oc-cleanup \
     && mkdir -p /run/nginx
 
 CMD [ "/run.sh" ]

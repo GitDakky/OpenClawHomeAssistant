@@ -2,6 +2,28 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.1] - 2026-04-03
+
+### Changed
+- Reduced manual local-network setup friction by making the landing page derive the Gateway Web UI URL automatically from the current Home Assistant host and access mode in the common local cases.
+- Reframed `gateway_public_url` as an override for reverse-proxy, HTTPS, or Tailscale hostnames instead of something normal local installs should always have to fill in.
+
+## [0.7.0] - 2026-04-02
+
+### Added
+- Added a seeded OpenClaw workspace bootstrap under `/config/clawd` with `AGENTS.md`, `BOOTSTRAP.md`, `HEARTBEAT.md`, `IDENTITY.md`, `MEMORY.md`, `SOUL.md`, `TOOLS.md`, and `USER.md`.
+- Added a GitDakky Home Assistant skill pack covering operations, automations, voice, diagnostics, file access, research, network mapping, MQTT, Domotz, and BACnet guidance.
+- Added a local dashboard API and ingress UI panels for:
+  - editing the seeded workspace and skill files
+  - viewing live cron scheduler and heartbeat state
+  - inspecting integration status for Context7, Domotz, MQTT, BACnet, and MCP
+  - surfacing a lightweight SQLite-backed system graph
+- Added new add-on options for Context7, Domotz, external MQTT brokers, and BACnet scout scaffolding.
+
+### Changed
+- The add-on now prepares secrets files for Context7, Domotz, and MQTT under `/config/secrets/` and exports their paths to the runtime so skills and automations can use them immediately.
+- The image now bundles `sqlite3` and `mosquitto-clients` to support the new operator console and MQTT-oriented workflows.
+
 ## [0.6.2] - 2026-04-02
 
 ### Added

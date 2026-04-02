@@ -238,14 +238,14 @@ This is the practical flow users report as stable in HAOS.
 
 ### Setting up the "Open Gateway Web UI" button
 
-Set `gateway_public_url` in the add-on configuration to the URL where the gateway is reachable from your browser.
+In most local installs you can leave `gateway_public_url` empty. The add-on now tries to derive the correct Gateway URL automatically from the Home Assistant host and access mode. Set `gateway_public_url` only when the externally reachable hostname differs from the host you are already using in Home Assistant.
 
 **Examples**:
 - LAN HTTPS (built-in): `https://192.168.1.119:18790`
 - External HTTPS: `https://openclaw.example.com`
 - Tailscale: `https://ha-machine.ts.net:18790`
 
-> **Tip**: In `lan_https` mode, if you leave `gateway_public_url` empty, the add-on auto-constructs it from the detected LAN IP.
+> **Tip**: In current releases, the add-on first tries the current Home Assistant hostname for the Gateway button. That covers the normal local-IP and local-DNS cases without any manual IP entry.
 
 ### Browser security: "requires HTTPS or localhost"
 
@@ -290,7 +290,7 @@ All options are set via **Settings → Apps → OpenClaw Super Home Assistant �
 | `gateway_bind_mode` | `loopback` / `lan` / `tailnet` | `loopback` | **loopback**: 127.0.0.1 only (secure). **lan**: all interfaces (LAN-accessible). **tailnet**: Tailscale interface only. Only applies when `gateway_mode` is `local` |
 | `gateway_port` | int | `18790` | Port for the gateway. Only applies when `gateway_mode` is `local` |
 | `access_mode` | `custom` / `local_only` / `lan_https` / `lan_reverse_proxy` / `tailnet_https` | `custom` | **Simplifies secure access setup.** `custom`: use individual settings (backward-compatible). `lan_https`: built-in HTTPS proxy for LAN (recommended for phones). `lan_reverse_proxy`: external reverse proxy. `tailnet_https`: Tailscale. `local_only`: Ingress only. See [Accessing the Gateway Web UI](#4-accessing-the-gateway-web-ui) |
-| `gateway_public_url` | string | _(empty)_ | Public URL for the "Open Gateway Web UI" button. Auto-constructed in `lan_https` mode if empty. Example: `https://192.168.1.119:18790`. In newer versions this origin is also merged into `gateway.controlUi.allowedOrigins` to reduce reverse-proxy origin errors. |
+| `gateway_public_url` | string | _(empty)_ | Optional override for the "Open Gateway Web UI" button. In common local installs the add-on derives the URL automatically from the current Home Assistant host and access mode, so you can usually leave this empty. Set it when you need a different reverse-proxy, HTTPS, or Tailscale hostname. |
 | `enable_openai_api` | bool | `false` | Enable the OpenAI-compatible `/v1/chat/completions` endpoint. Required for [Assist pipeline integration](#6c-assist-pipeline-integration-openai-api) |
 | `gateway_auth_mode` | `token` / `trusted-proxy` | `token` | Gateway auth mode. Use `trusted-proxy` when terminating HTTPS in a reverse proxy and forwarding trusted auth headers. |
 | `gateway_trusted_proxies` | string | _(empty)_ | Comma-separated trusted proxy IP/CIDR list used with `gateway_auth_mode: trusted-proxy`. |
@@ -316,6 +316,14 @@ When `gateway_auth_mode: trusted-proxy` is used, the add-on sets `gateway.auth.t
 |---|---|---|---|
 | `homeassistant_token` | string | _(empty)_ | Optional HA long-lived access token (use at own risk, can be very unsecure but very powerful). Saved to `/config/secrets/homeassistant.token` for use by scripts/skills |
 | `http_proxy` | string | _(empty)_ | Optional outbound proxy URL for HTTP/HTTPS requests from OpenClaw and Node tools. Example: `http://192.168.2.1:3128` |
+| `enable_context7` | bool | `false` | Enables Context7-aware research guidance in the seeded workspace and skill pack. Set `context7_api_key` as well if you want live documentation lookups. |
+| `context7_api_key` | string | _(empty)_ | Optional Context7 API key. Stored in `/config/secrets/context7.api_key`. |
+| `domotz_api_key` | string | _(empty)_ | Optional Domotz API key for network inventory correlation. Stored in `/config/secrets/domotz.api_key`. |
+| `domotz_site_id` | string | _(empty)_ | Optional Domotz site ID. Stored in `/config/secrets/domotz.site_id`. |
+| `mqtt_broker_url` | string | _(empty)_ | Optional external MQTT broker URL such as `mqtt://broker.local:1883` or `mqtts://cluster.s2.eu.hivemq.cloud:8883`. Stored in `/config/secrets/mqtt.broker_url`. |
+| `mqtt_username` | string | _(empty)_ | Optional MQTT username. Stored in `/config/secrets/mqtt.username`. |
+| `mqtt_password` | string | _(empty)_ | Optional MQTT password. Stored in `/config/secrets/mqtt.password`. |
+| `enable_bacnet_scout` | bool | `false` | Enables BACnet/IP operator scaffolding and dashboard status. It does not silently probe the network by itself. |
 
 ### Router SSH
 
@@ -669,9 +677,11 @@ You should see your account listed with the `sheets` service.
 | Built-in skills | `/config/.openclaw/skills/` | Yes |
 | Agent sessions & data | `/config/.openclaw/agents/` | Yes |
 | ClawHub workspace | `/config/clawd/` | Yes |
+| Seeded workspace bootstrap files | `/config/clawd/*.md` | Yes |
 | User-installed npm skills | `/config/.node_global/` | Yes |
 | SSH keys | `/config/keys/` | Yes |
 | Tokens | `/config/secrets/` | Yes |
+| Lightweight system graph | `/config/.openclaw/gitdakky-system-graph.sqlite3` | Yes |
 | Homebrew & brew-installed tools | `/config/.linuxbrew/` | Yes (synced on startup) |
 | gog OAuth credentials | `/config/gogcli/` | Yes |
 | TLS certificates (lan_https) | `/config/certs/` | Yes (CA persists; server cert regenerated if IP changes) |
@@ -686,6 +696,44 @@ OpenClaw ships with premade skills (e.g., web search, file management). On each 
 3. On subsequent boots, only newer files are synced (existing files are preserved)
 
 This means built-in skills survive image rebuilds, and any customizations you make to skill files are preserved.
+
+### GitDakky seeded workspace and skill pack
+
+On first boot, this fork also seeds persistent operator files under `/config/clawd`:
+
+- `AGENTS.md`
+- `BOOTSTRAP.md`
+- `HEARTBEAT.md`
+- `IDENTITY.md`
+- `MEMORY.md`
+- `SOUL.md`
+- `TOOLS.md`
+- `USER.md`
+
+It also seeds a Home Assistant-focused skill pack into `/config/.openclaw/skills/` with guidance for:
+
+- Home Assistant operations
+- automations
+- voice/Assist
+- diagnostics
+- file access
+- network mapping
+- research
+- Domotz
+- MQTT
+- BACnet
+
+These files are created only if missing, so later restarts do not wipe your manual edits.
+
+### Dashboard editing and runtime visibility
+
+The ingress landing page now includes:
+
+- a file editor for the seeded workspace files and bundled skill files
+- live `openclaw cron` scheduler visibility
+- last-heartbeat visibility
+- integration status cards for Context7, Domotz, MQTT, BACnet, and MCP
+- system-graph metadata backed by SQLite at `/config/.openclaw/gitdakky-system-graph.sqlite3`
 
 ### How user-installed skills work
 

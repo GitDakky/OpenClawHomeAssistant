@@ -5,9 +5,9 @@ Render nginx.conf and landing page HTML from templates.
 Called by run.sh with the following env vars:
   GW_PUBLIC_URL, GW_TOKEN, TERMINAL_PORT,
   ENABLE_HTTPS_PROXY, HTTPS_PROXY_PORT,
-  GATEWAY_INTERNAL_PORT, ACCESS_MODE,
+  GATEWAY_INTERNAL_PORT, GATEWAY_PORT, GATEWAY_MODE, GATEWAY_BIND_MODE, ACCESS_MODE,
   DISK_TOTAL, DISK_USED, DISK_AVAIL, DISK_PCT,
-  OPENCLAW_BUNDLED_VERSION
+  OPENCLAW_BUNDLED_VERSION, DASHBOARD_API_PORT
 """
 
 import os
@@ -52,7 +52,11 @@ def main():
     enable_https = os.environ.get('ENABLE_HTTPS_PROXY', 'false') == 'true'
     https_port = os.environ.get('HTTPS_PROXY_PORT', '')
     internal_gw_port = os.environ.get('GATEWAY_INTERNAL_PORT', '')
+    gateway_port = os.environ.get('GATEWAY_PORT', '')
+    gateway_mode = os.environ.get('GATEWAY_MODE', 'local')
+    gateway_bind_mode = os.environ.get('GATEWAY_BIND_MODE', 'loopback')
     access_mode = os.environ.get('ACCESS_MODE', 'custom')
+    dashboard_api_port = os.environ.get('DASHBOARD_API_PORT', '48110')
 
     # Disk usage info (collected by run.sh)
     disk_total = os.environ.get('DISK_TOTAL', '')
@@ -83,6 +87,7 @@ def main():
 
     conf = tpl.replace('__NGINX_ACCESS_LOG__', access_log_block)
     conf = conf.replace('__TERMINAL_PORT__', terminal_port)
+    conf = conf.replace('__DASHBOARD_API_PORT__', dashboard_api_port)
 
     # Build HTTPS gateway proxy block (only for lan_https mode)
     https_block = ''
@@ -140,6 +145,9 @@ def main():
     landing = landing.replace('__GATEWAY_PUBLIC_URL__', public_url)
     landing = landing.replace('__GW_PUBLIC_URL_PATH__', gw_path)
     landing = landing.replace('__ACCESS_MODE__', access_mode)
+    landing = landing.replace('__GATEWAY_MODE__', gateway_mode)
+    landing = landing.replace('__GATEWAY_BIND_MODE__', gateway_bind_mode)
+    landing = landing.replace('__GATEWAY_PORT__', gateway_port)
     landing = landing.replace('__HTTPS_PORT__', https_port if enable_https else '')
     landing = landing.replace('__DISK_TOTAL__', disk_total)
     landing = landing.replace('__DISK_USED__', disk_used)

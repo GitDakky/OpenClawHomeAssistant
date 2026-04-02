@@ -51,6 +51,18 @@ http {
       try_files /index.html =404;
     }
 
+    # Local dashboard API used by the operator console.
+    location ^~ /super/api/ {
+      proxy_pass http://127.0.0.1:__DASHBOARD_API_PORT__/api/;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $remote_addr;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_read_timeout 30s;
+      proxy_send_timeout 30s;
+    }
+
     # (Optional) Gateway UI via ingress has been intentionally removed.
     # See landing page link that opens the gateway in a separate tab.
 

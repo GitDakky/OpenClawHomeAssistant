@@ -13,7 +13,7 @@ configuration:
   
   gateway_public_url:
     name: Публичен URL на Gateway
-    description: Публичен базов URL за отваряне на Gateway уеб интерфейса в нов таб (не вграден). Пример - https://example.duckdns.org:12345 или http://192.168.1.10:18790
+    description: Незадължителен override URL за Gateway уеб интерфейса. При повечето локални инсталации add-on-ът го открива автоматично от текущия Home Assistant host. Задайте го само ако ви трябва различен reverse-proxy, HTTPS или Tailscale hostname.
   
   homeassistant_token:
     name: Home Assistant токен
@@ -117,3 +117,27 @@ configuration:
   auto_configure_mcp:
     name: Автоматично конфигуриране на MCP за Home Assistant
     description: "Когато е ВКЛ. и Home Assistant Token е зададен, автоматично регистрира Home Assistant като MCP сървър при всяко стартиране. Това позволява на OpenClaw да контролира HA устройства, услуги и автоматизации чрез Model Context Protocol. Изключете само ако управлявате mcporter конфигурацията ръчно."
+  enable_context7:
+    name: Активирай Context7 режим
+    description: "Когато е ВКЛ., предварително зареденият workspace и skill pack инструктират асистента да използва Context7 за актуална документация, ако има API ключ."
+  context7_api_key:
+    name: Context7 API ключ
+    description: Незадължително - API ключ за Context7 справки по документация
+  domotz_api_key:
+    name: Domotz API ключ
+    description: Незадължително - API ключ за Domotz мрежов инвентар и мониторинг
+  domotz_site_id:
+    name: Domotz Site ID
+    description: Незадължително - идентификатор на сайт заедно с Domotz API ключа
+  mqtt_broker_url:
+    name: MQTT Broker URL
+    description: Незадължително - външен MQTT broker URL (пример - mqtts://cluster.s2.eu.hivemq.cloud:8883)
+  mqtt_username:
+    name: MQTT потребител
+    description: Незадължително - потребител за конфигурирания MQTT broker
+  mqtt_password:
+    name: MQTT парола
+    description: Незадължително - парола за конфигурирания MQTT broker
+  enable_bacnet_scout:
+    name: Активирай BACnet Scout
+    description: "Когато е ВКЛ., добавя BACnet/IP насоки, статус в таблото и graph scaffolding. Не сканира мрежата тайно."

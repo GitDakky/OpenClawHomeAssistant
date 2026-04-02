@@ -35,6 +35,9 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 | Embedded terminal | `ttyd` inside Home Assistant for onboarding, recovery, and live ops |
 | Automation runtime | OpenClaw gateway, skills, MCP support, and OpenAI-compatible API access |
 | Unattended automation mode | Optional `disable_exec_approvals` switch for trusted installs that must suppress host exec approval prompts |
+| Seeded operator brain | Preloaded workspace files (`AGENTS.md`, `IDENTITY.md`, `TOOLS.md`, `MEMORY.md`, and more) plus Home Assistant skill files |
+| Operator dashboard | Live cron/heartbeat visibility, file editing for the seeded workspace and skills, and integration status cards |
+| External intelligence hooks | Optional Context7, Domotz, MQTT/HiveMQ, BACnet scout, and lightweight system graph scaffolding |
 | Browser tooling | Chromium bundled for automation and web-driven workflows |
 | Persistent state | Config, skills, agent workspace, keys, and tokens survive add-on updates |
 | Useful CLI stack | `git`, `jq`, `python3`, `ripgrep`, `curl`, `pnpm`, Homebrew, and more |
@@ -62,6 +65,8 @@ jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json
 
 For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.md](DOCS.md).
 
+In most local installs, leave `gateway_public_url` empty. The landing page now derives the Gateway URL automatically from the Home Assistant host and access mode in the common local cases. Only set it when you need to override that with a reverse-proxy or Tailscale hostname.
+
 ## Runtime
 
 ![OpenClaw Super Home Assistant architecture](assets/openclaw-architecture.svg)
@@ -69,8 +74,16 @@ For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.m
 - Home Assistant ingress for the landing page and operational entry point
 - `nginx` + `ttyd` for browser-based setup and terminal access
 - OpenClaw gateway for chat, skills, MCP, and the OpenAI-compatible endpoint
+- Seeded OpenClaw workspace bootstrap files and GitDakky Home Assistant skill pack under persistent storage
+- A lightweight local dashboard API that powers file editing, cron/heartbeat visibility, integration status, and system-graph metadata on the ingress page
 - First-start state reconciliation for older single-agent OpenClaw layouts so legacy auth/session data lands in `agents/main/...`
 - Persistent `/config` storage so updates do not wipe the working environment
+
+## Seeded workspace and skills
+
+- On first boot, the add-on seeds `/config/clawd` with `AGENTS.md`, `BOOTSTRAP.md`, `HEARTBEAT.md`, `IDENTITY.md`, `MEMORY.md`, `SOUL.md`, `TOOLS.md`, and `USER.md`.
+- It also seeds `/config/.openclaw/skills/` with GitDakky-managed Home Assistant skills for operations, automations, voice, diagnostics, network mapping, MQTT, Domotz, BACnet, and research.
+- The dashboard now exposes those files directly so you can review or edit them without dropping into a shell unless you want to.
 
 ## Supported architectures
 

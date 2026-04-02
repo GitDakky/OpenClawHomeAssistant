@@ -304,6 +304,184 @@
       grid-template-columns:repeat(2, minmax(0, 1fr));
       gap:18px;
     }
+    .ops-grid{
+      display:grid;
+      grid-template-columns:minmax(0, 1.35fr) minmax(320px, .95fr);
+      gap:18px;
+      align-items:start;
+    }
+    .ops-panel{
+      padding:22px;
+      display:grid;
+      gap:16px;
+    }
+    .ops-panel.wide{
+      grid-row:span 2;
+    }
+    .ops-head{
+      display:grid;
+      gap:6px;
+    }
+    .ops-head h3,
+    .stack-card h4,
+    .file-group h4{
+      margin:0;
+      font-size:20px;
+      letter-spacing:-.03em;
+    }
+    .ops-head p,
+    .stack-card p,
+    .file-group p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.65;
+    }
+    .editor-layout{
+      display:grid;
+      grid-template-columns:minmax(220px, .8fr) minmax(0, 1.4fr);
+      gap:16px;
+      align-items:start;
+    }
+    .file-groups{
+      display:grid;
+      gap:16px;
+    }
+    .file-group{
+      display:grid;
+      gap:10px;
+    }
+    .file-list{
+      display:grid;
+      gap:8px;
+      max-height:280px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .file-btn{
+      text-align:left;
+      width:100%;
+      border:1px solid rgba(88,114,146,.18);
+      background:rgba(9,17,30,.78);
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 14px;
+      cursor:pointer;
+      transition:border-color .18s ease, transform .18s ease, background .18s ease;
+    }
+    .file-btn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(124,231,210,.34);
+    }
+    .file-btn.active{
+      border-color:rgba(87,166,255,.4);
+      background:rgba(14,27,46,.92);
+      box-shadow:0 0 0 1px rgba(87,166,255,.16) inset;
+    }
+    .file-btn .small{
+      display:block;
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .editor-shell{
+      display:grid;
+      gap:12px;
+      min-width:0;
+    }
+    .editor-toolbar{
+      display:flex;
+      gap:12px;
+      justify-content:space-between;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .editor-toolbar strong{
+      display:block;
+      font-size:16px;
+    }
+    .editor{
+      width:100%;
+      min-height:420px;
+      resize:vertical;
+      border-radius:18px;
+      border:1px solid rgba(88,114,146,.22);
+      background:var(--code);
+      color:#e4efff;
+      padding:16px;
+      font-family:"SFMono-Regular","JetBrains Mono","Cascadia Code",monospace;
+      font-size:13px;
+      line-height:1.65;
+      outline:none;
+    }
+    .stack{
+      display:grid;
+      gap:12px;
+    }
+    .stack-card{
+      padding:16px;
+      border-radius:18px;
+      background:rgba(9,17,30,.76);
+      border:1px solid rgba(88,114,146,.18);
+      display:grid;
+      gap:10px;
+    }
+    .stack-card pre{
+      margin:0;
+      max-height:220px;
+    }
+    .pill-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      min-height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      background:rgba(14,27,46,.92);
+      border:1px solid rgba(88,114,146,.18);
+      color:#deebff;
+      font-size:12px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .pill.good{
+      border-color:rgba(81,217,166,.3);
+      color:#bfffe5;
+    }
+    .pill.warn{
+      border-color:rgba(255,178,74,.34);
+      color:#ffe2b7;
+    }
+    .pill.off{
+      border-color:rgba(255,109,109,.26);
+      color:#ffd0d0;
+    }
+    .integration-grid{
+      display:grid;
+      gap:12px;
+    }
+    .integration-card{
+      border-radius:18px;
+      padding:16px;
+      background:rgba(9,17,30,.76);
+      border:1px solid rgba(88,114,146,.18);
+      display:grid;
+      gap:8px;
+    }
+    .integration-card b{
+      font-size:15px;
+    }
+    .integration-card .meta{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+      word-break:break-word;
+    }
     .guide-card{
       padding:18px 18px 10px;
     }
@@ -409,6 +587,9 @@
     @media (max-width: 1040px){
       .hero{grid-template-columns:1fr}
       .guides{grid-template-columns:1fr}
+      .ops-grid{grid-template-columns:1fr}
+      .ops-panel.wide{grid-row:auto}
+      .editor-layout{grid-template-columns:1fr}
     }
     @media (max-width: 720px){
       body{padding:18px 12px 24px}
@@ -516,7 +697,7 @@
           <div>
             <p>
               The Gateway UI opens in a separate tab to avoid Home Assistant ingress websocket quirks.
-              If the launch URL is wrong, set <code>gateway_public_url</code> in the app configuration.
+              In most local installs the launch URL is derived automatically. Set <code>gateway_public_url</code> only when you need to override the detected host or point at a reverse-proxy / Tailscale URL.
             </p>
             <p>
               If the Gateway UI says <b>Unauthorized</b>, retrieve the token in the embedded terminal:
@@ -590,6 +771,94 @@ SSL tab:  Request a new SSL certificate</pre>
       </div>
     </section>
 
+    <section class="ops-grid">
+      <section class="panel ops-panel wide">
+        <div class="ops-head">
+          <div class="eyebrow">Workspace and Skills</div>
+          <h3>Editable operator bootstrap</h3>
+          <p>
+            The add-on seeds a managed OpenClaw workspace and a Home Assistant skill pack on first boot.
+            Edit the key files here if you want to tune the assistant manually without leaving the dashboard.
+          </p>
+        </div>
+        <div class="editor-layout">
+          <div class="file-groups">
+            <div class="file-group">
+              <h4>Workspace files</h4>
+              <p>Always-on identity, bootstrap, memory, and tool-use rules.</p>
+              <div class="file-list" id="workspaceList"></div>
+            </div>
+            <div class="file-group">
+              <h4>Bundled skills</h4>
+              <p>Home Assistant, diagnostics, research, Domotz, BACnet, and MQTT guidance.</p>
+              <div class="file-list" id="skillList"></div>
+            </div>
+          </div>
+          <div class="editor-shell">
+            <div class="editor-toolbar">
+              <div>
+                <strong id="editorTitle">Choose a file to inspect</strong>
+                <div class="subtle" id="editorPath">Files are loaded from persistent storage under /config.</div>
+              </div>
+              <div class="action-row">
+                <button class="btn secondary" id="reloadFileBtn" type="button">Reload</button>
+                <button class="btn primary" id="saveFileBtn" type="button">Save file</button>
+              </div>
+            </div>
+            <textarea class="editor" id="fileEditor" spellcheck="false" placeholder="Select a workspace file or skill file to edit."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel ops-panel">
+        <div class="ops-head">
+          <div class="eyebrow">Automation Runtime</div>
+          <h3>Cron and heartbeat visibility</h3>
+          <p>
+            This section reflects live OpenClaw scheduler state so you can see what jobs exist,
+            whether the cron scheduler is healthy, and what the latest heartbeat recorded.
+          </p>
+        </div>
+        <div class="stack">
+          <div class="stack-card">
+            <h4>Scheduler summary</h4>
+            <div class="pill-row" id="scheduleSummary">
+              <span class="pill">Loading</span>
+            </div>
+          </div>
+          <div class="stack-card">
+            <h4>Cron jobs</h4>
+            <pre id="cronJobsBlock">Loading live cron state...</pre>
+          </div>
+          <div class="stack-card">
+            <h4>Recent cron runs</h4>
+            <pre id="cronRunsBlock">Loading recent run history...</pre>
+          </div>
+          <div class="stack-card">
+            <h4>Last heartbeat</h4>
+            <pre id="heartbeatBlock">Loading last heartbeat...</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel ops-panel">
+        <div class="ops-head">
+          <div class="eyebrow">Integration Rack</div>
+          <h3>Research, broker, and network sources</h3>
+          <p>
+            Context7, Domotz, MQTT, BACnet, and the lightweight system graph all surface here so the operator
+            can see what live intelligence is actually wired in before asking the agent to use it.
+          </p>
+        </div>
+        <div class="integration-grid" id="integrationGrid">
+          <div class="integration-card">
+            <b>Loading integration state...</b>
+            <div class="meta">The dashboard API is gathering runtime metadata.</div>
+          </div>
+        </div>
+      </section>
+    </section>
+
     <section class="panel terminal-shell">
       <div class="terminal-head">
         <div>
@@ -610,6 +879,9 @@ SSL tab:  Request a new SSL certificate</pre>
   <script>
   (function() {
     const ACCESS_MODE = '__ACCESS_MODE__';
+    const GATEWAY_MODE = '__GATEWAY_MODE__';
+    const GATEWAY_BIND_MODE = '__GATEWAY_BIND_MODE__';
+    const GATEWAY_PORT = '__GATEWAY_PORT__';
     const HTTPS_PORT = '__HTTPS_PORT__';
     const GW_PUBLIC_URL = '__GATEWAY_PUBLIC_URL__';
     const GW_TOKEN = '__GATEWAY_TOKEN__';
@@ -617,8 +889,46 @@ SSL tab:  Request a new SSL certificate</pre>
     const DISK_AVAIL = '__DISK_AVAIL__';
     const DISK_USED = '__DISK_USED__';
     const DISK_TOTAL = '__DISK_TOTAL__';
+    const DASHBOARD_API_BASE = './super/api';
 
     const $ = id => document.getElementById(id);
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+    const prettyJson = value => {
+      if (value === null || value === undefined || value === '') return 'No data.';
+      if (typeof value === 'string') return value;
+      try { return JSON.stringify(value, null, 2); } catch { return String(value); }
+    };
+    const browserHost = window.location.hostname || '';
+    const browserProtocol = window.location.protocol || 'http:';
+    function resolveGatewayBaseUrl() {
+      if (GW_PUBLIC_URL) {
+        return GW_PUBLIC_URL.replace(/\/$/, '');
+      }
+      if (GATEWAY_MODE !== 'local') {
+        return '';
+      }
+      if (ACCESS_MODE === 'lan_https' && HTTPS_PORT && browserHost) {
+        return `https://${browserHost}:${HTTPS_PORT}`;
+      }
+      if (ACCESS_MODE === 'local_only') {
+        if (browserHost === 'localhost' || browserHost === '127.0.0.1') {
+          return `http://127.0.0.1:${GATEWAY_PORT}`;
+        }
+        return '';
+      }
+      if (ACCESS_MODE === 'custom' && GATEWAY_BIND_MODE === 'lan' && browserHost && GATEWAY_PORT) {
+        return `http://${browserHost}:${GATEWAY_PORT}`;
+      }
+      if (ACCESS_MODE === 'custom' && GATEWAY_BIND_MODE === 'loopback' && (browserHost === 'localhost' || browserHost === '127.0.0.1')) {
+        return `http://127.0.0.1:${GATEWAY_PORT}`;
+      }
+      if (ACCESS_MODE === 'lan_reverse_proxy' && browserProtocol === 'https:' && browserHost) {
+        return `https://${browserHost}`;
+      }
+      return '';
+    }
+    const RESOLVED_GATEWAY_BASE_URL = resolveGatewayBaseUrl();
+    let activeFileKey = '';
 
     const isSecure = window.isSecureContext;
     const secureBadge = $('secureBadge');
@@ -636,8 +946,8 @@ SSL tab:  Request a new SSL certificate</pre>
     (async function checkGateway() {
       const statusEl = $('statusGateway');
       try {
-        const url = GW_PUBLIC_URL
-          ? GW_PUBLIC_URL.replace(/\/$/, '') + '/api/health' + (GW_TOKEN ? ('?token=' + encodeURIComponent(GW_TOKEN)) : '')
+        const url = RESOLVED_GATEWAY_BASE_URL
+          ? RESOLVED_GATEWAY_BASE_URL + '/api/health' + (GW_TOKEN ? ('?token=' + encodeURIComponent(GW_TOKEN)) : '')
           : '/api/health';
         const r = await fetch(url, { mode: 'no-cors', cache: 'no-store' }).catch(() => null);
         if (r && (r.ok || r.type === 'opaque')) {
@@ -738,7 +1048,7 @@ SSL tab:  Request a new SSL certificate</pre>
       wizardContent.innerHTML = `
         <ol>
           <li>Point your HTTPS reverse proxy at <code>&lt;HA-IP&gt;:${GW_PUBLIC_URL ? new URL(GW_PUBLIC_URL).port || '18790' : '18790'}</code>.</li>
-          <li>Set <code>gateway_public_url</code> to the final HTTPS hostname.</li>
+          <li>Only set <code>gateway_public_url</code> if the final external hostname differs from the Home Assistant host you are already using.</li>
           <li>Set <code>gateway_trusted_proxies</code> to your proxy IP or CIDR.</li>
           <li>Restart the app after saving the configuration.</li>
         </ol>`;
@@ -748,7 +1058,7 @@ SSL tab:  Request a new SSL certificate</pre>
         <ol>
           <li>Confirm Tailscale is running on the Home Assistant host.</li>
           <li>Enable HTTPS certificates in Tailnet admin.</li>
-          <li>Issue a certificate for the machine and set <code>gateway_public_url</code> to the final HTTPS host.</li>
+          <li>Issue a certificate for the machine and set <code>gateway_public_url</code> to the final HTTPS host if the add-on cannot derive it automatically.</li>
           <li>Restart the app once the URL is in place.</li>
         </ol>`;
     } else if (ACCESS_MODE === 'local_only') {
@@ -768,7 +1078,174 @@ SSL tab:  Request a new SSL certificate</pre>
         </ul>`;
     }
 
+    function setBanner(targetId, message, hidden) {
+      const element = $(targetId);
+      if (!element) return;
+      if (hidden || !message) {
+        element.classList.add('hidden');
+        if (targetId === 'errorBanner' || targetId === 'successBanner') {
+          element.textContent = '';
+        }
+        return;
+      }
+      element.classList.remove('hidden');
+      if (targetId === 'errorBanner' || targetId === 'successBanner') {
+        element.textContent = message;
+      }
+    }
+
+    async function fetchDashboardJson(path, options) {
+      const response = await fetch(`${DASHBOARD_API_BASE}${path}`, Object.assign({ cache: 'no-store' }, options || {}));
+      if (!response.ok) {
+        throw new Error(`dashboard api ${path} failed (${response.status})`);
+      }
+      return response.json();
+    }
+
+    function renderFileButtons(containerId, entries) {
+      const container = $(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+      entries.forEach(entry => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'file-btn';
+        if (entry.key === activeFileKey) {
+          button.classList.add('active');
+        }
+        button.innerHTML = `<span>${escapeHtml(entry.name)}</span><span class="small">${escapeHtml(entry.path)}</span>`;
+        button.addEventListener('click', () => openDashboardFile(entry.key));
+        container.appendChild(button);
+      });
+    }
+
+    async function openDashboardFile(fileKey) {
+      const payload = await fetchDashboardJson(`/file?key=${encodeURIComponent(fileKey)}`);
+      activeFileKey = payload.key;
+      $('editorTitle').textContent = payload.key.replace(/^workspace:/, '').replace(/^skill:/, '');
+      $('editorPath').textContent = payload.path;
+      $('fileEditor').value = payload.content || '';
+      renderLastState();
+    }
+
+    async function saveDashboardFile() {
+      if (!activeFileKey) {
+        setBanner('errorBanner', 'Choose a workspace or skill file before saving.', false);
+        return;
+      }
+      await fetchDashboardJson('/file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: activeFileKey,
+          content: $('fileEditor').value
+        })
+      });
+      setBanner('errorBanner', '', true);
+      setBanner('successBanner', `Saved ${activeFileKey} to persistent storage.`, false);
+      setTimeout(() => setBanner('successBanner', '', true), 3000);
+      await loadDashboardState();
+    }
+
+    function schedulerPills(schedule) {
+      const pills = [];
+      const cronStatus = schedule?.cronStatus || {};
+      const cronJobs = schedule?.cronJobs || {};
+      const heartbeat = schedule?.heartbeatLast || {};
+      if (cronStatus.error) {
+        pills.push('<span class="pill off">Cron status unavailable</span>');
+      } else {
+        pills.push('<span class="pill good">Cron scheduler visible</span>');
+      }
+      const jobCount = Array.isArray(cronJobs.data?.jobs) ? cronJobs.data.jobs.length : Array.isArray(cronJobs.data) ? cronJobs.data.length : null;
+      if (jobCount !== null) {
+        pills.push(`<span class="pill ${jobCount > 0 ? 'good' : 'warn'}">${jobCount} cron job${jobCount === 1 ? '' : 's'}</span>`);
+      }
+      if (heartbeat.error) {
+        pills.push('<span class="pill warn">Heartbeat unreadable</span>');
+      } else {
+        pills.push('<span class="pill good">Heartbeat reachable</span>');
+      }
+      return pills.join('');
+    }
+
+    function renderIntegrations(data, graph) {
+      const grid = $('integrationGrid');
+      const cards = [];
+      const buildCard = (title, configured, meta) => `
+        <div class="integration-card">
+          <b>${escapeHtml(title)}</b>
+          <div class="pill-row">
+            <span class="pill ${configured ? 'good' : 'off'}">${configured ? 'Configured' : 'Not configured'}</span>
+          </div>
+          <div class="meta">${meta}</div>
+        </div>`;
+
+      cards.push(buildCard('Context7', !!data?.context7?.configured, `Secret path: <code>${escapeHtml(data?.context7?.secretPath || '')}</code>`));
+      cards.push(buildCard('Domotz', !!data?.domotz?.configured, `Site ID: <code>${escapeHtml(data?.domotz?.siteId || 'unset')}</code><br>Secret path: <code>${escapeHtml(data?.domotz?.secretPath || '')}</code>`));
+      cards.push(buildCard('MQTT / HiveMQ', !!data?.mqtt?.configured, `Broker: <code>${escapeHtml(data?.mqtt?.brokerUrl || 'unset')}</code><br>Username: ${data?.mqtt?.usernameConfigured ? 'configured' : 'unset'}<br>Password: ${data?.mqtt?.passwordConfigured ? 'configured' : 'unset'}`));
+      cards.push(buildCard('BACnet Scout', !!data?.bacnet?.configured, escapeHtml(data?.bacnet?.notes || 'Opt-in only.')));
+      cards.push(buildCard('Home Assistant MCP', !!data?.homeAssistantMcp?.configured, `Token path: <code>${escapeHtml(data?.homeAssistantMcp?.tokenPath || '')}</code>`));
+      cards.push(`
+        <div class="integration-card">
+          <b>System Graph</b>
+          <div class="pill-row">
+            <span class="pill good">${escapeHtml(String(graph?.nodeCount ?? 0))} nodes</span>
+            <span class="pill good">${escapeHtml(String(graph?.edgeCount ?? 0))} edges</span>
+          </div>
+          <div class="meta">SQLite path: <code>${escapeHtml(graph?.path || '')}</code></div>
+        </div>`);
+      grid.innerHTML = cards.join('');
+    }
+
+    let lastDashboardState = null;
+    function renderLastState() {
+      if (!lastDashboardState) return;
+      renderFileButtons('workspaceList', lastDashboardState.workspaceFiles || []);
+      renderFileButtons('skillList', lastDashboardState.skillFiles || []);
+    }
+
+    async function loadDashboardState() {
+      try {
+        const payload = await fetchDashboardJson('/state');
+        lastDashboardState = payload;
+        renderLastState();
+        $('scheduleSummary').innerHTML = schedulerPills(payload.schedule || {});
+        $('cronJobsBlock').textContent = prettyJson(payload.schedule?.cronJobs?.error || payload.schedule?.cronJobs?.data);
+        $('cronRunsBlock').textContent = prettyJson(payload.schedule?.cronRuns?.error || payload.schedule?.cronRuns?.data);
+        $('heartbeatBlock').textContent = prettyJson(payload.schedule?.heartbeatLast?.error || payload.schedule?.heartbeatLast?.data);
+        renderIntegrations(payload.integrations || {}, payload.graph || {});
+        if (!activeFileKey && payload.workspaceFiles?.length) {
+          await openDashboardFile(payload.workspaceFiles[0].key);
+        }
+      } catch (error) {
+        setBanner('errorBanner', `Dashboard data could not be loaded: ${error.message}`, false);
+        $('cronJobsBlock').textContent = 'Dashboard API unavailable.';
+        $('cronRunsBlock').textContent = 'Dashboard API unavailable.';
+        $('heartbeatBlock').textContent = 'Dashboard API unavailable.';
+      }
+    }
+
+    $('reloadFileBtn').addEventListener('click', () => {
+      if (activeFileKey) openDashboardFile(activeFileKey);
+    });
+    $('saveFileBtn').addEventListener('click', saveDashboardFile);
+    loadDashboardState();
+
   })();
   </script>
 </body>
 </html>
+    const gwButton = $('gwbtn');
+    if (RESOLVED_GATEWAY_BASE_URL) {
+      gwButton.href = `${RESOLVED_GATEWAY_BASE_URL}/?token=${encodeURIComponent(GW_TOKEN)}`;
+    } else if (!GW_PUBLIC_URL) {
+      gwButton.classList.remove('primary');
+      gwButton.classList.add('secondary');
+      gwButton.textContent = 'Configure Gateway URL';
+      gwButton.href = '#';
+      gwButton.addEventListener('click', function(event) {
+        event.preventDefault();
+        setBanner('errorBanner', 'The add-on could not derive a usable Gateway URL automatically for this access mode. Set gateway_public_url only if you are using a reverse proxy, Tailscale hostname, or another non-default path.', false);
+      });
+    }

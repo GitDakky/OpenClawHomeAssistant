@@ -13,7 +13,7 @@ configuration:
   
   gateway_public_url:
     name: Gateway Public URL
-    description: Public base URL for opening the Gateway Web UI in a new tab (not embedded). Example - https://example.duckdns.org:12345 or http://192.168.1.10:18790
+    description: Optional override for the Gateway Web UI launch URL. Most local installs auto-detect this from the current Home Assistant host. Set it only when you need a different reverse-proxy, HTTPS, or Tailscale hostname.
   
   homeassistant_token:
     name: Home Assistant Token
@@ -117,3 +117,27 @@ configuration:
   auto_configure_mcp:
     name: Auto-Configure MCP for Home Assistant
     description: "When ON and Home Assistant Token is set, automatically registers Home Assistant as an MCP server on each startup. This lets OpenClaw control HA entities, services, and automations via the Model Context Protocol. Disable only if you manage mcporter configuration manually."
+  enable_context7:
+    name: Enable Context7 Research Mode
+    description: "When ON, the seeded workspace and skill pack instruct the assistant to use Context7 for current documentation when an API key is configured."
+  context7_api_key:
+    name: Context7 API Key
+    description: Optional - API key for Context7 documentation lookups
+  domotz_api_key:
+    name: Domotz API Key
+    description: Optional - API key for Domotz network inventory and monitoring data
+  domotz_site_id:
+    name: Domotz Site ID
+    description: Optional - Site identifier used with the Domotz API key
+  mqtt_broker_url:
+    name: MQTT Broker URL
+    description: Optional - External MQTT broker URL (example - mqtts://cluster.s2.eu.hivemq.cloud:8883)
+  mqtt_username:
+    name: MQTT Username
+    description: Optional - Username for the configured MQTT broker
+  mqtt_password:
+    name: MQTT Password
+    description: Optional - Password for the configured MQTT broker
+  enable_bacnet_scout:
+    name: Enable BACnet Scout
+    description: "When ON, seeds BACnet discovery guidance, dashboard status, and graph scaffolding for BACnet/IP workflows. It does not silently scan the network."

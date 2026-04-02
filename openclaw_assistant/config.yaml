@@ -1,5 +1,5 @@
 name: OpenClaw Super Home Assistant
-version: "0.6.2"
+version: "0.7.1"
 slug: openclaw_super_home_assistant
 description: Run the GitDakky OpenClaw fork as a Home Assistant app with migration support.
 url: https://github.com/GitDakky/OpenClawHomeAssistant
@@ -150,6 +150,27 @@ options:
   # MCP server in OpenClaw so the AI can control Home Assistant entities/services.
   auto_configure_mcp: false
 
+  # Enable Context7-aware research posture for current docs.
+  # When enabled, the workspace and bundled skills will instruct the agent to use Context7
+  # if an API key is configured.
+  enable_context7: false
+  context7_api_key: ""
+
+  # Optional Domotz integration credentials for network inventory correlation.
+  domotz_api_key: ""
+  domotz_site_id: ""
+
+  # Optional external MQTT broker details (for example HiveMQ Cloud).
+  # broker URL examples: mqtt://broker.local:1883 or mqtts://cluster.s2.eu.hivemq.cloud:8883
+  mqtt_broker_url: ""
+  mqtt_username: ""
+  mqtt_password: ""
+
+  # Enable BACnet discovery scaffolding and operator guidance.
+  # This does not silently scan the network; it only enables the add-on's BACnet-aware
+  # bootstrap, dashboard status, and skill pack.
+  enable_bacnet_scout: false
+
 
 schema:
   timezone: str
@@ -182,3 +203,11 @@ schema:
       value: str
   nginx_log_level: list(full|minimal)?
   auto_configure_mcp: bool?
+  enable_context7: bool?
+  context7_api_key: str?
+  domotz_api_key: str?
+  domotz_site_id: str?
+  mqtt_broker_url: str?
+  mqtt_username: str?
+  mqtt_password: str?
+  enable_bacnet_scout: bool?
