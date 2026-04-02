@@ -1,8 +1,8 @@
-# OpenClaw Assistant for Home Assistant
+# OpenClaw Super Home Assistant
 
-![OpenClaw Assistant hero](assets/openclaw-hero.svg)
+![OpenClaw Super Home Assistant hero](assets/openclaw-hero.svg)
 
-OpenClaw Assistant is a Home Assistant add-on that runs **OpenClaw** inside **HAOS** with a secure gateway, embedded terminal, browser automation stack, and persistent workspace.
+OpenClaw Super Home Assistant is the GitDakky fork of the OpenClaw Home Assistant app. It runs **OpenClaw** inside **HAOS** with a secure gateway, embedded terminal, browser automation stack, and persistent workspace.
 
 This fork exists to keep pace with OpenClaw releases and improve the operator experience around them. Faster updates. Cleaner docs. Better presentation. No leftover filler.
 
@@ -13,7 +13,7 @@ This fork exists to keep pace with OpenClaw releases and improve the operator ex
 - Bundled OpenClaw: `2026.4.1`
 - Previous add-on lineage pin: `2026.3.13`
 - Check the live version inside the add-on with `openclaw --version`
-- Published image: `ghcr.io/gitdakky/openclaw-assistant`
+- Published image: `ghcr.io/gitdakky/openclaw-super-home-assistant`
 
 ## Contribute
 
@@ -25,6 +25,7 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 - Make the Home Assistant experience operationally sound: ingress, HTTPS, token auth, reverse proxy, Tailscale, ttyd, persistence.
 - Replace throwaway repo presentation with branding that looks deliberate.
 - Ship a real CI/CD path: validate every change, build the add-on image in CI, and publish the multi-arch image from `main`.
+- Be unmistakably separate from the legacy add-on so users do not confuse the fork with the abandoned line.
 
 ## What this add-on gives you
 
@@ -39,18 +40,20 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 
 ## Install in 60 seconds
 
-1. In Home Assistant, open **Settings -> Add-ons -> Add-on Store**.
-2. Open the menu in the top-right and choose **Repositories**.
-3. Add this repository:
+1. In Home Assistant, open **Settings -> Apps**.
+2. Click **Install App** in the blue button at the bottom-right.
+3. Paste this repository URL:
    - `https://github.com/GitDakky/OpenClawHomeAssistant`
-4. Install **OpenClaw Assistant**.
-5. Start the add-on, open the embedded terminal, and run:
+4. Exit the dialog, select **OpenClaw Super Home Assistant** from the list, and click **Install**.
+5. Look for the GitDakky fork branding with the lobster-in-cape crest so you do not pick the legacy add-on by mistake.
+6. Start the app, open the embedded terminal, and run:
 
 ```sh
 openclaw onboard
 ```
 
-6. Retrieve the gateway token:
+7. If the legacy OpenClaw Assistant add-on is installed, this fork will try to stop it and import its add-on config on first start.
+8. Retrieve the gateway token:
 
 ```sh
 jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json
@@ -60,7 +63,7 @@ For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.m
 
 ## Runtime
 
-![OpenClaw Assistant architecture](assets/openclaw-architecture.svg)
+![OpenClaw Super Home Assistant architecture](assets/openclaw-architecture.svg)
 
 - Home Assistant ingress for the landing page and operational entry point
 - `nginx` + `ttyd` for browser-based setup and terminal access
@@ -74,6 +77,13 @@ For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.m
 | `amd64` | Yes |
 | `aarch64` | Yes |
 | `armv7` | No |
+
+## Migration
+
+- This fork uses a distinct app name, slug, and image so it does not masquerade as the legacy add-on.
+- Clean installs now default to different host-network ports from the legacy add-on: gateway `18790`, terminal `7682`, ingress `48109`.
+- On a first boot, if the legacy `openclaw_assistant` install is detected and this fork has no existing state, it will try to stop the old add-on and import its add-on config automatically.
+- If the legacy add-on is still running and automatic migration fails, stop or uninstall the old add-on before starting this fork to avoid host-network port conflicts.
 
 ## Read next
 

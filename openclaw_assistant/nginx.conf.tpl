@@ -19,7 +19,7 @@ http {
   # Ingress note: keep redirects relative so we stay under HA Ingress.
 
   server {
-    listen 48099;
+    listen 48109;
 
     # Web terminal (ttyd)
     # ttyd base-path is configured as /terminal (no trailing slash).

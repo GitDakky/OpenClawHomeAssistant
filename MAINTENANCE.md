@@ -49,4 +49,4 @@ python3 -c "import xml.etree.ElementTree as ET; ET.parse('assets/openclaw-hero.s
 
 ## Known wrapper-specific risk
 
-When the add-on switches to `trusted-proxy` auth, OpenClaw 2026.4.x rejects configs that still contain a shared gateway token. The helper script must remove `gateway.auth.token` in `trusted-proxy` mode and regenerate one when switching back to `token` mode.
+When the app switches to `trusted-proxy` auth, OpenClaw 2026.4.x rejects configs that still contain a shared gateway token. The helper script must remove `gateway.auth.token` in `trusted-proxy` mode and regenerate one when switching back to `token` mode.

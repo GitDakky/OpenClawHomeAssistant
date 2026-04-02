@@ -129,7 +129,7 @@ def apply_gateway_settings(mode: str, remote_url: str, bind_mode: str, port: int
     current_mode = gateway.get("mode", "")
     current_remote_url = remote_cfg.get("url", "")
     current_bind = gateway.get("bind", "")
-    current_port = gateway.get("port", 18789)
+    current_port = gateway.get("port", 18790)
     current_openai_api = chat_completions.get("enabled", False)
     current_auth_mode = auth.get("mode", "token")
     current_trusted_proxies = gateway.get("trustedProxies", [])

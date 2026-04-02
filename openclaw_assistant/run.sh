@@ -7,11 +7,159 @@ export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PA
 
 # Home Assistant add-on options are usually rendered to /data/options.json
 OPTIONS_FILE="/data/options.json"
+LEGACY_ADDON_SLUG="openclaw_assistant"
+SELF_ADDON_NAME="OpenClaw Super Home Assistant"
+MIGRATION_FLAG="/config/.gitdakky-legacy-migration"
+MIGRATED_OPTIONS_FILE="/tmp/openclaw-super-home-assistant-options.json"
+DEFAULT_TERMINAL_PORT="7682"
+DEFAULT_GATEWAY_PORT="18790"
+DEFAULT_INGRESS_PORT="48109"
 
 if [ ! -f "$OPTIONS_FILE" ]; then
   echo "Missing $OPTIONS_FILE (add-on options)."
   exit 1
 fi
+
+supervisor_api() {
+  local method="$1"
+  local path="$2"
+  shift 2
+
+  if [ -z "${SUPERVISOR_TOKEN:-}" ]; then
+    return 1
+  fi
+
+  curl -fsSL -X "$method" \
+    -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+    -H "Content-Type: application/json" \
+    "http://supervisor${path}" \
+    "$@"
+}
+
+config_dir_has_user_state() {
+  find /config -mindepth 1 -maxdepth 1 \
+    ! -name '.gitdakky-legacy-migration' \
+    ! -name '.gitdakky-migration-*' \
+    -print -quit 2>/dev/null | grep -q .
+}
+
+maybe_migrate_legacy_addon() {
+  local legacy_addons_json legacy_slug legacy_repo legacy_ref legacy_dir legacy_info legacy_name legacy_state
+  local legacy_options_json stop_ok=false
+
+  if [ -f "$MIGRATION_FLAG" ]; then
+    echo "INFO: Legacy migration already evaluated for this install."
+    return 0
+  fi
+
+  if config_dir_has_user_state; then
+    echo "INFO: Existing ${SELF_ADDON_NAME} state detected; skipping legacy migration."
+    printf 'skipped-existing\n' > "$MIGRATION_FLAG"
+    return 0
+  fi
+
+  if [ -z "${SUPERVISOR_TOKEN:-}" ]; then
+    echo "INFO: Supervisor API unavailable; skipping legacy migration."
+    return 0
+  fi
+
+  if [ ! -d /addon_configs ]; then
+    echo "INFO: /addon_configs is not mounted; skipping legacy migration."
+    return 0
+  fi
+
+  legacy_addons_json="$(supervisor_api GET /addons 2>/dev/null || true)"
+  if [ -z "$legacy_addons_json" ]; then
+    echo "INFO: Could not query installed add-ons; skipping legacy migration."
+    return 0
+  fi
+
+  legacy_slug="$(printf '%s' "$legacy_addons_json" | jq -r '
+    .data.addons[]?
+    | (.slug // empty)
+    | select(. == "openclaw_assistant" or endswith("_openclaw_assistant"))
+  ' | head -n1)"
+
+  legacy_repo="$(printf '%s' "$legacy_addons_json" | jq -r '
+    .data.addons[]?
+    | select((.slug // "") == "openclaw_assistant" or ((.slug // "") | endswith("_openclaw_assistant")))
+    | (.repository // empty)
+  ' | head -n1)"
+
+  if [ -z "$legacy_slug" ] && [ -z "$legacy_repo" ]; then
+    echo "INFO: No legacy OpenClaw Assistant install detected."
+    return 0
+  fi
+
+  if [ -z "$legacy_slug" ]; then
+    legacy_slug="$LEGACY_ADDON_SLUG"
+  fi
+
+  if [ -z "$legacy_repo" ] && [[ "$legacy_slug" == *"_${LEGACY_ADDON_SLUG}" ]]; then
+    legacy_repo="${legacy_slug%_${LEGACY_ADDON_SLUG}}"
+  fi
+
+  if [ "$legacy_slug" = "$LEGACY_ADDON_SLUG" ] && [ -n "$legacy_repo" ]; then
+    legacy_ref="${legacy_repo}_${LEGACY_ADDON_SLUG}"
+  else
+    legacy_ref="$legacy_slug"
+  fi
+
+  legacy_dir=""
+  if [ -n "$legacy_repo" ]; then
+    legacy_dir="/addon_configs/${legacy_repo}_${LEGACY_ADDON_SLUG}"
+  else
+    legacy_dir="$(find /addon_configs -maxdepth 1 -type d -name "*_${LEGACY_ADDON_SLUG}" | head -n1)"
+  fi
+
+  if [ -z "$legacy_dir" ] || [ ! -d "$legacy_dir" ]; then
+    echo "INFO: Legacy add-on was detected via Supervisor API but its config directory was not found."
+    printf 'skipped-no-config\n' > "$MIGRATION_FLAG"
+    return 0
+  fi
+
+  legacy_info="$(supervisor_api GET "/addons/${legacy_ref}/info" 2>/dev/null || true)"
+  if [ -z "$legacy_info" ] && [ "$legacy_ref" != "$LEGACY_ADDON_SLUG" ]; then
+    legacy_info="$(supervisor_api GET "/addons/${LEGACY_ADDON_SLUG}/info" 2>/dev/null || true)"
+  fi
+
+  legacy_name="$(printf '%s' "$legacy_info" | jq -r '.data.name // "OpenClaw Assistant"' 2>/dev/null || echo "OpenClaw Assistant")"
+  legacy_state="$(printf '%s' "$legacy_info" | jq -r '.data.state // empty' 2>/dev/null || true)"
+  legacy_options_json="$(printf '%s' "$legacy_info" | jq -c '.data.options // {}' 2>/dev/null || echo '{}')"
+
+  if [ "$legacy_state" = "started" ] || [ "$legacy_state" = "startup" ]; then
+    echo "INFO: Stopping legacy add-on '${legacy_name}' (${legacy_ref}) before migration..."
+    if supervisor_api POST "/addons/${legacy_ref}/stop" >/dev/null 2>&1 || \
+       supervisor_api POST "/addons/${LEGACY_ADDON_SLUG}/stop" >/dev/null 2>&1; then
+      stop_ok=true
+      echo "INFO: Legacy add-on stopped successfully."
+    else
+      echo "WARN: Could not stop the legacy add-on automatically. Port conflicts may still occur."
+    fi
+  fi
+
+  echo "INFO: Importing legacy add-on data from ${legacy_dir} ..."
+  mkdir -p /config
+  rsync -a "${legacy_dir}/" /config/
+
+  if [ -n "$legacy_options_json" ] && [ "$legacy_options_json" != "{}" ]; then
+    printf '%s\n' "$legacy_options_json" > "$MIGRATED_OPTIONS_FILE"
+    supervisor_api POST /addons/self/options \
+      --data "$(jq -cn --argjson options "$legacy_options_json" '{options: $options}')" >/dev/null 2>&1 || \
+      echo "WARN: Could not persist migrated add-on options to Supervisor; current boot will still use them."
+    OPTIONS_FILE="$MIGRATED_OPTIONS_FILE"
+  fi
+
+  {
+    echo "source=${legacy_ref}"
+    echo "stopped=${stop_ok}"
+    echo "imported=true"
+  } > "$MIGRATION_FLAG"
+
+  echo "INFO: Legacy migration completed from '${legacy_name}'."
+}
+
+maybe_migrate_legacy_addon
 
 # ------------------------------------------------------------------------------
 # Read add-on options (only add-on-specific knobs; OpenClaw is configured via onboarding)
@@ -22,15 +170,15 @@ GW_PUBLIC_URL=$(jq -r '.gateway_public_url // empty' "$OPTIONS_FILE")
 HA_TOKEN=$(jq -r '.homeassistant_token // empty' "$OPTIONS_FILE")
 ADDON_HTTP_PROXY=$(jq -r '.http_proxy // empty' "$OPTIONS_FILE")
 ENABLE_TERMINAL=$(jq -r '.enable_terminal // true' "$OPTIONS_FILE")
-TERMINAL_PORT_RAW=$(jq -r '.terminal_port // 7681' "$OPTIONS_FILE")
+TERMINAL_PORT_RAW="$(jq -r --arg default_port "$DEFAULT_TERMINAL_PORT" '.terminal_port // ($default_port | tonumber)' "$OPTIONS_FILE")"
 
 # SECURITY: Validate TERMINAL_PORT to prevent nginx config injection
 # Only allow numeric values in valid port range (1024-65535)
 if [[ "$TERMINAL_PORT_RAW" =~ ^[0-9]+$ ]] && [ "$TERMINAL_PORT_RAW" -ge 1024 ] && [ "$TERMINAL_PORT_RAW" -le 65535 ]; then
   TERMINAL_PORT="$TERMINAL_PORT_RAW"
 else
-  echo "ERROR: Invalid terminal_port '$TERMINAL_PORT_RAW'. Must be numeric 1024-65535. Using default 7681."
-  TERMINAL_PORT="7681"
+  echo "ERROR: Invalid terminal_port '$TERMINAL_PORT_RAW'. Must be numeric 1024-65535. Using default ${DEFAULT_TERMINAL_PORT}."
+  TERMINAL_PORT="$DEFAULT_TERMINAL_PORT"
 fi
 
 echo "DEBUG: enable_terminal config value: '$ENABLE_TERMINAL'"
@@ -49,7 +197,7 @@ CLEAN_LOCKS_ON_EXIT=$(jq -r '.clean_session_locks_on_exit // true' "$OPTIONS_FIL
 GATEWAY_MODE=$(jq -r '.gateway_mode // "local"' "$OPTIONS_FILE")
 GATEWAY_REMOTE_URL=$(jq -r '.gateway_remote_url // empty' "$OPTIONS_FILE")
 GATEWAY_BIND_MODE=$(jq -r '.gateway_bind_mode // "loopback"' "$OPTIONS_FILE")
-GATEWAY_PORT=$(jq -r '.gateway_port // 18789' "$OPTIONS_FILE")
+GATEWAY_PORT="$(jq -r --arg default_port "$DEFAULT_GATEWAY_PORT" '.gateway_port // ($default_port | tonumber)' "$OPTIONS_FILE")"
 ENABLE_OPENAI_API=$(jq -r '.enable_openai_api // false' "$OPTIONS_FILE")
 GATEWAY_AUTH_MODE=$(jq -r '.gateway_auth_mode // "token"' "$OPTIONS_FILE")
 GATEWAY_TRUSTED_PROXIES=$(jq -r '.gateway_trusted_proxies // empty' "$OPTIONS_FILE")
@@ -138,7 +286,7 @@ if [ "$FORCE_IPV4_DNS" = "true" ] || [ "$FORCE_IPV4_DNS" = "1" ]; then
   echo "INFO: Enabled IPv4-first DNS ordering (NODE_OPTIONS=--dns-result-order=ipv4first)"
 fi
 
-# HA add-ons mount persistent storage at /config (maps to /addon_configs/<slug> on the host).
+# Home Assistant maps addon_config to /addon_configs/{REPO}_{SLUG} on the host.
 export HOME=/config
 
 # Explicitly set OpenClaw directories to ensure they persist across add-on updates
@@ -529,7 +677,7 @@ cfg_path.parent.mkdir(parents=True, exist_ok=True)
 cfg = {
   "gateway": {
     "mode": "local",
-    "port": 18789,
+    "port": 18790,
     "bind": "loopback",
     "auth": {
       "mode": "token",
@@ -770,7 +918,7 @@ elif [ "$AUTO_CONFIGURE_MCP" = "true" ] && [ -z "$HA_TOKEN" ]; then
 fi
 
 start_openclaw_runtime() {
-  echo "Starting OpenClaw Assistant runtime (openclaw)..."
+  echo "Starting ${SELF_ADDON_NAME} runtime (openclaw)..."
   if [ "$GATEWAY_MODE" = "remote" ]; then
     # Remote mode: do NOT start a local gateway service.
     # Start a node/client host that connects to the configured remote gateway URL.
@@ -779,7 +927,7 @@ start_openclaw_runtime() {
     REMOTE_URL="$GATEWAY_REMOTE_URL"
     if [ -z "$REMOTE_URL" ]; then
       echo "ERROR: gateway_mode=remote but gateway_remote_url is not set in add-on options"
-      echo "ERROR: Set gateway_remote_url in add-on Configuration (e.g. ws://192.168.1.10:18789), then restart"
+      echo "ERROR: Set gateway_remote_url in add-on Configuration (e.g. ws://192.168.1.10:18790), then restart"
       return 1
     fi
 
@@ -969,14 +1117,14 @@ if [ -f "$NGINX_PID_FILE" ]; then
   fi
   rm -f "$NGINX_PID_FILE"
 fi
-# Also kill any orphaned nginx workers that might hold port 48099
+# Also kill any orphaned nginx workers that might hold the ingress port
 if command -v pkill >/dev/null 2>&1; then
   pkill -f "nginx.*-c /etc/nginx/nginx.conf" 2>/dev/null || true
   sleep 1
 fi
-# Verify port 48099 is actually free before proceeding
-if command -v ss >/dev/null 2>&1 && ss -tlnp 2>/dev/null | grep -q ':48099 '; then
-  echo "WARN: Port 48099 still in use after cleanup; nginx may fail to start"
+# Verify the ingress port is actually free before proceeding
+if command -v ss >/dev/null 2>&1 && ss -tlnp 2>/dev/null | grep -q ":${DEFAULT_INGRESS_PORT} "; then
+  echo "WARN: Port ${DEFAULT_INGRESS_PORT} still in use after cleanup; nginx may fail to start"
 fi
 
 # Render nginx config from template.
@@ -1013,7 +1161,7 @@ GW_PUBLIC_URL="$GW_PUBLIC_URL" GW_TOKEN="$GW_TOKEN" TERMINAL_PORT="$TERMINAL_POR
   NGINX_LOG_LEVEL="$NGINX_LOG_LEVEL" \
   python3 /render_nginx.py
 
-echo "Starting ingress proxy (nginx) on :48099 ..."
+echo "Starting ingress proxy (nginx) on :${DEFAULT_INGRESS_PORT} ..."
 nginx -g 'daemon off;' &
 NGINX_PID=$!
 sleep 1

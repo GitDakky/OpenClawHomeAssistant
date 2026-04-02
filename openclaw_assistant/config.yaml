@@ -1,41 +1,47 @@
-name: OpenClaw Assistant
-version: "0.5.67"
-slug: openclaw_assistant
-description: Run OpenClaw Assistant (OpenClaw-compatible) as a Home Assistant add-on.
+name: OpenClaw Super Home Assistant
+version: "0.6.0"
+slug: openclaw_super_home_assistant
+description: Run the GitDakky OpenClaw fork as a Home Assistant app with migration support.
 url: https://github.com/GitDakky/OpenClawHomeAssistant
-image: "ghcr.io/gitdakky/openclaw-assistant"
+image: "ghcr.io/gitdakky/openclaw-super-home-assistant"
 arch:
   - amd64
   - aarch64
 startup: services
 boot: auto
 init: false
-hassio_api: false
+hassio_api: true
+hassio_role: manager
 homeassistant_api: false
 host_network: true
 
 # Home Assistant Ingress (UI inside the add-on page)
 ingress: true
-ingress_port: 48099
-panel_title: OpenClaw Assistant
+ingress_port: 48109
+panel_title: OpenClaw Super HA
 panel_icon: mdi:robot
 
 map:
-  - addon_config:rw
-  - share:rw
-  - media:rw
+  - type: addon_config
+    read_only: false
+  - type: all_addon_configs
+    read_only: false
+  - type: share
+    read_only: false
+  - type: media
+    read_only: false
 options:
   timezone: "Europe/Sofia"
 
   # Enable web terminal inside Home Assistant (Ingress) via ttyd
   enable_terminal: true
 
-  # Terminal port (change if 7681 conflicts with another service)
-  terminal_port: 7681
+  # Terminal port (change if 7682 conflicts with another service)
+  terminal_port: 7682
 
   # Public base URL for opening the Gateway Web UI in a new tab (not embedded).
   # Recommended: NO trailing slash.
-  # Example: "https://example.duckdns.org:12345" or "http://192.168.1.10:18789"
+  # Example: "https://example.duckdns.org:12345" or "http://192.168.1.10:18790"
   gateway_public_url: ""
 
   # Optional: Home Assistant long-lived token (for local HA API scripts/tools)
@@ -63,7 +69,7 @@ options:
   gateway_mode: local
 
   # Remote gateway URL (used when gateway_mode=remote)
-  # Example: "ws://192.168.1.20:18789" or "wss://gateway.example.com:443"
+  # Example: "ws://192.168.1.20:18790" or "wss://gateway.example.com:443"
   gateway_remote_url: ""
 
   # Gateway network bind mode:
@@ -74,7 +80,7 @@ options:
   gateway_bind_mode: loopback
 
   # Gateway port to listen on
-  gateway_port: 18789
+  gateway_port: 18790
 
   # Access mode preset — simplifies secure access configuration.
   # custom: use individual gateway_bind_mode / auth_mode settings (backward compatible)

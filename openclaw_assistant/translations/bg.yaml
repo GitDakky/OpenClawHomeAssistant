@@ -9,11 +9,11 @@ configuration:
   
   terminal_port:
     name: Порт на терминал
-    description: Номер на порт за уеб терминала (по подразбиране - 7681). Променете, ако този порт е в конфликт с друга услуга.
+    description: Номер на порт за уеб терминала (по подразбиране - 7682). Променете, ако този порт е в конфликт с друга услуга.
   
   gateway_public_url:
     name: Публичен URL на Gateway
-    description: Публичен базов URL за отваряне на Gateway уеб интерфейса в нов таб (не вграден). Пример - https://example.duckdns.org:12345 или http://192.168.1.10:18789
+    description: Публичен базов URL за отваряне на Gateway уеб интерфейса в нов таб (не вграден). Пример - https://example.duckdns.org:12345 или http://192.168.1.10:18790
   
   homeassistant_token:
     name: Home Assistant токен
@@ -52,7 +52,7 @@ configuration:
 
   gateway_remote_url:
     name: URL на отдалечен Gateway
-    description: WebSocket URL на отдалечения gateway, използван когато Gateway Mode е remote (пример - ws://192.168.1.20:18789 или wss://gateway.example.com:443)
+    description: WebSocket URL на отдалечения gateway, използван когато Gateway Mode е remote (пример - ws://192.168.1.20:18790 или wss://gateway.example.com:443)
 
   gateway_additional_allowed_origins:
     name: Допълнителни разрешени origins
@@ -72,7 +72,7 @@ configuration:
 
   gateway_port:
     name: Порт на Gateway
-    description: Номер на порт, на който OpenClaw gateway да слуша (по подразбиране - 18789)
+    description: Номер на порт, на който OpenClaw gateway да слуша (по подразбиране - 18790)
 
   access_mode:
     name: Режим на достъп

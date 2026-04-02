@@ -1,6 +1,6 @@
 <svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="heroTitle heroDesc">
-  <title id="heroTitle">OpenClaw Assistant hero banner</title>
-  <desc id="heroDesc">Animated banner for the OpenClaw Assistant Home Assistant add-on with a cleaner, balanced layout.</desc>
+  <title id="heroTitle">OpenClaw Super Home Assistant hero banner</title>
+  <desc id="heroDesc">Animated banner for the GitDakky OpenClaw Super Home Assistant fork with a clearer identity and migration-ready messaging.</desc>
   <defs>
     <linearGradient id="heroBg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
       <stop stop-color="#07151C"/>
@@ -48,9 +48,9 @@
 
   <g class="ui">
     <text x="86" y="116" fill="#29D8C4" font-size="18" font-weight="700" letter-spacing="0.14em">HOME ASSISTANT ADD-ON</text>
-    <text x="86" y="198" fill="#F7FBFC" font-size="76" font-weight="800">OpenClaw</text>
-    <text x="86" y="276" fill="#F7FBFC" font-size="76" font-weight="800">Assistant</text>
-    <text x="86" y="332" fill="#C9D8DC" font-size="25" font-weight="500">Current OpenClaw builds for Home Assistant.</text>
+    <text x="86" y="198" fill="#F7FBFC" font-size="76" font-weight="800">OpenClaw Super</text>
+    <text x="86" y="276" fill="#F7FBFC" font-size="72" font-weight="800">Home Assistant</text>
+    <text x="86" y="332" fill="#C9D8DC" font-size="25" font-weight="500">GitDakky fork with a distinct identity and cleaner installs.</text>
     <text x="86" y="366" fill="#C9D8DC" font-size="25" font-weight="500">Secure access, persistence, and terminal control.</text>
 
     <g transform="translate(86 406)">
@@ -69,7 +69,7 @@
     <g transform="translate(86 490)">
       <rect x="0" y="0" width="572" height="84" rx="22" fill="#0D1A20" stroke="#214A53"/>
       <text x="28" y="33" fill="#29D8C4" font-size="14" font-weight="700" letter-spacing="0.12em">FORK DIRECTION</text>
-      <text x="28" y="58" fill="#D7E7EB" font-size="20" font-weight="600">Faster release tracking, cleaner docs,</text>
+      <text x="28" y="58" fill="#D7E7EB" font-size="20" font-weight="600">Fork-specific branding, migration help,</text>
       <text x="28" y="82" fill="#D7E7EB" font-size="20" font-weight="600">and a sharper Home Assistant operator experience.</text>
     </g>
   </g>
@@ -79,7 +79,7 @@
 
     <g transform="translate(34 34)">
       <text class="ui" x="0" y="18" fill="#FFB16E" font-size="15" font-weight="700" letter-spacing="0.1em">LIVE STACK</text>
-      <text class="ui" x="0" y="54" fill="#F7FBFC" font-size="34" font-weight="800">Everything wired for HAOS</text>
+      <text class="ui" x="0" y="54" fill="#F7FBFC" font-size="34" font-weight="800">GitDakky fork, wired for HAOS</text>
     </g>
 
     <g transform="translate(34 108)">

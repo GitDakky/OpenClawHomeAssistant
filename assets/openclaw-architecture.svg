@@ -1,6 +1,6 @@
 <svg width="1280" height="460" viewBox="0 0 1280 460" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="archTitle archDesc">
-  <title id="archTitle">OpenClaw Assistant architecture overview</title>
-  <desc id="archDesc">Animated architecture diagram showing Home Assistant ingress, nginx and ttyd, the OpenClaw gateway, and persistent config storage.</desc>
+  <title id="archTitle">OpenClaw Super Home Assistant architecture overview</title>
+  <desc id="archDesc">Animated architecture diagram showing Home Assistant ingress, the GitDakky fork runtime, migration-aware startup, and persistent config storage.</desc>
   <defs>
     <linearGradient id="archBg" x1="20" y1="0" x2="1260" y2="460" gradientUnits="userSpaceOnUse">
       <stop stop-color="#07131A"/>
@@ -29,9 +29,9 @@
 
   <g class="ui">
     <text x="76" y="84" fill="#24D3B5" font-size="18" font-weight="700" letter-spacing="0.12em">RUNTIME MAP</text>
-    <text x="76" y="130" fill="#F7FBFC" font-size="48" font-weight="800">How the add-on fits together</text>
+    <text x="76" y="130" fill="#F7FBFC" font-size="48" font-weight="800">How the GitDakky fork fits together</text>
     <text x="76" y="168" fill="#B7CED3" font-size="23">Ingress gets you in. nginx and ttyd keep the operator experience usable.</text>
-    <text x="76" y="198" fill="#B7CED3" font-size="23">OpenClaw runs the gateway. Persistent data stays under `/config`.</text>
+    <text x="76" y="198" fill="#B7CED3" font-size="23">OpenClaw runs the gateway. Migration and persistent data stay under `/config`.</text>
 
     <g transform="translate(944 72)">
       <rect x="0" y="0" width="250" height="92" rx="22" fill="#0E1C23" stroke="#224A54"/>

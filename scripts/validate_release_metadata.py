@@ -71,7 +71,7 @@ def main() -> None:
     if repo_url not in issue_docs_url:
         errors.append(f"issue template docs url ({issue_docs_url}) does not point at repo url ({repo_url})")
 
-    if image_name != "ghcr.io/gitdakky/openclaw-assistant":
+    if image_name != "ghcr.io/gitdakky/openclaw-super-home-assistant":
         errors.append(f"config.yaml image ({image_name}) does not match expected published image")
 
     if "ARG BUILD_FROM" in dockerfile or "FROM ${BUILD_FROM}" in dockerfile:

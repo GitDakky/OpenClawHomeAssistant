@@ -20,7 +20,7 @@ def main():
     landing_tpl = Path('/etc/nginx/landing.html.tpl').read_text()
 
     public_url = os.environ.get('GW_PUBLIC_URL', '')
-    terminal_port = os.environ.get('TERMINAL_PORT', '7681')
+    terminal_port = os.environ.get('TERMINAL_PORT', '7682')
     enable_https = os.environ.get('ENABLE_HTTPS_PROXY', 'false') == 'true'
     https_port = os.environ.get('HTTPS_PROXY_PORT', '')
     internal_gw_port = os.environ.get('GATEWAY_INTERNAL_PORT', '')

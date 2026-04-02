@@ -1,6 +1,23 @@
 # Changelog
 
-All notable changes to the OpenClaw Assistant Home Assistant Add-on will be documented in this file.
+All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
+
+## [0.6.0] - 2026-04-02
+
+### Changed
+- Renamed the app to `OpenClaw Super Home Assistant` and moved it to a fork-specific slug/image so it is clearly separate from the legacy add-on line.
+- Replaced the app logo and icon with a GitDakky-specific lobster crest so the fork is visually distinct in the Home Assistant install list and sidebar.
+- Updated install guidance for Home Assistant's current **Settings → Apps → Install App** flow.
+- Added first-run migration logic to detect the legacy add-on, stop it before claiming host-network ports, and import its add-on config automatically when this fork starts with an empty config.
+- Gave the fork its own default host-network ports (`18790`, `7682`, `48109`) so clean installs do not collide with the legacy add-on defaults.
+- Switched the app configuration mounts to the current Home Assistant `map` object format and added access to `all_addon_configs` for legacy migration.
+
+### Added
+- Supervisor API access (`hassio_api`, manager role) so this fork can perform a controlled first-run migration from the old add-on.
+
+### Notes
+- This fork now publishes as `ghcr.io/gitdakky/openclaw-super-home-assistant`.
+- Existing installs of this fork under the old slug will not be an in-place rename; Home Assistant will treat the new slug as a separate app.
 
 ## [0.5.67] - 2026-04-02
 

@@ -9,11 +9,11 @@ configuration:
   
   terminal_port:
     name: Port terminala
-    description: Numer portu dla terminala webowego (domyślnie - 7681). Zmień jeśli ten port koliduje z inną usługą.
+    description: Numer portu dla terminala webowego (domyślnie - 7682). Zmień jeśli ten port koliduje z inną usługą.
   
   gateway_public_url:
     name: Publiczny URL Gateway
-    description: Publiczny bazowy URL do otwierania Web UI Gateway w nowej karcie (nie osadzone). Przykład - https://example.duckdns.org:12345 lub http://192.168.1.10:18789
+    description: Publiczny bazowy URL do otwierania Web UI Gateway w nowej karcie (nie osadzone). Przykład - https://example.duckdns.org:12345 lub http://192.168.1.10:18790
   
   homeassistant_token:
     name: Token Home Assistant
@@ -45,7 +45,7 @@ configuration:
   
   gateway_remote_url:
     name: URL zdalnego Gateway
-    description: Adres WebSocket zdalnego gateway używany gdy Gateway Mode = Remote (przykład - ws://192.168.1.20:18789 lub wss://gateway.example.com:443)
+    description: Adres WebSocket zdalnego gateway używany gdy Gateway Mode = Remote (przykład - ws://192.168.1.20:18790 lub wss://gateway.example.com:443)
 
   gateway_additional_allowed_origins:
     name: Dodatkowe dozwolone origins
@@ -65,7 +65,7 @@ configuration:
 
   gateway_port:
     name: Port Gateway
-    description: Numer portu na którym gateway OpenClaw będzie nasłuchiwał (domyślnie - 18789)
+    description: Numer portu na którym gateway OpenClaw będzie nasłuchiwał (domyślnie - 18790)
 
   gateway_mode:
     name: Tryb Gateway

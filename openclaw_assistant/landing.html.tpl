@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>OpenClaw Assistant</title>
+  <title>OpenClaw Super Home Assistant</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:16px;background:#0b0f14;color:#e6edf3}
     a,button{font:inherit}
@@ -42,8 +42,12 @@
 </head>
 <body>
   <div class="card">
-    <h2 style="margin:0 0 4px 0">OpenClaw Assistant</h2>
+    <h2 style="margin:0 0 4px 0">OpenClaw Super Home Assistant</h2>
     <div class="muted" style="margin-bottom:8px">Bundled OpenClaw: <code>__OPENCLAW_BUNDLED_VERSION__</code></div>
+    <div class="banner info" style="margin-top:0">
+      <b>GitDakky fork:</b> This app is intentionally separate from the legacy OpenClaw Assistant add-on.
+      On a first start, it will try to stop the legacy add-on and import its add-on config automatically before claiming ports.
+    </div>
     <div style="margin-bottom:10px">
       <span class="badge mode" id="modeBadge">__ACCESS_MODE__</span>
       <span class="badge" id="secureBadge"></span>
@@ -125,7 +129,7 @@
         <b>Automatic (recommended)</b>
         <ol style="margin:4px 0;padding-left:22px;line-height:1.8">
           <li>Create a <b>Long-Lived Access Token</b> in HA: click your profile avatar → scroll to <b>Long-Lived Access Tokens</b> → <b>Create Token</b></li>
-          <li>Paste it into add-on option <code>homeassistant_token</code> in <b>Settings → Add-ons → Configuration</b></li>
+          <li>Paste it into add-on option <code>homeassistant_token</code> in <b>Settings → Apps → OpenClaw Super Home Assistant → Configuration</b></li>
           <li>Set <code>auto_configure_mcp</code> to <b>ON</b> in add-on Configuration</li>
           <li>Restart the add-on — MCP is configured automatically</li>
         </ol>
@@ -148,25 +152,25 @@
 
         <b>Nginx Proxy Manager (NPM)</b>
         <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px">Scheme:   https
-Forward:  &lt;HA-IP&gt;:18789
+Forward:  &lt;HA-IP&gt;:18790
 WS:       ON
 SSL tab:  Request a new SSL certificate (Let's Encrypt or custom)</pre>
 
         <b>Caddy</b>
         <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px">openclaw.example.com {
-    reverse_proxy &lt;HA-IP&gt;:18789
+    reverse_proxy &lt;HA-IP&gt;:18790
 }</pre>
 
         <b>Traefik (docker labels)</b>
         <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px">- "traefik.http.routers.openclaw.rule=Host(`openclaw.example.com`)"
 - "traefik.http.routers.openclaw.tls.certresolver=le"
-- "traefik.http.services.openclaw.loadbalancer.server.port=18789"</pre>
+- "traefik.http.services.openclaw.loadbalancer.server.port=18790"</pre>
 
         <b>Tailscale HTTPS</b>
         <pre style="background:#0b1220;padding:8px;border-radius:6px;overflow-x:auto;font-size:12px"># 1. Set access_mode to tailnet_https in add-on configuration
 # 2. Enable Tailscale HTTPS in your Tailnet admin: DNS → HTTPS Certificates
 # 3. On the HA host:  tailscale cert &lt;machine-name&gt;.ts.net
-# 4. Set gateway_public_url to https://&lt;machine-name&gt;.ts.net:18789</pre>
+# 4. Set gateway_public_url to https://&lt;machine-name&gt;.ts.net:18790</pre>
       </div>
     </details>
 
@@ -244,7 +248,7 @@ SSL tab:  Request a new SSL certificate (Let's Encrypt or custom)</pre>
         friendly: 'The Gateway rejected the browser origin. The Control UI URL is not in the allow-list.',
         fix: ACCESS_MODE === 'lan_https'
           ? 'Restart the add-on — it auto-adds HTTPS origins to <code>controlUi.allowedOrigins</code>. If you changed your LAN IP, a restart regenerates the config.'
-          : 'Manually add your origin: <code>openclaw config set gateway.controlUi.allowedOrigins \'["https://YOUR_IP:18789"]\' </code>'
+          : 'Manually add your origin: <code>openclaw config set gateway.controlUi.allowedOrigins \'["https://YOUR_IP:18790"]\' </code>'
       },
       '1008': {
         friendly: 'WebSocket disconnected (1008).',
@@ -322,7 +326,7 @@ SSL tab:  Request a new SSL certificate (Let's Encrypt or custom)</pre>
       wizardEl.classList.remove('hidden');
       wizardContent.innerHTML = `
         <ol>
-          <li>Configure your reverse proxy (NPM / Caddy / Traefik) to forward HTTPS to <code>&lt;HA-IP&gt;:${GW_PUBLIC_URL ? new URL(GW_PUBLIC_URL).port || '18789' : '18789'}</code>.</li>
+          <li>Configure your reverse proxy (NPM / Caddy / Traefik) to forward HTTPS to <code>&lt;HA-IP&gt;:${GW_PUBLIC_URL ? new URL(GW_PUBLIC_URL).port || '18790' : '18790'}</code>.</li>
           <li>Set <code>gateway_public_url</code> to your HTTPS URL (e.g. <code>https://openclaw.example.com</code>).</li>
           <li>Set <code>gateway_trusted_proxies</code> to your proxy's IP/CIDR.</li>
           <li>Restart the add-on. See <b>Reverse-proxy recipes</b> below for copy-paste configs.</li>
@@ -334,7 +338,7 @@ SSL tab:  Request a new SSL certificate (Let's Encrypt or custom)</pre>
           <li>Ensure Tailscale is installed on the HA host and this device.</li>
           <li>Enable HTTPS certificates in Tailnet admin: <b>DNS → HTTPS Certificates</b>.</li>
           <li>On the HA host: <code>tailscale cert &lt;machine-name&gt;.ts.net</code></li>
-          <li>Set <code>gateway_public_url</code> to <code>https://&lt;machine-name&gt;.ts.net:18789</code></li>
+          <li>Set <code>gateway_public_url</code> to <code>https://&lt;machine-name&gt;.ts.net:18790</code></li>
           <li>Restart the add-on.</li>
         </ol>`;
     } else if (ACCESS_MODE === 'local_only') {
@@ -347,7 +351,7 @@ SSL tab:  Request a new SSL certificate (Let's Encrypt or custom)</pre>
       wizardContent.innerHTML = `
         <div class="banner warn">You are using custom settings and this page is not in a secure context.
         The Gateway Control UI will reject connections over plain HTTP.</div>
-        <p style="font-size:14px"><b>Recommended:</b> Go to <b>Settings → Add-ons → OpenClaw Assistant → Configuration</b>
+        <p style="font-size:14px"><b>Recommended:</b> Go to <b>Settings → Apps → OpenClaw Super Home Assistant → Configuration</b>
         and set <code>access_mode</code> to one of:</p>
         <ul style="font-size:14px;line-height:1.8;padding-left:22px">
           <li><b>lan_https</b> — easiest, adds built-in HTTPS proxy (no external setup needed)</li>
