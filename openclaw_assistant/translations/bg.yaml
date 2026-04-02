@@ -62,6 +62,10 @@ configuration:
     name: Изключи device pairing за Control UI (lan_https)
     description: "Когато е ВКЛ. (препоръчително), задава gateway.controlUi.dangerouslyDisableDeviceAuth=true и пропуска одобрението по устройство, за да избегне error 1008 в LAN HTTPS режим. Остави ВКЛ. за домашна/доверена мрежа. Изключи само ако искаш стриктно pairing потвърждение за всеки нов браузър/устройство."
 
+  disable_exec_approvals:
+    name: Изключване на exec approval подсказките
+    description: "Когато е ВКЛ., принуждава OpenClaw host exec approvals към security=full, ask=off, askFallback=full и задава tools.exec.security=full със strictInlineEval=false. Използвайте това само за напълно unattended automation потоци, защото премахва approval подсказките и отслабва защитите за host exec."
+
   gateway_bind_mode:
     name: Режим на свързване на Gateway
     description: Режим на мрежово свързване - loopback (само 127.0.0.1, най-сигурен), lan (всички интерфейси) или tailnet (само Tailscale интерфейс). Пренебрегва се от предварителните режими на достъп.

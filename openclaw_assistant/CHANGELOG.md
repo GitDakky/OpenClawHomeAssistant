@@ -2,6 +2,16 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.6.2] - 2026-04-02
+
+### Added
+- Added a new add-on option `disable_exec_approvals` to force unattended host-exec policy for automation-heavy installs.
+
+### Changed
+- When `disable_exec_approvals` is enabled, the add-on now keeps `/config/.openclaw/exec-approvals.json` and `/config/.openclaw/openclaw.json` aligned by setting exec approvals to `security=full`, `ask=off`, `askFallback=full`, and `tools.exec.security=full` with `strictInlineEval=false`.
+- When the option is disabled again, the add-on removes only the repo-managed approval overrides instead of clobbering unrelated user approval settings.
+- Updated docs and Home Assistant option translations to explain the unattended exec policy and its risk tradeoff clearly.
+
 ## [0.6.1] - 2026-04-02
 
 ### Added

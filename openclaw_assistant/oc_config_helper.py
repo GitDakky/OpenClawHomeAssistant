@@ -12,6 +12,18 @@ import sys
 from pathlib import Path
 
 CONFIG_PATH = Path(os.environ.get("OPENCLAW_CONFIG_PATH", "/config/.openclaw/openclaw.json"))
+EXEC_APPROVALS_PATH = Path(
+    os.environ.get("OPENCLAW_EXEC_APPROVALS_PATH", "/config/.openclaw/exec-approvals.json")
+)
+FORCED_EXEC_APPROVAL_DEFAULTS = {
+    "security": "full",
+    "ask": "off",
+    "askFallback": "full",
+}
+FORCED_TOOLS_EXEC = {
+    "security": "full",
+    "strictInlineEval": False,
+}
 
 
 
@@ -26,6 +38,17 @@ def read_config():
         return None
 
 
+def read_json_file(path: Path):
+    """Read and parse an arbitrary JSON file."""
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, IOError) as e:
+        print(f"ERROR: Failed to read {path}: {e}", file=sys.stderr)
+        return None
+
+
 def write_config(cfg):
     """Write config back to file with nice formatting."""
     try:
@@ -34,6 +57,17 @@ def write_config(cfg):
         return True
     except IOError as e:
         print(f"ERROR: Failed to write config: {e}", file=sys.stderr)
+        return False
+
+
+def write_json_file(path: Path, payload):
+    """Write a JSON file with nice formatting."""
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return True
+    except IOError as e:
+        print(f"ERROR: Failed to write {path}: {e}", file=sys.stderr)
         return False
 
 
@@ -274,6 +308,114 @@ def set_control_ui_origins(origins_csv: str, additional_origins_csv: str = "", d
     return False
 
 
+def configure_exec_approval_policy(disable_exec_approvals: bool):
+    """
+    Configure host exec approvals and tools.exec policy together.
+
+    When enabled, force:
+      - ~/.openclaw/exec-approvals.json defaults to full/off/full
+      - tools.exec.security=full
+      - tools.exec.strictInlineEval=false
+
+    When disabled, remove only the repo-managed overrides, leaving any
+    unrelated user-managed approval config intact.
+    """
+    cfg = read_config()
+    if cfg is None:
+        cfg = {}
+
+    approvals = read_json_file(EXEC_APPROVALS_PATH)
+    if approvals is None:
+        approvals = {}
+
+    cfg_changes = []
+    approvals_changes = []
+
+    tools = cfg.get("tools")
+    if not isinstance(tools, dict):
+        tools = {}
+        cfg["tools"] = tools
+
+    exec_cfg = tools.get("exec")
+    if not isinstance(exec_cfg, dict):
+        exec_cfg = {}
+        tools["exec"] = exec_cfg
+
+    if disable_exec_approvals:
+        for key, value in FORCED_TOOLS_EXEC.items():
+            if exec_cfg.get(key) != value:
+                exec_cfg[key] = value
+                cfg_changes.append(f"tools.exec.{key}: set to {value!r}")
+    else:
+        for key, value in FORCED_TOOLS_EXEC.items():
+            if exec_cfg.get(key) == value:
+                del exec_cfg[key]
+                cfg_changes.append(f"tools.exec.{key}: removed repo-managed override")
+        if not exec_cfg and "exec" in tools:
+            del tools["exec"]
+        if not tools and "tools" in cfg:
+            del cfg["tools"]
+
+    defaults = approvals.get("defaults")
+    if not isinstance(defaults, dict):
+        defaults = {}
+        if disable_exec_approvals:
+            approvals["defaults"] = defaults
+
+    if disable_exec_approvals:
+        if not isinstance(approvals.get("version"), int):
+            approvals["version"] = 1
+            approvals_changes.append("version: initialized to 1")
+        if not isinstance(approvals.get("agents"), dict):
+            approvals["agents"] = approvals.get("agents") if isinstance(approvals.get("agents"), dict) else {}
+        for key, value in FORCED_EXEC_APPROVAL_DEFAULTS.items():
+            if defaults.get(key) != value:
+                defaults[key] = value
+                approvals_changes.append(f"defaults.{key}: set to {value!r}")
+    else:
+        if isinstance(defaults, dict):
+            for key, value in FORCED_EXEC_APPROVAL_DEFAULTS.items():
+                if defaults.get(key) == value:
+                    del defaults[key]
+                    approvals_changes.append(f"defaults.{key}: removed repo-managed override")
+            if not defaults and "defaults" in approvals:
+                del approvals["defaults"]
+
+    cfg_ok = True
+    approvals_ok = True
+
+    if cfg_changes:
+        cfg_ok = write_config(cfg)
+        if not cfg_ok:
+            print("ERROR: Failed to update tools.exec approval policy")
+            return False
+
+    if approvals_changes:
+        approvals_ok = write_json_file(EXEC_APPROVALS_PATH, approvals)
+        if not approvals_ok:
+            print("ERROR: Failed to update exec approvals defaults")
+            return False
+
+    if disable_exec_approvals:
+        if cfg_changes or approvals_changes:
+            print(
+                "INFO: Exec approvals disabled for host automation flows: "
+                + ", ".join([*cfg_changes, *approvals_changes])
+            )
+        else:
+            print("INFO: Exec approvals already disabled for host automation flows")
+    else:
+        if cfg_changes or approvals_changes:
+            print(
+                "INFO: Removed repo-managed exec approval overrides: "
+                + ", ".join([*cfg_changes, *approvals_changes])
+            )
+        else:
+            print("INFO: No repo-managed exec approval overrides were present")
+
+    return True
+
+
 def main():
     """CLI entry point for use by run.sh"""
     if len(sys.argv) < 2:
@@ -316,6 +458,14 @@ def main():
         if len(sys.argv) == 5:
             disable_device_auth = sys.argv[4].strip().lower() == "true"
         success = set_control_ui_origins(origins_csv, additional_origins_csv, disable_device_auth)
+        sys.exit(0 if success else 1)
+    
+    elif cmd == "configure-exec-approvals":
+        if len(sys.argv) != 3:
+            print("Usage: oc_config_helper.py configure-exec-approvals <true|false>")
+            sys.exit(1)
+        disable_exec_approvals = sys.argv[2].strip().lower() == "true"
+        success = configure_exec_approval_policy(disable_exec_approvals)
         sys.exit(0 if success else 1)
 
     elif cmd == "set":

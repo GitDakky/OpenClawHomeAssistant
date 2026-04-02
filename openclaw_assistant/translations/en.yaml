@@ -62,6 +62,10 @@ configuration:
     name: Disable Control UI Device Pairing (lan_https)
     description: "When ON (recommended), sets gateway.controlUi.dangerouslyDisableDeviceAuth=true to skip per-device approval and avoid error 1008 in LAN HTTPS mode. Keep ON for home/trusted LAN. Turn OFF only when you want strict per-device pairing prompts on every new browser/device."
 
+  disable_exec_approvals:
+    name: Disable Exec Approval Prompts
+    description: "When ON, forces OpenClaw host exec approvals to security=full, ask=off, askFallback=full and sets tools.exec.security=full with strictInlineEval=false. Use this only for fully unattended automation flows because it removes approval prompts and weakens host-exec guardrails."
+
   gateway_bind_mode:
     name: Gateway Bind Mode
     description: Network bind mode - loopback (127.0.0.1 only, most secure), lan (all interfaces), or tailnet (Tailscale interface only). Overridden by access_mode presets.

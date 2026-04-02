@@ -1,5 +1,5 @@
 name: OpenClaw Super Home Assistant
-version: "0.6.1"
+version: "0.6.2"
 slug: openclaw_super_home_assistant
 description: Run the GitDakky OpenClaw fork as a Home Assistant app with migration support.
 url: https://github.com/GitDakky/OpenClawHomeAssistant
@@ -111,6 +111,12 @@ options:
   # Set false only if you explicitly want strict per-device approvals.
   controlui_disable_device_auth: true
 
+  # Disable OpenClaw exec approval prompts for gateway/node host execution.
+  # WARNING: This weakens host-exec safety guardrails to support fully unattended automations.
+  # When enabled, the add-on forces exec approvals defaults to security=full, ask=off,
+  # askFallback=full and sets tools.exec.security=full with strictInlineEval=false.
+  disable_exec_approvals: false
+
   # Enable OpenAI-compatible Chat Completions API endpoint
   # When enabled, OpenClaw can be used as a conversation agent in HA Assist pipeline
   # via Extended OpenAI Conversation (HACS) or any OpenAI-compatible client
@@ -168,6 +174,7 @@ schema:
   gateway_trusted_proxies: str?
   gateway_additional_allowed_origins: str?
   controlui_disable_device_auth: bool?
+  disable_exec_approvals: bool?
   enable_openai_api: bool?
   force_ipv4_dns: bool?
   gateway_env_vars:

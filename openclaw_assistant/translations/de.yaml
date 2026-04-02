@@ -62,6 +62,10 @@ configuration:
     name: Control-UI-Geräte-Pairing deaktivieren (lan_https)
     description: "Wenn EIN (empfohlen), setzt dies gateway.controlUi.dangerouslyDisableDeviceAuth=true, überspringt die Gerätefreigabe und vermeidet Fehler 1008 im LAN-HTTPS-Modus. Für Heim-/vertrauenswürdiges LAN eingeschaltet lassen. Nur AUS schalten, wenn du striktes Geräte-Pairing für jeden neuen Browser/jedes neue Gerät willst."
 
+  disable_exec_approvals:
+    name: Exec-Approval-Abfragen deaktivieren
+    description: "Wenn EIN, erzwingt dies für OpenClaw-Host-Exec-Approvals security=full, ask=off, askFallback=full und setzt tools.exec.security=full mit strictInlineEval=false. Nur für vollständig unbeaufsichtigte Automationsabläufe verwenden, da Approval-Abfragen entfernt und Host-Exec-Schutzmechanismen abgeschwächt werden."
+
   gateway_bind_mode:
     name: Gateway-Bindungsmodus
     description: Netzwerk-Bindungsmodus - loopback (nur 127.0.0.1, am sichersten), lan (alle Schnittstellen) oder tailnet (nur Tailscale-Schnittstelle). Wird durch Zugriffsmodus-Voreinstellungen überschrieben.

@@ -296,6 +296,7 @@ All options are set via **Settings → Apps → OpenClaw Super Home Assistant �
 | `gateway_trusted_proxies` | string | _(empty)_ | Comma-separated trusted proxy IP/CIDR list used with `gateway_auth_mode: trusted-proxy`. |
 | `gateway_additional_allowed_origins` | string | _(empty)_ | Comma-separated additional origins merged into `gateway.controlUi.allowedOrigins` in `lan_https` mode (example: `https://ha.example.com:8443,capacitor://localhost`). |
 | `controlui_disable_device_auth` | bool | `true` | Controls `gateway.controlUi.dangerouslyDisableDeviceAuth` in `lan_https` mode. **ON (recommended):** skip per-device pairing approval, avoid error 1008 on LAN HTTPS, token auth still required. **OFF:** enforce per-device pairing prompts (stricter, but more friction). |
+| `disable_exec_approvals` | bool | `false` | Disable host exec approval prompts for unattended automations. When enabled, the add-on forces `/config/.openclaw/exec-approvals.json` defaults to `security=full`, `ask=off`, `askFallback=full` and sets `tools.exec.security=full` with `tools.exec.strictInlineEval=false` in `/config/.openclaw/openclaw.json`. **Warning:** this weakens host-exec safety guardrails and should only be used in trusted environments. |
 | `force_ipv4_dns` | bool | `true` | Force IPv4-first DNS ordering for Node network calls. **Recommended ON** — most HAOS VMs lack IPv6 egress, causing `web_fetch` and Telegram timeouts. Set to `false` only if your network has working IPv6. |
 | `gateway_env_vars` | list of `{name, value}` | `[]` | Environment variables exported to the gateway process at startup. UI format: list entries with `name` and `value` (example: `name=OPENAI_API_KEY`, `value=sk-...`). Limits: max 50 vars, key length 255, value length 10000. Reserved runtime keys are blocked (for example `PATH`, `HOME`, `NODE_OPTIONS`, `NODE_PATH`, `OPENCLAW_*`, proxy vars). Legacy string/object formats are still accepted for backward compatibility. |
 | `nginx_log_level` | `full` / `minimal` | `minimal` | Nginx access log verbosity. `minimal` suppresses repetitive Home Assistant health-check and polling requests (`GET /`, `GET /v1/models`). `full` logs everything. |
@@ -333,7 +334,8 @@ To provide the SSH key: place the private key file in the add-on config director
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `clean_session_locks_on_start` | bool | `true` | Remove stale session lock files on startup (safe — only removes locks when gateway isn't running) |
-| `clean_session_locks_on_exit` | bool | `true` | Remove session lock files on clean shutdown || `auto_configure_mcp` | bool | `false` | Auto-register Home Assistant as an MCP server on startup (requires `homeassistant_token`) |
+| `clean_session_locks_on_exit` | bool | `true` | Remove session lock files on clean shutdown |
+| `auto_configure_mcp` | bool | `false` | Auto-register Home Assistant as an MCP server on startup (requires `homeassistant_token`) |
 ---
 
 ## 6. Use Case Guides
@@ -909,6 +911,28 @@ Go to **Settings → Apps → OpenClaw Super Home Assistant → Log** tab. Logs 
 3. If you still need to compare files manually, check:
    - legacy auth store: `/config/.openclaw/agent/auth-profiles.json`
    - current auth store: `/config/.openclaw/agents/main/agent/auth-profiles.json`
+
+### Automations keep stopping on exec approvals
+
+**Cause**: OpenClaw host execution still honors exec approval policy even when the automation flow is otherwise configured correctly. For fully unattended automation, you must relax both layers together: `exec-approvals.json` defaults and `tools.exec` in `openclaw.json`.
+
+**Fix**:
+1. In **Settings → Apps → OpenClaw Super Home Assistant → Configuration**, turn **Disable Exec Approval Prompts** (`disable_exec_approvals`) **ON**
+2. Restart the add-on
+3. Verify in the embedded terminal:
+   ```sh
+   openclaw approvals get
+   ```
+4. The defaults row should show:
+   ```text
+   security=full, ask=off, askFallback=full
+   ```
+
+This add-on writes the policy to:
+- `/config/.openclaw/exec-approvals.json`
+- `/config/.openclaw/openclaw.json`
+
+> **Warning**: This disables host exec approval prompts and weakens safety guardrails. Use it only on trusted Home Assistant installs where unattended automation is intentional.
 4. Restart the add-on and hatch the TUI again.
 
 ### Local TUI says "pairing required" after hatch

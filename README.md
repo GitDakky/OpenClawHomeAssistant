@@ -34,6 +34,7 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 | Secure gateway access | Token auth, `lan_https`, reverse proxy support, and tailnet-friendly modes |
 | Embedded terminal | `ttyd` inside Home Assistant for onboarding, recovery, and live ops |
 | Automation runtime | OpenClaw gateway, skills, MCP support, and OpenAI-compatible API access |
+| Unattended automation mode | Optional `disable_exec_approvals` switch for trusted installs that must suppress host exec approval prompts |
 | Browser tooling | Chromium bundled for automation and web-driven workflows |
 | Persistent state | Config, skills, agent workspace, keys, and tokens survive add-on updates |
 | Useful CLI stack | `git`, `jq`, `python3`, `ripgrep`, `curl`, `pnpm`, Homebrew, and more |

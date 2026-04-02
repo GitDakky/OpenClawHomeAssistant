@@ -203,6 +203,7 @@ GATEWAY_AUTH_MODE=$(jq -r '.gateway_auth_mode // "token"' "$OPTIONS_FILE")
 GATEWAY_TRUSTED_PROXIES=$(jq -r '.gateway_trusted_proxies // empty' "$OPTIONS_FILE")
 GATEWAY_ADDITIONAL_ALLOWED_ORIGINS=$(jq -r '.gateway_additional_allowed_origins // empty' "$OPTIONS_FILE")
 CONTROLUI_DISABLE_DEVICE_AUTH=$(jq -r '.controlui_disable_device_auth // true' "$OPTIONS_FILE")
+DISABLE_EXEC_APPROVALS=$(jq -r '.disable_exec_approvals // false' "$OPTIONS_FILE")
 FORCE_IPV4_DNS=$(jq -r '.force_ipv4_dns // true' "$OPTIONS_FILE")
 ACCESS_MODE=$(jq -r '.access_mode // "custom"' "$OPTIONS_FILE")
 NGINX_LOG_LEVEL=$(jq -r '.nginx_log_level // "minimal"' "$OPTIONS_FILE")
@@ -821,6 +822,17 @@ if [ -f "$OPENCLAW_CONFIG_PATH" ]; then
 else
   echo "WARN: OpenClaw config not found at $OPENCLAW_CONFIG_PATH, cannot apply gateway settings"
   echo "INFO: Run 'openclaw onboard' first, then restart the add-on"
+fi
+
+if [ -f "$HELPER_PATH" ]; then
+  if ! python3 "$HELPER_PATH" configure-exec-approvals "$DISABLE_EXEC_APPROVALS"; then
+    rc=$?
+    echo "ERROR: Failed to configure exec approval policy via oc_config_helper.py (exit code ${rc})."
+    echo "ERROR: Host automation exec policy may be inconsistent; aborting startup."
+    exit "${rc}"
+  fi
+else
+  echo "WARN: oc_config_helper.py not found, cannot configure exec approval policy"
 fi
 
 if [ "$GATEWAY_AUTH_MODE" = "trusted-proxy" ]; then

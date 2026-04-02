@@ -62,6 +62,10 @@ configuration:
     name: Desativar pareamento por dispositivo no Control UI (lan_https)
     description: "Quando LIGADO (recomendado), define gateway.controlUi.dangerouslyDisableDeviceAuth=true para pular aprovação por dispositivo e evitar erro 1008 no modo LAN HTTPS. Mantenha LIGADO em rede doméstica/confiável. Desligue apenas se quiser pareamento estrito para cada novo navegador/dispositivo."
 
+  disable_exec_approvals:
+    name: Desativar prompts de aprovação exec
+    description: "Quando LIGADO, força as aprovações de exec do host do OpenClaw para security=full, ask=off, askFallback=full e define tools.exec.security=full com strictInlineEval=false. Use isso apenas para fluxos de automação totalmente sem supervisão, pois remove prompts de aprovação e enfraquece as proteções de execução no host."
+
   gateway_bind_mode:
     name: Modo de Vinculação do Gateway
     description: Modo de vinculação de rede - loopback (somente 127.0.0.1, mais seguro), lan (todas as interfaces) ou tailnet (somente interface Tailscale). Substituído pelas predefinições do modo de acesso.

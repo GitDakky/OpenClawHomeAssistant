@@ -55,6 +55,10 @@ configuration:
     name: Wyłącz parowanie urządzeń Control UI (lan_https)
     description: "Gdy WŁĄCZONE (zalecane), ustawia gateway.controlUi.dangerouslyDisableDeviceAuth=true, pomija akceptację per-urządzenie i zapobiega błędowi 1008 w trybie LAN HTTPS. Zostaw WŁĄCZONE w domowej/zaufanej sieci. Wyłącz tylko jeśli chcesz ścisłe parowanie dla każdej nowej przeglądarki/urządzenia."
 
+  disable_exec_approvals:
+    name: Wyłącz monity akceptacji exec
+    description: "Gdy WŁĄCZONE, wymusza dla hostowych akceptacji exec OpenClaw ustawienia security=full, ask=off, askFallback=full oraz ustawia tools.exec.security=full ze strictInlineEval=false. Używaj tego tylko dla całkowicie bezobsługowych przepływów automatyzacji, ponieważ usuwa monity akceptacji i osłabia zabezpieczenia host exec."
+
   gateway_bind_mode:
     name: Tryb bindowania Gateway
     description: Tryb bindowania sieci - loopback (tylko 127.0.0.1, najbezpieczniejszy), lan (wszystkie interfejsy) lub tailnet (tylko interfejs Tailscale). Nadpisywane przez ustawienia trybu dostępu.
