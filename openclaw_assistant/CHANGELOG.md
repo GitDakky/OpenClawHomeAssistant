@@ -2,6 +2,15 @@
 
 All notable changes to the OpenClaw Assistant Home Assistant Add-on will be documented in this file.
 
+## [0.5.67] - 2026-04-02
+
+### Changed
+- Limited published add-on images to `amd64` and `aarch64` so the release pipeline matches Home Assistant's current supported builder targets.
+- Fixed the GitHub Actions image publish workflow and kept the published image target at `ghcr.io/gitdakky/openclaw-assistant`.
+
+### Notes
+- `armv7` is no longer published by this fork. Home Assistant has moved away from `armv7`, and the current Home Assistant builder actions do not support publishing it. Keeping it listed would advertise an image we cannot release safely.
+
 ## [0.5.66] - 2026-04-02
 
 ### Changed

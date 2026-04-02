@@ -66,7 +66,7 @@ When you open the add-on page in Home Assistant, nginx serves a landing page wit
 3. Find and install **OpenClaw Assistant**
 4. Click **Start**
 
-**Supported architectures**: amd64, aarch64 (Raspberry Pi 4/5), armv7
+**Supported architectures**: amd64, aarch64 (Raspberry Pi 4/5)
 
 ---
 

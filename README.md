@@ -73,7 +73,7 @@ For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.m
 |---|---|
 | `amd64` | Yes |
 | `aarch64` | Yes |
-| `armv7` | Yes |
+| `armv7` | No |
 
 ## Read next
 
