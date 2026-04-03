@@ -54,8 +54,10 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 6. Start the app, open the embedded terminal, and run:
 
 ```sh
-openclaw onboard
+oc-onboard
 ```
+
+`oc-onboard` is the managed onboarding wrapper for this add-on. It runs the normal OpenClaw wizard, then automatically recycles the local gateway if onboarding changed gateway auth or other runtime-critical settings. That avoids the token mismatch split-brain that can happen if a live gateway keeps an old in-memory token after `openclaw.json` is rewritten.
 
 7. If the legacy OpenClaw Assistant add-on is installed, this fork will try to stop it and import its add-on config on first start.
 8. Retrieve the gateway token:
@@ -63,6 +65,8 @@ openclaw onboard
 ```sh
 jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json
 ```
+
+For later reconfiguration, use `oc-configure` instead of raw `openclaw configure` for the same reason.
 
 For the full setup flow, secure-access recipes, and troubleshooting, use [DOCS.md](DOCS.md).
 

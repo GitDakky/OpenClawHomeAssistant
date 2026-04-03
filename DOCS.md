@@ -104,18 +104,22 @@ Open the add-on page in Home Assistant. You'll see a landing page with an embedd
 In the terminal, run:
 
 ```sh
-openclaw onboard
+oc-onboard
 ```
 
 This interactive wizard walks you through connecting your AI providers (OpenAI, Google, Anthropic, etc.) and basic configuration.
+
+`oc-onboard` is the add-on's managed onboarding wrapper. It runs the normal `openclaw onboard` flow, then automatically restarts the local OpenClaw runtime if onboarding changed gateway auth or other runtime-critical config. Use it instead of raw `openclaw onboard` inside this add-on.
 
 > **Note (v0.5.54+)**: If onboarding triggers a gateway runtime restart, the add-on now keeps nginx/terminal alive and auto-recovers the runtime instead of restarting the whole container.
 
 Alternatively, for more granular control:
 
 ```sh
-openclaw configure
+oc-configure
 ```
+
+`oc-configure` is the managed equivalent of `openclaw configure`. It protects the running gateway from stale in-memory auth/config after interactive changes.
 
 ### Step 2 — Get your Gateway token
 
@@ -903,6 +907,17 @@ Go to **Settings → Apps → OpenClaw Super Home Assistant → Log** tab. Logs 
 
 **Fix**: In **v0.5.50+** the add-on configures `gateway.controlUi.dangerouslyDisableDeviceAuth` in `lan_https` mode. By default it is enabled (`controlui_disable_device_auth: true`) to bypass per-device pairing while still enforcing token auth. If you prefer stricter behavior, set `controlui_disable_device_auth: false` and approve new devices manually.
 
+### `unauthorized: gateway token mismatch`
+
+**Symptom**: `openclaw tui`, the Control UI, or `openclaw gateway status` reports `unauthorized: gateway token mismatch`.
+
+**Cause**: The gateway token stored in `/config/.openclaw/openclaw.json` changed, but the live runtime was still using an older in-memory token. This most commonly happens if onboarding or interactive config rewrites the gateway block while the add-on is already running.
+
+**Fix**:
+1. Use `oc-onboard` and `oc-configure` from the add-on terminal instead of raw `openclaw onboard` / `openclaw configure`.
+2. In **v0.7.3+** the add-on also watches `openclaw.json` for gateway changes and recycles the local runtime automatically, so post-onboarding token drift should self-heal.
+3. If you still hit it on an older build, restart the add-on once so the runtime reloads the same token that is now on disk.
+
 > **v2026.2.22 note:** The gateway now logs a security warning on startup when this flag is active. The warning is expected and harmless — run `openclaw security audit` for details.
 
 1. **Restart the add-on** — the startup script writes the config before launching the gateway.
@@ -1076,7 +1091,7 @@ The OpenClaw binary should be installed at `/usr/lib/node_modules/openclaw/`. If
 rm /config/.openclaw/openclaw.json
 ```
 
-Restart the add-on — it will generate a fresh config. You'll need to run `openclaw onboard` again.
+Restart the add-on — it will generate a fresh config. You'll need to run `oc-onboard` again.
 
 ### Disk space running low / "no space left on device"
 
@@ -1120,13 +1135,13 @@ VBoxManage modifymedium disk haos.vdi --resize 64000
 Yes. The add-on supports aarch64 (Raspberry Pi 4/5) and armv7 (Raspberry Pi 3). Note that Homebrew may not work on all ARM devices, but core functionality is unaffected.
 
 **Can I run multiple agents?**
-OpenClaw supports multiple agent profiles. Configure them via `openclaw configure` or by editing `/config/.openclaw/openclaw.json`. The gateway serves all configured agents.
+OpenClaw supports multiple agent profiles. Configure them via `oc-configure` or by editing `/config/.openclaw/openclaw.json`. The gateway serves all configured agents.
 
 **Can I use a remote gateway?**
 Yes. Set `gateway_mode` to `remote` and set `gateway_remote_url` in add-on configuration. The add-on syncs it into OpenClaw config automatically. See [Remote Gateway Mode](#6b-remote-gateway-mode).
 
 **How do I change the AI model or provider?**
-Run `openclaw configure` in the terminal to reconfigure your AI providers, or edit `/config/.openclaw/openclaw.json` directly. You can use OpenAI, Google (Gemini), Anthropic (Claude), local models, and more.
+Run `oc-configure` in the terminal to reconfigure your AI providers, or edit `/config/.openclaw/openclaw.json` directly. You can use OpenAI, Google (Gemini), Anthropic (Claude), local models, and more.
 
 **Can other devices on my network use the OpenClaw API?**
 Yes. Set `access_mode` to `lan_https` (recommended) or `lan_reverse_proxy`. Any device on your network can connect to `https://<ha-ip>:18790`. Use the gateway token for authentication. This also enables the [Assist pipeline integration](#6c-assist-pipeline-integration-openai-api) from other HA instances or standalone OpenClaw integrations.

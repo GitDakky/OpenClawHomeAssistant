@@ -17,6 +17,9 @@ DEFAULT_INGRESS_PORT="48109"
 DEFAULT_DASHBOARD_API_PORT="48110"
 BOOTSTRAP_SOURCE_DIR="/opt/openclaw-super/bootstrap-workspace"
 BUNDLED_SKILLS_SOURCE_DIR="/opt/openclaw-super/bundled-skills"
+OPENCLAW_CONFIG_PATH="/config/.openclaw/openclaw.json"
+RUNTIME_RESTART_REQUEST_FILE="/tmp/openclaw-runtime-restart.request"
+MANAGED_COMMAND_ACTIVE_FILE="/tmp/openclaw-managed-command.active"
 
 if [ ! -f "$OPTIONS_FILE" ]; then
   echo "Missing $OPTIONS_FILE (add-on options)."
@@ -869,6 +872,7 @@ NGINX_PID=""
 TTYD_PID=""
 LOCAL_PAIRING_APPROVER_PID=""
 DASHBOARD_API_PID=""
+CONFIG_WATCHER_PID=""
 SHUTTING_DOWN="false"
 
 shutdown() {
@@ -893,6 +897,11 @@ shutdown() {
   if [ -n "${DASHBOARD_API_PID}" ] && kill -0 "${DASHBOARD_API_PID}" >/dev/null 2>&1; then
     kill -TERM "${DASHBOARD_API_PID}" >/dev/null 2>&1 || true
     wait "${DASHBOARD_API_PID}" 2>/dev/null || true
+  fi
+
+  if [ -n "${CONFIG_WATCHER_PID}" ] && kill -0 "${CONFIG_WATCHER_PID}" >/dev/null 2>&1; then
+    kill -TERM "${CONFIG_WATCHER_PID}" >/dev/null 2>&1 || true
+    wait "${CONFIG_WATCHER_PID}" 2>/dev/null || true
   fi
 
   if [ -n "${GW_PID}" ] && kill -0 "${GW_PID}" >/dev/null 2>&1; then
@@ -923,7 +932,6 @@ fi
 
 # Bootstrap minimal OpenClaw config ONLY if missing.
 # We do not overwrite or patch existing configs; onboarding owns everything else.
-OPENCLAW_CONFIG_PATH="/config/.openclaw/openclaw.json"
 if [ ! -f "$OPENCLAW_CONFIG_PATH" ]; then
   echo "INFO: OpenClaw config missing; bootstrapping minimal config at $OPENCLAW_CONFIG_PATH"
   python3 - <<'PY'
@@ -1474,6 +1482,108 @@ find_gateway_daemon_pid() {
   return 1
 }
 
+compute_runtime_config_fingerprint() {
+  python3 - "$OPENCLAW_CONFIG_PATH" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+cfg_path = Path(sys.argv[1])
+if not cfg_path.exists():
+    raise SystemExit(0)
+
+try:
+    data = json.loads(cfg_path.read_text(encoding="utf-8"))
+except Exception:
+    raise SystemExit(0)
+
+gateway = data.get("gateway") or {}
+payload = json.dumps(gateway, sort_keys=True, separators=(",", ":"))
+print(hashlib.sha256(payload.encode("utf-8")).hexdigest(), end="")
+PY
+}
+
+request_managed_runtime_restart() {
+  local reason="$1"
+  local target_pid=""
+
+  if [ "$GATEWAY_MODE" = "remote" ]; then
+    target_pid="$(pgrep -f "openclaw.*node.*run" 2>/dev/null | head -1 || true)"
+  else
+    target_pid="$(find_gateway_daemon_pid 2>/dev/null || true)"
+  fi
+
+  if [ -z "$target_pid" ] && [ -n "${GW_PID:-}" ] && kill -0 "${GW_PID}" >/dev/null 2>&1; then
+    target_pid="$GW_PID"
+  fi
+
+  if [ -n "$target_pid" ] && kill -0 "$target_pid" >/dev/null 2>&1; then
+    printf '%s\n' "$reason" > "$RUNTIME_RESTART_REQUEST_FILE"
+    echo "INFO: Managed OpenClaw runtime restart requested (${reason}); signalling PID ${target_pid}."
+    kill -TERM "$target_pid" >/dev/null 2>&1 || true
+    return 0
+  fi
+
+  echo "INFO: OpenClaw config changed (${reason}) but no active runtime PID was found to recycle."
+  return 1
+}
+
+start_runtime_config_watcher() {
+  local initial_fingerprint=""
+
+  initial_fingerprint="$(compute_runtime_config_fingerprint 2>/dev/null || true)"
+
+  (
+    local last_fingerprint="$initial_fingerprint"
+    local pending_change=false
+    local pending_reason="gateway-config-changed"
+    local last_change_ts=0
+    local current_fingerprint=""
+    local now=0
+
+    while true; do
+      sleep 4
+
+      if [ "$SHUTTING_DOWN" = "true" ]; then
+        exit 0
+      fi
+
+      current_fingerprint="$(compute_runtime_config_fingerprint 2>/dev/null || true)"
+      [ -n "$current_fingerprint" ] || continue
+
+      if [ -z "$last_fingerprint" ]; then
+        last_fingerprint="$current_fingerprint"
+        continue
+      fi
+
+      if [ "$current_fingerprint" != "$last_fingerprint" ]; then
+        last_fingerprint="$current_fingerprint"
+        pending_change=true
+        last_change_ts=$(date +%s)
+      fi
+
+      if [ "$pending_change" != "true" ]; then
+        continue
+      fi
+
+      if [ -f "$MANAGED_COMMAND_ACTIVE_FILE" ]; then
+        continue
+      fi
+
+      now=$(date +%s)
+      if [ $((now - last_change_ts)) -lt 8 ]; then
+        continue
+      fi
+
+      if request_managed_runtime_restart "$pending_reason"; then
+        pending_change=false
+      fi
+    done
+  ) &
+  CONFIG_WATCHER_PID=$!
+}
+
 if ! start_openclaw_runtime; then
   exit 1
 fi
@@ -1481,6 +1591,7 @@ fi
 start_gw_relay
 start_local_pairing_approver
 start_dashboard_api
+start_runtime_config_watcher
 
 # Start web terminal (optional)
 TTYD_PID_FILE="/var/run/openclaw-ttyd.pid"
@@ -1655,6 +1766,7 @@ while true; do
   fi
 
   if [ -n "$RESTARTED_PID" ]; then
+    rm -f "$RUNTIME_RESTART_REQUEST_FILE"
     echo "INFO: OpenClaw runtime active (PID $RESTARTED_PID); monitoring."
     GW_PID="$RESTARTED_PID"
     GW_IS_CHILD=false
@@ -1671,14 +1783,22 @@ while true; do
       | grep ":${GATEWAY_INTERNAL_PORT} " \
       | sed -n 's/.*pid=\([0-9]*\).*/\1/p' \
       | head -1 || true)
+    rm -f "$RUNTIME_RESTART_REQUEST_FILE"
     echo "INFO: Gateway port ${GATEWAY_INTERNAL_PORT} occupied by PID ${PORT_PID:-unknown}; monitoring."
     GW_PID="${PORT_PID:-$GW_PID}"
     GW_IS_CHILD=false
     continue
   fi
 
-  echo "WARN: OpenClaw runtime exited with code ${GW_EXIT_CODE}. Restarting in 2s..."
-  sleep 2
+  if [ -f "$RUNTIME_RESTART_REQUEST_FILE" ]; then
+    RESTART_REASON="$(cat "$RUNTIME_RESTART_REQUEST_FILE" 2>/dev/null || echo "managed-request")"
+    rm -f "$RUNTIME_RESTART_REQUEST_FILE"
+    echo "INFO: OpenClaw runtime exited for a managed restart (${RESTART_REASON}). Restarting in 1s..."
+    sleep 1
+  else
+    echo "WARN: OpenClaw runtime exited with code ${GW_EXIT_CODE}. Restarting in 2s..."
+    sleep 2
+  fi
 
   # Stop the loopback relay BEFORE restarting the gateway (tailnet mode only).
   # The relay holds 127.0.0.1:GATEWAY_PORT — leaving it up causes the new gateway
@@ -1690,6 +1810,7 @@ while true; do
     sleep 5
   else
     GW_IS_CHILD=true
+    rm -f "$RUNTIME_RESTART_REQUEST_FILE"
     start_gw_relay
   fi
 done

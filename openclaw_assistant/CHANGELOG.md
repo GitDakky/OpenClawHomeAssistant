@@ -2,6 +2,18 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.3] - 2026-04-03
+
+### Added
+- Added managed terminal commands `oc-onboard` and `oc-configure` so onboarding and interactive reconfiguration can safely run inside the add-on without leaving the local gateway on stale auth.
+
+### Changed
+- The add-on now watches `/config/.openclaw/openclaw.json` for gateway-runtime changes and triggers a managed local runtime recycle when onboarding or configuration rewrites gateway auth, bind, port, or related gateway settings.
+- Updated setup and troubleshooting docs to point operators at the managed commands instead of raw `openclaw onboard` / `openclaw configure` inside the running add-on.
+
+### Fixed
+- Fixed the gateway token split-brain that could leave `openclaw tui` and the Control UI failing with `unauthorized: gateway token mismatch` after onboarding rewrote `openclaw.json` while the old gateway daemon was still alive.
+
 ## [0.7.2] - 2026-04-03
 
 ### Added
