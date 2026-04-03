@@ -19,6 +19,14 @@ configuration:
     name: Token Home Assistant
     description: Opcjonalnie - długoterminowy token Home Assistant dla lokalnych skryptów/narzędzi API HA
 
+  enable_builtin_ha_tools:
+    name: Włącz wbudowane narzędzia Home Assistant
+    description: "Gdy WŁĄCZONE (zalecane), dodatek rejestruje lokalny serwer MCP Home Assistant, dzięki czemu OpenClaw może czytać na żywo encje, urządzenia, obszary, automatyzacje, usługi i historię bez dodatkowej konfiguracji tokena."
+
+  enable_ha_service_calls:
+    name: Zezwól na wywołania usług Home Assistant
+    description: "Gdy WŁĄCZONE, wbudowana warstwa narzędzi Home Assistant udostępnia także mutujące narzędzie `ha_service_call`. Pozostaw WYŁĄCZONE, chyba że chcesz, aby OpenClaw wywoływał usługi Home Assistant po wyraźnej zgodzie użytkownika."
+
   http_proxy:
     name: Wychodzący proxy HTTP
     description: Opcjonalnie - URL proxy dla wychodzących żądań HTTP/HTTPS (przykład - http://192.168.2.1:3128)
@@ -116,7 +124,7 @@ configuration:
     description: Zmienne środowiskowe przekazywane do procesu gateway OpenClaw podczas uruchamiania (lista wpisow name/value w UI Home Assistant; maks. 50 zmiennych, klucze do 255 znakow, wartosci do 10000 znakow).
   auto_configure_mcp:
     name: Automatyczna konfiguracja MCP dla Home Assistant
-    description: "Gdy WŁĄCZONE i token Home Assistant jest ustawiony, automatycznie rejestruje Home Assistant jako serwer MCP przy każdym starcie. Pozwala to OpenClaw kontrolować urządzenia HA, usługi i automatyzacje przez Model Context Protocol. Wyłącz tylko jeśli zarządzasz konfiguracją mcporter ręcznie."
+    description: "Starsza ścieżka zewnętrznego MCP. Gdy WŁĄCZONE i token Home Assistant jest ustawiony, rejestruje zewnętrzny endpoint MCP Home Assistant podczas startu. Jest ignorowana, gdy włączona jest wbudowana warstwa narzędzi Home Assistant."
   enable_context7:
     name: Włącz tryb Context7
     description: "Gdy WŁĄCZONE, wstępnie załadowany workspace i pakiet skills instruują asystenta, aby używał Context7 do aktualnej dokumentacji, jeśli skonfigurowano klucz API."

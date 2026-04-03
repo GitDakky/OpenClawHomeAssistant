@@ -171,6 +171,8 @@ maybe_migrate_legacy_addon
 TZNAME=$(jq -r '.timezone // "Europe/Sofia"' "$OPTIONS_FILE")
 GW_PUBLIC_URL=$(jq -r '.gateway_public_url // empty' "$OPTIONS_FILE")
 HA_TOKEN=$(jq -r '.homeassistant_token // empty' "$OPTIONS_FILE")
+ENABLE_BUILTIN_HA_TOOLS=$(jq -r '.enable_builtin_ha_tools // true' "$OPTIONS_FILE")
+ENABLE_HA_SERVICE_CALLS=$(jq -r '.enable_ha_service_calls // false' "$OPTIONS_FILE")
 ADDON_HTTP_PROXY=$(jq -r '.http_proxy // empty' "$OPTIONS_FILE")
 ENABLE_TERMINAL=$(jq -r '.enable_terminal // true' "$OPTIONS_FILE")
 TERMINAL_PORT_RAW="$(jq -r --arg default_port "$DEFAULT_TERMINAL_PORT" '.terminal_port // ($default_port | tonumber)' "$OPTIONS_FILE")"
@@ -308,6 +310,9 @@ export OPENCLAW_WORKSPACE_DIR=/config/clawd
 export XDG_CONFIG_HOME=/config
 export OPENCLAW_SKILLS_DIR=/config/.openclaw/skills
 export OPENCLAW_SYSTEM_GRAPH_PATH=/config/.openclaw/gitdakky-system-graph.sqlite3
+export HA_REST_BASE_URL="http://supervisor/core/api"
+export HA_WS_URL="ws://supervisor/core/websocket"
+export HA_WRITE_TOOLS_ENABLED="$ENABLE_HA_SERVICE_CALLS"
 
 mkdir -p /config/.openclaw /config/.openclaw/identity /config/clawd /config/keys /config/secrets
 
@@ -502,7 +507,7 @@ is_reserved_gateway_env_var() {
       return 0
       ;;
     # Add-on internal control vars.
-    OPENCLAW_*)
+    OPENCLAW_*|HA_REST_BASE_URL|HA_WS_URL|HA_WRITE_TOOLS_ENABLED|SUPERVISOR_TOKEN)
       return 0
       ;;
     *)
@@ -1141,17 +1146,62 @@ if [ -f /usr/local/lib/openclaw-proxy-shim.cjs ]; then
   export OPENCLAW_GLOBAL_NODE_MODULES
 fi
 
+configure_builtin_homeassistant_mcp() {
+  local mcp_name="homeassistant_local"
+  local mcp_payload
+
+  if [ "$ENABLE_BUILTIN_HA_TOOLS" != "true" ] && [ "$ENABLE_BUILTIN_HA_TOOLS" != "1" ]; then
+    if openclaw mcp unset "$mcp_name" >/dev/null 2>&1; then
+      echo "INFO: Removed built-in Home Assistant MCP server definition."
+    fi
+    return 0
+  fi
+
+  if [ -z "${SUPERVISOR_TOKEN:-}" ]; then
+    echo "WARN: SUPERVISOR_TOKEN is unavailable; built-in Home Assistant tools cannot be registered."
+    return 0
+  fi
+
+  if [ ! -f /opt/openclaw-super/ha_mcp_server.cjs ]; then
+    echo "WARN: Built-in Home Assistant MCP server script is missing; skipping registration."
+    return 0
+  fi
+
+  mcp_payload="$(jq -cn \
+    --arg command "node" \
+    --arg script "/opt/openclaw-super/ha_mcp_server.cjs" \
+    '{command: $command, args: [$script]}'
+  )"
+
+  if openclaw mcp set "$mcp_name" "$mcp_payload" >/dev/null 2>&1; then
+    echo "INFO: Registered built-in Home Assistant MCP server '$mcp_name' (service calls: $ENABLE_HA_SERVICE_CALLS)."
+  else
+    echo "WARN: Failed to register built-in Home Assistant MCP server '$mcp_name'."
+  fi
+}
+
 # ------------------------------------------------------------------------------
-# Auto-configure MCP (Model Context Protocol) for Home Assistant
-# Registers HA as an MCP server so OpenClaw can control HA entities/services.
-# Requires: homeassistant_token set in add-on options + mcporter CLI available.
-# Runs once; re-runs when the token changes.
-# Auto-detects HA API URL: supervisor proxy if available, else localhost:8123.
+# Built-in Home Assistant tool layer (preferred)
+# Registers a local MCP server backed by the HA Supervisor/Core APIs so OpenClaw
+# can see live entities, devices, services, automations, and history without a
+# separate user-managed token flow.
 # ------------------------------------------------------------------------------
-if [ "$AUTO_CONFIGURE_MCP" = "true" ] && [ -n "$HA_TOKEN" ]; then
+configure_builtin_homeassistant_mcp
+
+# ------------------------------------------------------------------------------
+# Legacy external MCP auto-configuration (compatibility path)
+# Keeps the old long-lived-token/manual-MCP workflow available only when the
+# built-in HA tool layer is disabled. This avoids duplicate Home Assistant tool
+# surfaces in normal installs.
+# ------------------------------------------------------------------------------
+if [ "$ENABLE_BUILTIN_HA_TOOLS" = "true" ] || [ "$ENABLE_BUILTIN_HA_TOOLS" = "1" ]; then
+  if [ "$AUTO_CONFIGURE_MCP" = "true" ]; then
+    echo "INFO: auto_configure_mcp is ignored because the built-in Home Assistant tool layer is enabled."
+  fi
+elif [ "$AUTO_CONFIGURE_MCP" = "true" ] && [ -n "$HA_TOKEN" ]; then
+  echo "WARN: Legacy external Home Assistant MCP auto-configuration is still enabled."
+  echo "WARN: This path is deprecated; prefer enable_builtin_ha_tools=true."
   if command -v mcporter >/dev/null 2>&1; then
-    # Detect HA API URL: prefer supervisor proxy (works in all add-on network modes),
-    # fall back to localhost:8123 (works with host_network: true).
     if [ -n "${SUPERVISOR_TOKEN:-}" ]; then
       MCP_HA_URL="http://supervisor/core/api/mcp"
     else
@@ -1163,8 +1213,7 @@ if [ "$AUTO_CONFIGURE_MCP" = "true" ] && [ -n "$HA_TOKEN" ]; then
     if [ -f "$MCP_FLAG" ] && [ "$(cat "$MCP_FLAG" 2>/dev/null)" = "$MCP_TOKEN_HASH" ]; then
       echo "INFO: MCP Home Assistant server already configured (token unchanged)"
     else
-      echo "INFO: Configuring MCP for Home Assistant at $MCP_HA_URL ..."
-      # Remove stale entry if present (token may have changed)
+      echo "INFO: Configuring legacy MCP for Home Assistant at $MCP_HA_URL ..."
       mcporter config remove HA 2>/dev/null || true
 
       if mcporter config add HA "$MCP_HA_URL" \
@@ -1178,7 +1227,7 @@ if [ "$AUTO_CONFIGURE_MCP" = "true" ] && [ -n "$HA_TOKEN" ]; then
       fi
     fi
   else
-    echo "INFO: mcporter not available; skipping MCP auto-configuration (run 'openclaw onboard' first)"
+    echo "INFO: mcporter not available; skipping legacy MCP auto-configuration (run 'openclaw onboard' first)"
   fi
 elif [ "$AUTO_CONFIGURE_MCP" = "true" ] && [ -z "$HA_TOKEN" ]; then
   echo "INFO: MCP auto-configure enabled but homeassistant_token not set — skipping"

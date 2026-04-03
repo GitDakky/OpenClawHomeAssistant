@@ -2,6 +2,23 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.2] - 2026-04-03
+
+### Added
+- Added a built-in Home Assistant MCP server inside the add-on image so OpenClaw can read live entities, devices, areas, labels, floors, automations, services, templates, and bounded history through first-class `ha_*` tools.
+- Added new add-on options `enable_builtin_ha_tools` and `enable_ha_service_calls` so Home Assistant reads are available by default while mutating service calls remain opt-in.
+
+### Changed
+- Switched the add-on to register the local built-in Home Assistant MCP server automatically at startup instead of relying on the older manual `mcporter` flow for the normal case.
+- Turned on `homeassistant_api` in the add-on metadata so the built-in tool layer can use Home Assistant's trusted internal API surface.
+- Updated the seeded workspace guidance, README, DOCS, and translations so the agent and the operator both understand that live Home Assistant state is available as first-class tools by default.
+
+### Notes
+- The legacy `homeassistant_token` + `auto_configure_mcp` path still exists as a compatibility mode, but it is ignored when the built-in Home Assistant tool layer is enabled.
+
+### Fixed
+- Fixed a landing-page template bug that could leak a raw JavaScript fragment at the bottom of the operator page instead of rendering a clean Gateway button state.
+
 ## [0.7.1] - 2026-04-03
 
 ### Changed

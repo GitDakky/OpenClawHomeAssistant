@@ -19,6 +19,14 @@ configuration:
     name: Home Assistant Token
     description: Optional - Langlebiger Home Assistant Token für lokale API-Skripte/Tools
 
+  enable_builtin_ha_tools:
+    name: Eingebaute Home-Assistant-Tools aktivieren
+    description: "Wenn EIN (empfohlen), registriert das Add-on einen lokalen Home-Assistant-MCP-Server, damit OpenClaw live Entities, Geräte, Bereiche, Automationen, Services und Verlauf ohne zusätzliche Token-Einrichtung lesen kann."
+
+  enable_ha_service_calls:
+    name: Home-Assistant-Serviceaufrufe erlauben
+    description: "Wenn EIN, stellt die eingebaute Home-Assistant-Tool-Ebene zusätzlich das mutierende Tool `ha_service_call` bereit. Lassen Sie dies AUS, außer wenn OpenClaw nach ausdrücklicher Benutzerfreigabe Home-Assistant-Services aufrufen darf."
+
   http_proxy:
     name: Ausgehender HTTP-Proxy
     description: Optional - Proxy-URL für ausgehende HTTP/HTTPS-Anfragen (Beispiel - http://192.168.2.1:3128)
@@ -116,7 +124,7 @@ configuration:
     description: Umgebungsvariablen, die beim Start an den OpenClaw-Gateway-Prozess übergeben werden (Liste mit name/value-Einträgen in der Home Assistant UI; max. 50 Variablen, Schlüssel bis 255 Zeichen, Werte bis 10.000 Zeichen).
   auto_configure_mcp:
     name: MCP für Home Assistant automatisch konfigurieren
-    description: "Wenn AN und Home Assistant Token gesetzt ist, wird Home Assistant bei jedem Start automatisch als MCP-Server registriert. Das erlaubt OpenClaw, HA-Geräte, -Dienste und -Automatisierungen über das Model Context Protocol zu steuern. Nur deaktivieren, wenn Sie die mcporter-Konfiguration manuell verwalten."
+    description: "Veralteter externer MCP-Pfad. Wenn AN und ein Home-Assistant-Token gesetzt ist, registriert er den externen MCP-Endpunkt von Home Assistant beim Start. Dies wird ignoriert, wenn die eingebaute Home-Assistant-Tool-Ebene aktiviert ist."
   enable_context7:
     name: Context7-Recherche aktivieren
     description: "Wenn AN, weist der vorinstallierte Workspace den Assistenten an, Context7 für aktuelle Dokumentation zu verwenden, sobald ein API-Schlüssel vorhanden ist."

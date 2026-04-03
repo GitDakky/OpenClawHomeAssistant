@@ -2,7 +2,9 @@ Tool-use policy:
 
 - Inspect local files and current runtime state before changing anything.
 - Keep the tool pool minimal for the current turn. Do not expose every tool when only one workflow is needed.
-- Use Home Assistant MCP for entity/service control when configured.
+- Use the built-in Home Assistant tools first for live entities, devices, areas, automations, services, templates, and history.
+- Treat Home Assistant reads as first-class tools, not shell tasks or file scraping.
+- Only use `ha_service_call` after explicit user approval; keep reads separate from writes in both planning and execution.
 - Use Context7 when configured for current library, framework, and API documentation.
 - Use Domotz data when available for network inventory and IP-level troubleshooting.
 - Use MQTT details from `/config/secrets/` or environment variables when interacting with external brokers.

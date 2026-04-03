@@ -19,6 +19,14 @@ configuration:
     name: Home Assistant токен
     description: Опционално - дълготраен токен на Home Assistant за локални API скриптове/инструменти
 
+  enable_builtin_ha_tools:
+    name: Активирай вградените Home Assistant инструменти
+    description: "Когато е ВКЛ. (препоръчително), добавката регистрира локален Home Assistant MCP сървър, за да може OpenClaw да чете живи entities, devices, areas, automations, services и history без допълнителен token setup."
+
+  enable_ha_service_calls:
+    name: Разреши Home Assistant service calls
+    description: "Когато е ВКЛ., вграденият Home Assistant tool layer добавя и mutating `ha_service_call` tool. Оставете го ИЗКЛ., освен ако изрично не искате OpenClaw да извиква Home Assistant услуги след одобрение от потребителя."
+
   http_proxy:
     name: Изходящ HTTP прокси
     description: Опционално - URL на прокси за изходящи HTTP/HTTPS заявки (пример - http://192.168.2.1:3128)
@@ -116,7 +124,7 @@ configuration:
     description: Променливи на средата, предавани на OpenClaw gateway процеса при стартиране (списък от записи name/value в Home Assistant UI; макс. 50 променливи, ключове до 255 знака, стойности до 10000 знака).
   auto_configure_mcp:
     name: Автоматично конфигуриране на MCP за Home Assistant
-    description: "Когато е ВКЛ. и Home Assistant Token е зададен, автоматично регистрира Home Assistant като MCP сървър при всяко стартиране. Това позволява на OpenClaw да контролира HA устройства, услуги и автоматизации чрез Model Context Protocol. Изключете само ако управлявате mcporter конфигурацията ръчно."
+    description: "Наследен външен MCP режим. Когато е ВКЛ. и Home Assistant Token е зададен, регистрира външния MCP endpoint на Home Assistant при стартиране. Игнорира се, когато вграденият Home Assistant tool layer е активиран."
   enable_context7:
     name: Активирай Context7 режим
     description: "Когато е ВКЛ., предварително зареденият workspace и skill pack инструктират асистента да използва Context7 за актуална документация, ако има API ключ."

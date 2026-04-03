@@ -1,5 +1,5 @@
 name: OpenClaw Super Home Assistant
-version: "0.7.1"
+version: "0.7.2"
 slug: openclaw_super_home_assistant
 description: Run the GitDakky OpenClaw fork as a Home Assistant app with migration support.
 url: https://github.com/GitDakky/OpenClawHomeAssistant
@@ -12,7 +12,7 @@ boot: auto
 init: false
 hassio_api: true
 hassio_role: manager
-homeassistant_api: false
+homeassistant_api: true
 host_network: true
 
 # Home Assistant Ingress (UI inside the add-on page)
@@ -46,6 +46,15 @@ options:
 
   # Optional: Home Assistant long-lived token (for local HA API scripts/tools)
   homeassistant_token: ""
+
+  # Enable the built-in Home Assistant MCP server that exposes live HA entities,
+  # devices, areas, automations, services, and history directly to OpenClaw.
+  # Read tools are enabled by default and use the add-on's trusted HA context.
+  enable_builtin_ha_tools: true
+
+  # Allow mutating Home Assistant service calls through the built-in HA tool layer.
+  # This keeps read-only HA access available by default while leaving writes opt-in.
+  enable_ha_service_calls: false
 
   # Optional: outbound HTTP/HTTPS proxy for OpenClaw network access.
   # Example: "http://192.168.2.1:3128"
@@ -145,9 +154,9 @@ options:
   # Limits: max 50 variables, max key length 255 chars, max value length 10000 chars
   gateway_env_vars: []
 
-  # Auto-configure MCP (Model Context Protocol) for Home Assistant.
-  # When enabled and homeassistant_token is set, automatically registers HA as an
-  # MCP server in OpenClaw so the AI can control Home Assistant entities/services.
+  # Legacy external MCP auto-configuration for Home Assistant.
+  # When enabled and homeassistant_token is set, registers HA's external MCP endpoint.
+  # This is ignored when enable_builtin_ha_tools is enabled.
   auto_configure_mcp: false
 
   # Enable Context7-aware research posture for current docs.
@@ -178,6 +187,8 @@ schema:
   terminal_port: int(1024,65535)?
   gateway_public_url: str?
   homeassistant_token: str?
+  enable_builtin_ha_tools: bool?
+  enable_ha_service_calls: bool?
   http_proxy: str?
 
   router_ssh_host: str

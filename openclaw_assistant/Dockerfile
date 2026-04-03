@@ -127,6 +127,11 @@ RUN npm config set fund false && npm config set audit false \
     && openclaw --version \
     && openclaw --version | grep -F "OpenClaw ${OPENCLAW_VERSION}"
 
+# Install bundled MCP server dependencies locally inside the add-on image so the
+# built-in Home Assistant MCP bridge can run without relying on user-installed packages.
+RUN mkdir -p /opt/openclaw-super \
+    && npm install --prefix /opt/openclaw-super @modelcontextprotocol/sdk zod
+
 # Shell aliases and color options for interactive use
 RUN tee -a /etc/bash.bashrc <<'EOF'
 
@@ -151,11 +156,12 @@ COPY render_nginx.py /render_nginx.py
 COPY dashboard_api.py /dashboard_api.py
 COPY oc-cleanup.sh /usr/local/bin/oc-cleanup
 COPY openclaw-proxy-shim.cjs /usr/local/lib/openclaw-proxy-shim.cjs
+COPY ha_mcp_server.cjs /opt/openclaw-super/ha_mcp_server.cjs
 COPY nginx.conf.tpl /etc/nginx/nginx.conf.tpl
 COPY landing.html.tpl /etc/nginx/landing.html.tpl
 COPY bootstrap-workspace /opt/openclaw-super/bootstrap-workspace
 COPY bundled-skills /opt/openclaw-super/bundled-skills
-RUN chmod +x /run.sh /oc_config_helper.py /render_nginx.py /dashboard_api.py /usr/local/bin/oc-cleanup \
+RUN chmod +x /run.sh /oc_config_helper.py /render_nginx.py /dashboard_api.py /usr/local/bin/oc-cleanup /opt/openclaw-super/ha_mcp_server.cjs \
     && mkdir -p /run/nginx
 
 CMD [ "/run.sh" ]

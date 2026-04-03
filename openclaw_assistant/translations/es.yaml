@@ -19,6 +19,14 @@ configuration:
     name: Token de Home Assistant
     description: Opcional - Token de larga duración de Home Assistant para scripts/herramientas de API local
 
+  enable_builtin_ha_tools:
+    name: Activar herramientas integradas de Home Assistant
+    description: "Cuando está ACTIVADO (recomendado), el add-on registra un servidor MCP local de Home Assistant para que OpenClaw pueda leer entidades, dispositivos, áreas, automatizaciones, servicios e histórico en vivo sin configuración extra de token."
+
+  enable_ha_service_calls:
+    name: Permitir llamadas a servicios de Home Assistant
+    description: "Cuando está ACTIVADO, la capa integrada de herramientas de Home Assistant también expone la herramienta mutadora `ha_service_call`. Déjala APAGADA salvo que quieras que OpenClaw invoque servicios de Home Assistant tras la aprobación explícita del usuario."
+
   http_proxy:
     name: Proxy HTTP de salida
     description: Opcional - URL de proxy para solicitudes HTTP/HTTPS salientes (ejemplo - http://192.168.2.1:3128)
@@ -116,7 +124,7 @@ configuration:
     description: Variables de entorno que se pasan al proceso del gateway OpenClaw al iniciarse (lista de entradas name/value en la UI de Home Assistant; maximo 50 variables, claves de hasta 255 caracteres, valores de hasta 10 000 caracteres).
   auto_configure_mcp:
     name: Configurar MCP automáticamente para Home Assistant
-    description: "Cuando está ACTIVADO y el token de Home Assistant está configurado, registra automáticamente Home Assistant como servidor MCP en cada inicio. Esto permite a OpenClaw controlar entidades, servicios y automatizaciones de HA mediante el Model Context Protocol. Desactive solo si administra la configuración de mcporter manualmente."
+    description: "Ruta heredada de MCP externo. Cuando está ACTIVADO y el token de Home Assistant está configurado, registra el endpoint MCP externo de Home Assistant al iniciar. Se ignora cuando la capa integrada de herramientas de Home Assistant está activada."
   enable_context7:
     name: Activar modo Context7
     description: "Cuando está ACTIVADO, el workspace y el paquete de skills indican al asistente que use Context7 para documentación actual cuando exista una API key configurada."

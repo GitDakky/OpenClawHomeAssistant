@@ -929,6 +929,19 @@ SSL tab:  Request a new SSL certificate</pre>
     }
     const RESOLVED_GATEWAY_BASE_URL = resolveGatewayBaseUrl();
     let activeFileKey = '';
+    const gwButton = $('gwbtn');
+    if (RESOLVED_GATEWAY_BASE_URL) {
+      gwButton.href = `${RESOLVED_GATEWAY_BASE_URL}/?token=${encodeURIComponent(GW_TOKEN)}`;
+    } else if (!GW_PUBLIC_URL) {
+      gwButton.classList.remove('primary');
+      gwButton.classList.add('secondary');
+      gwButton.textContent = 'Configure Gateway URL';
+      gwButton.href = '#';
+      gwButton.addEventListener('click', function(event) {
+        event.preventDefault();
+        setBanner('errorBanner', 'The add-on could not derive a usable Gateway URL automatically for this access mode. Set gateway_public_url only if you are using a reverse proxy, Tailscale hostname, or another non-default path.', false);
+      });
+    }
 
     const isSecure = window.isSecureContext;
     const secureBadge = $('secureBadge');
@@ -1236,16 +1249,3 @@ SSL tab:  Request a new SSL certificate</pre>
   </script>
 </body>
 </html>
-    const gwButton = $('gwbtn');
-    if (RESOLVED_GATEWAY_BASE_URL) {
-      gwButton.href = `${RESOLVED_GATEWAY_BASE_URL}/?token=${encodeURIComponent(GW_TOKEN)}`;
-    } else if (!GW_PUBLIC_URL) {
-      gwButton.classList.remove('primary');
-      gwButton.classList.add('secondary');
-      gwButton.textContent = 'Configure Gateway URL';
-      gwButton.href = '#';
-      gwButton.addEventListener('click', function(event) {
-        event.preventDefault();
-        setBanner('errorBanner', 'The add-on could not derive a usable Gateway URL automatically for this access mode. Set gateway_public_url only if you are using a reverse proxy, Tailscale hostname, or another non-default path.', false);
-      });
-    }
