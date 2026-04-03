@@ -140,6 +140,7 @@ alias bat="batcat"
 alias fd="fdfind"
 alias oc-onboard="/usr/local/bin/oc-onboard"
 alias oc-configure="/usr/local/bin/oc-configure"
+alias oc-report-issue="/usr/local/bin/oc-report-issue"
 
 # Enable colors
 alias ls="ls --color=auto"
@@ -157,6 +158,7 @@ COPY oc_config_helper.py /oc_config_helper.py
 COPY render_nginx.py /render_nginx.py
 COPY dashboard_api.py /dashboard_api.py
 COPY oc-managed-command.sh /usr/local/bin/oc-managed-command
+COPY oc-report-issue.sh /usr/local/bin/oc-report-issue
 COPY oc-cleanup.sh /usr/local/bin/oc-cleanup
 COPY openclaw-proxy-shim.cjs /usr/local/lib/openclaw-proxy-shim.cjs
 COPY ha_mcp_server.cjs /opt/openclaw-super/ha_mcp_server.cjs
@@ -164,7 +166,7 @@ COPY nginx.conf.tpl /etc/nginx/nginx.conf.tpl
 COPY landing.html.tpl /etc/nginx/landing.html.tpl
 COPY bootstrap-workspace /opt/openclaw-super/bootstrap-workspace
 COPY bundled-skills /opt/openclaw-super/bundled-skills
-RUN chmod +x /run.sh /oc_config_helper.py /render_nginx.py /dashboard_api.py /usr/local/bin/oc-managed-command /usr/local/bin/oc-cleanup /opt/openclaw-super/ha_mcp_server.cjs \
+RUN chmod +x /run.sh /oc_config_helper.py /render_nginx.py /dashboard_api.py /usr/local/bin/oc-managed-command /usr/local/bin/oc-report-issue /usr/local/bin/oc-cleanup /opt/openclaw-super/ha_mcp_server.cjs \
     && ln -sf /usr/local/bin/oc-managed-command /usr/local/bin/oc-onboard \
     && ln -sf /usr/local/bin/oc-managed-command /usr/local/bin/oc-configure \
     && mkdir -p /run/nginx

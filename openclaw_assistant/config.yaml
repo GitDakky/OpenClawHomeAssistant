@@ -1,5 +1,5 @@
 name: OpenClaw Super Home Assistant
-version: "0.7.3"
+version: "0.7.4"
 slug: openclaw_super_home_assistant
 description: Run the GitDakky OpenClaw fork as a Home Assistant app with migration support.
 url: https://github.com/GitDakky/OpenClawHomeAssistant
@@ -169,6 +169,10 @@ options:
   domotz_api_key: ""
   domotz_site_id: ""
 
+  # Optional GitHub token for direct issue creation in this repository.
+  # Use a fine-grained token with Issues: write on GitDakky/OpenClawHomeAssistant.
+  github_issues_token: ""
+
   # Optional external MQTT broker details (for example HiveMQ Cloud).
   # broker URL examples: mqtt://broker.local:1883 or mqtts://cluster.s2.eu.hivemq.cloud:8883
   mqtt_broker_url: ""
@@ -218,6 +222,7 @@ schema:
   context7_api_key: str?
   domotz_api_key: str?
   domotz_site_id: str?
+  github_issues_token: str?
   mqtt_broker_url: str?
   mqtt_username: str?
   mqtt_password: str?

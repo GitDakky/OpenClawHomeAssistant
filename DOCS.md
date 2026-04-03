@@ -326,6 +326,7 @@ When `gateway_auth_mode: trusted-proxy` is used, the add-on sets `gateway.auth.t
 | `context7_api_key` | string | _(empty)_ | Optional Context7 API key. Stored in `/config/secrets/context7.api_key`. |
 | `domotz_api_key` | string | _(empty)_ | Optional Domotz API key for network inventory correlation. Stored in `/config/secrets/domotz.api_key`. |
 | `domotz_site_id` | string | _(empty)_ | Optional Domotz site ID. Stored in `/config/secrets/domotz.site_id`. |
+| `github_issues_token` | string | _(empty)_ | Optional fine-grained GitHub token with `Issues: write` for direct issue filing to `GitDakky/OpenClawHomeAssistant`. Stored in `/config/secrets/github_issues.token`. |
 | `mqtt_broker_url` | string | _(empty)_ | Optional external MQTT broker URL such as `mqtt://broker.local:1883` or `mqtts://cluster.s2.eu.hivemq.cloud:8883`. Stored in `/config/secrets/mqtt.broker_url`. |
 | `mqtt_username` | string | _(empty)_ | Optional MQTT username. Stored in `/config/secrets/mqtt.username`. |
 | `mqtt_password` | string | _(empty)_ | Optional MQTT password. Stored in `/config/secrets/mqtt.password`. |
@@ -704,6 +705,7 @@ It also seeds a Home Assistant-focused skill pack into `/config/.openclaw/skills
 - network mapping
 - research
 - Domotz
+- GitHub issue reporting
 - MQTT
 - BACnet
 
@@ -716,8 +718,24 @@ The ingress landing page now includes:
 - a file editor for the seeded workspace files and bundled skill files
 - live `openclaw cron` scheduler visibility
 - last-heartbeat visibility
-- integration status cards for Context7, Domotz, MQTT, BACnet, and MCP
+- integration status cards for Context7, Domotz, GitHub issue reporting, MQTT, BACnet, and MCP
 - system-graph metadata backed by SQLite at `/config/.openclaw/gitdakky-system-graph.sqlite3`
+
+### Reporting bugs and feature requests directly from the add-on
+
+If you want the assistant to open GitHub issues directly in this repository:
+
+1. Create a fine-grained GitHub personal access token with **Issues: write** for `GitDakky/OpenClawHomeAssistant`.
+2. Paste it into the add-on setting `github_issues_token`.
+3. Restart the add-on.
+
+After that, the assistant can use:
+
+```sh
+oc-report-issue --title "Your title here" --labels "bug,home-assistant" --body-file /path/to/body.md
+```
+
+or the seeded repo issue reporter skill when you explicitly ask it to file a bug or feature request.
 
 ### How user-installed skills work
 

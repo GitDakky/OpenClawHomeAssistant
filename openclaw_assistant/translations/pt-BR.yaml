@@ -137,6 +137,9 @@ configuration:
   domotz_site_id:
     name: ID do site Domotz
     description: Opcional - identificador do site usado com a chave de API do Domotz
+  github_issues_token:
+    name: Token de GitHub Issues
+    description: Opcional - token fine-grained do GitHub com permissão Issues write para criar issues diretamente em GitDakky/OpenClawHomeAssistant
   mqtt_broker_url:
     name: URL do broker MQTT
     description: Opcional - URL de broker MQTT externo (exemplo - mqtts://cluster.s2.eu.hivemq.cloud:8883)

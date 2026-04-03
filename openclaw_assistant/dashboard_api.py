@@ -45,6 +45,7 @@ BUNDLED_SKILL_NAMES = [
     "domotz-operator",
     "bacnet-scout",
     "mqtt-broker",
+    "repo-issue-reporter",
 ]
 
 
@@ -200,6 +201,11 @@ def refresh_graph_snapshot() -> dict[str, Any]:
                 bool_env("MQTT_ENABLED"),
                 {"configured": bool_env("MQTT_ENABLED"), "brokerUrl": os.environ.get("MQTT_BROKER_URL", "")},
             ),
+            (
+                "github-issues",
+                bool_env("GITHUB_ISSUES_ENABLED"),
+                {"configured": bool_env("GITHUB_ISSUES_ENABLED"), "repo": os.environ.get("GITDAKKY_ISSUES_REPO", "")},
+            ),
             ("bacnet", bool_env("BACNET_SCOUT_ENABLED"), {"configured": bool_env("BACNET_SCOUT_ENABLED")}),
             (
                 "home-assistant-mcp",
@@ -279,6 +285,12 @@ def integration_status() -> dict[str, Any]:
                 "/config/secrets/mqtt.username",
                 "/config/secrets/mqtt.password",
             ],
+        },
+        "githubIssues": {
+            "configured": bool_env("GITHUB_ISSUES_ENABLED"),
+            "repo": os.environ.get("GITDAKKY_ISSUES_REPO", "GitDakky/OpenClawHomeAssistant"),
+            "secretPath": "/config/secrets/github_issues.token",
+            "command": "oc-report-issue",
         },
         "bacnet": {
             "configured": bool_env("BACNET_SCOUT_ENABLED"),

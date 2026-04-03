@@ -220,6 +220,7 @@ ENABLE_CONTEXT7=$(jq -r '.enable_context7 // false' "$OPTIONS_FILE")
 CONTEXT7_API_KEY=$(jq -r '.context7_api_key // empty' "$OPTIONS_FILE")
 DOMOTZ_API_KEY=$(jq -r '.domotz_api_key // empty' "$OPTIONS_FILE")
 DOMOTZ_SITE_ID=$(jq -r '.domotz_site_id // empty' "$OPTIONS_FILE")
+GITHUB_ISSUES_TOKEN=$(jq -r '.github_issues_token // empty' "$OPTIONS_FILE")
 MQTT_BROKER_URL=$(jq -r '.mqtt_broker_url // empty' "$OPTIONS_FILE")
 MQTT_USERNAME=$(jq -r '.mqtt_username // empty' "$OPTIONS_FILE")
 MQTT_PASSWORD=$(jq -r '.mqtt_password // empty' "$OPTIONS_FILE")
@@ -763,6 +764,7 @@ configure_external_integrations() {
   write_secret_file /config/secrets/context7.api_key "$CONTEXT7_API_KEY"
   write_secret_file /config/secrets/domotz.api_key "$DOMOTZ_API_KEY"
   write_secret_file /config/secrets/domotz.site_id "$DOMOTZ_SITE_ID"
+  write_secret_file /config/secrets/github_issues.token "$GITHUB_ISSUES_TOKEN"
   write_secret_file /config/secrets/mqtt.broker_url "$MQTT_BROKER_URL"
   write_secret_file /config/secrets/mqtt.username "$MQTT_USERNAME"
   write_secret_file /config/secrets/mqtt.password "$MQTT_PASSWORD"
@@ -774,6 +776,8 @@ configure_external_integrations() {
   export MQTT_USERNAME_CONFIGURED=false
   export MQTT_PASSWORD_CONFIGURED=false
   export HA_MCP_ENABLED=false
+  export GITHUB_ISSUES_ENABLED=false
+  export GITDAKKY_ISSUES_REPO="GitDakky/OpenClawHomeAssistant"
 
   if [ "$ENABLE_CONTEXT7" = "true" ] || [ "$ENABLE_CONTEXT7" = "1" ]; then
     export CONTEXT7_ENABLED=true
@@ -793,6 +797,11 @@ configure_external_integrations() {
   if [ -n "$DOMOTZ_SITE_ID" ]; then
     export DOMOTZ_SITE_ID
     export DOMOTZ_SITE_ID_FILE=/config/secrets/domotz.site_id
+  fi
+
+  if [ -n "$GITHUB_ISSUES_TOKEN" ]; then
+    export GITHUB_ISSUES_ENABLED=true
+    export GITHUB_ISSUES_TOKEN_FILE=/config/secrets/github_issues.token
   fi
 
   if [ -n "$MQTT_BROKER_URL" ]; then
@@ -830,6 +839,10 @@ configure_external_integrations() {
     "siteId": $(printf '%s' "$DOMOTZ_SITE_ID" | jq -Rs .),
     "apiKeyConfigured": $( [ -n "$DOMOTZ_API_KEY" ] && echo true || echo false )
   },
+  "githubIssues": {
+    "enabled": ${GITHUB_ISSUES_ENABLED},
+    "repo": "GitDakky/OpenClawHomeAssistant"
+  },
   "mqtt": {
     "enabled": ${MQTT_ENABLED},
     "brokerUrl": $(printf '%s' "$MQTT_BROKER_URL" | jq -Rs .),
@@ -856,6 +869,7 @@ configure_external_integrations
 # Convenience info for later (router SSH access path & HA token file)
 cat > /config/CONNECTION_NOTES.txt <<EOF
 Home Assistant token (if set): /config/secrets/homeassistant.token
+GitHub issues token (if set): /config/secrets/github_issues.token
 Router SSH (generic):
   host=${ROUTER_HOST}
   user=${ROUTER_USER}

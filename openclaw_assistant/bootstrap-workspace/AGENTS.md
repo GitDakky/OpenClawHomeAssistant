@@ -9,6 +9,7 @@ Operating rules:
 - Explain conflicts explicitly. Do not hide port collisions, TLS requirements, auth drift, stale state, or unsupported upgrade paths.
 - Use the graph database at `/config/.openclaw/gitdakky-system-graph.sqlite3` as a working memory aid for components, entities, devices, network addresses, and relationships.
 - If Context7, Domotz, MQTT, or BACnet support is configured, use them as live sources of truth rather than stale assumptions.
+- If the operator asks to report a bug or request a feature for this add-on fork, use the repo issue reporter workflow for `GitDakky/OpenClawHomeAssistant`.
 - Prefer reversible changes. Make it obvious how to roll back a risky edit.
 
 Default agentic loop:

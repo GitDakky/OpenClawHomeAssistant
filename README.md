@@ -38,7 +38,7 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 | Seeded operator brain | Preloaded workspace files (`AGENTS.md`, `IDENTITY.md`, `TOOLS.md`, `MEMORY.md`, and more) plus Home Assistant skill files |
 | Operator dashboard | Live cron/heartbeat visibility, file editing for the seeded workspace and skills, and integration status cards |
 | Live HA tool layer | Built-in Home Assistant tools for entities, devices, areas, automations, services, template rendering, and bounded history |
-| External intelligence hooks | Optional Context7, Domotz, MQTT/HiveMQ, BACnet scout, and lightweight system graph scaffolding |
+| External intelligence hooks | Optional Context7, Domotz, GitHub issue reporting, MQTT/HiveMQ, BACnet scout, and lightweight system graph scaffolding |
 | Browser tooling | Chromium bundled for automation and web-driven workflows |
 | Persistent state | Config, skills, agent workspace, keys, and tokens survive add-on updates |
 | Useful CLI stack | `git`, `jq`, `python3`, `ripgrep`, `curl`, `pnpm`, Homebrew, and more |
@@ -94,7 +94,8 @@ In most local installs, leave `gateway_public_url` empty. The landing page now d
 ## Seeded workspace and skills
 
 - On first boot, the add-on seeds `/config/clawd` with `AGENTS.md`, `BOOTSTRAP.md`, `HEARTBEAT.md`, `IDENTITY.md`, `MEMORY.md`, `SOUL.md`, `TOOLS.md`, and `USER.md`.
-- It also seeds `/config/.openclaw/skills/` with GitDakky-managed Home Assistant skills for operations, automations, voice, diagnostics, network mapping, MQTT, Domotz, BACnet, and research.
+- It also seeds `/config/.openclaw/skills/` with GitDakky-managed Home Assistant skills for operations, automations, voice, diagnostics, network mapping, MQTT, Domotz, BACnet, research, and repo issue reporting.
+- If you add a fine-grained GitHub token with `Issues: write` in add-on settings, the assistant can file bugs and feature requests directly to [this repository’s Issues](https://github.com/GitDakky/OpenClawHomeAssistant/issues) via `oc-report-issue`.
 - The dashboard now exposes those files directly so you can review or edit them without dropping into a shell unless you want to.
 
 ## Supported architectures

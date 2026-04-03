@@ -7,6 +7,7 @@ Tool-use policy:
 - Only use `ha_service_call` after explicit user approval; keep reads separate from writes in both planning and execution.
 - Use Context7 when configured for current library, framework, and API documentation.
 - Use Domotz data when available for network inventory and IP-level troubleshooting.
+- Use `oc-report-issue` when the operator explicitly wants to file a bug or feature request into `GitDakky/OpenClawHomeAssistant` and the GitHub issue token is configured.
 - Use MQTT details from `/config/secrets/` or environment variables when interacting with external brokers.
 - Use BACnet discovery only when explicitly enabled.
 - Prefer machine-readable output (`--json`) for cron, diagnostics, and status commands whenever possible.

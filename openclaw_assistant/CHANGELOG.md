@@ -2,6 +2,17 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.4] - 2026-04-03
+
+### Added
+- Added a new add-on setting `github_issues_token` for a fine-grained GitHub token with Issues write access to `GitDakky/OpenClawHomeAssistant`.
+- Added `oc-report-issue`, a bundled helper command that creates GitHub issues directly in this repository using the configured token.
+- Added a bundled repo issue reporter skill so the seeded assistant knows how to turn operator bug reports and feature requests into structured GitHub issues for this fork.
+
+### Changed
+- The add-on now stores the GitHub issue token in `/config/secrets/github_issues.token`, exports repo issue reporting status to the dashboard, and shows the direct-reporting capability alongside Context7, Domotz, MQTT, BACnet, and Home Assistant MCP.
+- Updated seeded agent guidance, README, and DOCS so operators know direct issue filing is available from inside the add-on when the token is configured.
+
 ## [0.7.3] - 2026-04-03
 
 ### Added

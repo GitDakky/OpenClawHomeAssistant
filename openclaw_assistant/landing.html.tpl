@@ -1196,6 +1196,7 @@ SSL tab:  Request a new SSL certificate</pre>
 
       cards.push(buildCard('Context7', !!data?.context7?.configured, `Secret path: <code>${escapeHtml(data?.context7?.secretPath || '')}</code>`));
       cards.push(buildCard('Domotz', !!data?.domotz?.configured, `Site ID: <code>${escapeHtml(data?.domotz?.siteId || 'unset')}</code><br>Secret path: <code>${escapeHtml(data?.domotz?.secretPath || '')}</code>`));
+      cards.push(buildCard('GitHub Issues', !!data?.githubIssues?.configured, `Repo: <code>${escapeHtml(data?.githubIssues?.repo || 'GitDakky/OpenClawHomeAssistant')}</code><br>Command: <code>${escapeHtml(data?.githubIssues?.command || 'oc-report-issue')}</code><br>Secret path: <code>${escapeHtml(data?.githubIssues?.secretPath || '')}</code>`));
       cards.push(buildCard('MQTT / HiveMQ', !!data?.mqtt?.configured, `Broker: <code>${escapeHtml(data?.mqtt?.brokerUrl || 'unset')}</code><br>Username: ${data?.mqtt?.usernameConfigured ? 'configured' : 'unset'}<br>Password: ${data?.mqtt?.passwordConfigured ? 'configured' : 'unset'}`));
       cards.push(buildCard('BACnet Scout', !!data?.bacnet?.configured, escapeHtml(data?.bacnet?.notes || 'Opt-in only.')));
       cards.push(buildCard('Home Assistant MCP', !!data?.homeAssistantMcp?.configured, `Token path: <code>${escapeHtml(data?.homeAssistantMcp?.tokenPath || '')}</code>`));
