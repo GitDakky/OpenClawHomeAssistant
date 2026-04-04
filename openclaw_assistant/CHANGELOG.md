@@ -2,6 +2,12 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.6] - 2026-04-04
+
+### Fixed
+- The add-on now launches the local gateway with `openclaw gateway --force` instead of the less reliable `openclaw gateway run` wrapper.
+- This aligns the managed startup path with the gateway entrypoint that works interactively in the add-on terminal and fixes the failure mode where the add-on could come up with no live gateway even though `openclaw gateway` started correctly by hand.
+
 ## [0.7.5] - 2026-04-04
 
 ### Fixed

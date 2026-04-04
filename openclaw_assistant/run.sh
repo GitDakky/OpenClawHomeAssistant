@@ -1296,7 +1296,7 @@ PY
     # shellcheck disable=SC2086
     openclaw node run --host "$NODE_HOST" --port "$NODE_PORT" $NODE_TLS_FLAG &
   else
-    openclaw gateway run --force &
+    openclaw gateway --force &
   fi
   GW_PID=$!
   return 0
@@ -1723,11 +1723,11 @@ fi
 # Keep add-on alive even if gateway/node runtime restarts itself (e.g. during onboarding).
 # If runtime exits unexpectedly, restart it while nginx/ttyd stay up.
 #
-# Design notes (issue #95):
-#   `openclaw gateway run` is a thin wrapper that spawns `openclaw-gateway` as a
-#   long-running daemon and then exits. When the gateway self-restarts (SIGUSR1 /
-#   `openclaw gateway restart`), the old daemon exits and a NEW daemon is forked —
-#   the new PID is NOT a child of this shell so `wait` cannot block on it.
+# Design notes:
+#   The add-on starts the local gateway with `openclaw gateway --force`, which is
+#   the stable foreground entrypoint on current OpenClaw builds. Older gateway
+#   flows and self-restarts can still leave behind a re-forked `openclaw-gateway`
+#   process, so the supervisor keeps the multi-tier PID re-discovery logic below.
 #
 #   The new daemon can take 20-30 seconds to initialise on low-power hardware
 #   (Pi / eMMC). During that time its process.title and port binding are not yet
