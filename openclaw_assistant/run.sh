@@ -20,6 +20,8 @@ BUNDLED_SKILLS_SOURCE_DIR="/opt/openclaw-super/bundled-skills"
 OPENCLAW_CONFIG_PATH="/config/.openclaw/openclaw.json"
 RUNTIME_RESTART_REQUEST_FILE="/tmp/openclaw-runtime-restart.request"
 MANAGED_COMMAND_ACTIVE_FILE="/tmp/openclaw-managed-command.active"
+RUNTIME_WRAPPER_LOG_DIR="/tmp/openclaw"
+RUNTIME_WRAPPER_LOG_FILE="${RUNTIME_WRAPPER_LOG_DIR}/openclaw-super-runtime-wrapper.log"
 
 if [ ! -f "$OPTIONS_FILE" ]; then
   echo "Missing $OPTIONS_FILE (add-on options)."
@@ -1258,6 +1260,7 @@ fi
 
 start_openclaw_runtime() {
   echo "Starting ${SELF_ADDON_NAME} runtime (openclaw)..."
+  mkdir -p "$RUNTIME_WRAPPER_LOG_DIR"
   if [ "$GATEWAY_MODE" = "remote" ]; then
     # Remote mode: do NOT start a local gateway service.
     # Start a node/client host that connects to the configured remote gateway URL.
@@ -1294,11 +1297,13 @@ PY
 
     echo "INFO: gateway_mode=remote detected; starting node host to $NODE_HOST:$NODE_PORT ${NODE_TLS_FLAG}"
     # shellcheck disable=SC2086
-    openclaw node run --host "$NODE_HOST" --port "$NODE_PORT" $NODE_TLS_FLAG &
+    nohup openclaw node run --host "$NODE_HOST" --port "$NODE_PORT" $NODE_TLS_FLAG \
+      < /dev/null >>"$RUNTIME_WRAPPER_LOG_FILE" 2>&1 &
   else
-    openclaw gateway --force &
+    nohup openclaw gateway --force < /dev/null >>"$RUNTIME_WRAPPER_LOG_FILE" 2>&1 &
   fi
   GW_PID=$!
+  echo "INFO: Runtime wrapper log: ${RUNTIME_WRAPPER_LOG_FILE}"
   return 0
 }
 

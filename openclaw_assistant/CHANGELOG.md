@@ -2,6 +2,12 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.7] - 2026-04-04
+
+### Fixed
+- The add-on now launches the managed OpenClaw runtime through `nohup` with stdin detached from the terminal and a dedicated wrapper log at `/tmp/openclaw/openclaw-super-runtime-wrapper.log`.
+- This hardens automatic startup inside the Home Assistant add-on container and fixes the failure mode where the gateway could close immediately after launch even though the same `openclaw gateway --force` command worked manually from the terminal.
+
 ## [0.7.6] - 2026-04-04
 
 ### Fixed
