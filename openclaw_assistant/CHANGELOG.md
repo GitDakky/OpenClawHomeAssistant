@@ -2,6 +2,13 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.10] - 2026-04-04
+
+### Changed
+- This fork now disables OpenClaw exec approval prompts by default so Home Assistant automations and development flows no longer stop for human approval.
+- The add-on now aligns both required policy layers with current OpenClaw guidance by forcing `/config/.openclaw/exec-approvals.json` defaults to `security=full`, `ask=off`, `askFallback=full` and setting `/config/.openclaw/openclaw.json` to `tools.exec.host=gateway`, `tools.exec.security=full`, `tools.exec.ask=off`, and `tools.exec.strictInlineEval=false`.
+- Operators can still turn `disable_exec_approvals` OFF manually if they explicitly want approval prompts restored.
+
 ## [0.7.9] - 2026-04-04
 
 ### Fixed

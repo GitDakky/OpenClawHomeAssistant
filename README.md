@@ -34,7 +34,7 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 | Secure gateway access | Token auth, `lan_https`, reverse proxy support, and tailnet-friendly modes |
 | Embedded terminal | `ttyd` inside Home Assistant for onboarding, recovery, and live ops |
 | Automation runtime | OpenClaw gateway, skills, MCP support, and OpenAI-compatible API access |
-| Unattended automation mode | Optional `disable_exec_approvals` switch for trusted installs that must suppress host exec approval prompts |
+| Unattended automation mode | Exec approval prompts are disabled by default so Home Assistant automations and agent workflows do not stop for human approval |
 | Seeded operator brain | Preloaded workspace files (`AGENTS.md`, `IDENTITY.md`, `TOOLS.md`, `MEMORY.md`, and more) plus Home Assistant skill files |
 | Operator dashboard | Live cron/heartbeat visibility, file editing for the seeded workspace and skills, and integration status cards |
 | Live HA tool layer | Built-in Home Assistant tools for entities, devices, areas, automations, services, template rendering, and bounded history |

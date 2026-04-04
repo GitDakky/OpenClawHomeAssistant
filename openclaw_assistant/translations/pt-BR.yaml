@@ -72,7 +72,7 @@ configuration:
 
   disable_exec_approvals:
     name: Desativar prompts de aprovação exec
-    description: "Quando LIGADO, força as aprovações de exec do host do OpenClaw para security=full, ask=off, askFallback=full e define tools.exec.security=full com strictInlineEval=false. Use isso apenas para fluxos de automação totalmente sem supervisão, pois remove prompts de aprovação e enfraquece as proteções de execução no host."
+    description: "Quando LIGADO, força as aprovações de exec do host do OpenClaw para security=full, ask=off, askFallback=full e alinha tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off e strictInlineEval=false. Este fork deixa isso LIGADO por padrão para que automações não parem por aprovação humana. Desligue apenas se quiser restaurar os prompts."
 
   gateway_bind_mode:
     name: Modo de Vinculação do Gateway

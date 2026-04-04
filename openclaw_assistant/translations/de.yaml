@@ -72,7 +72,7 @@ configuration:
 
   disable_exec_approvals:
     name: Exec-Approval-Abfragen deaktivieren
-    description: "Wenn EIN, erzwingt dies für OpenClaw-Host-Exec-Approvals security=full, ask=off, askFallback=full und setzt tools.exec.security=full mit strictInlineEval=false. Nur für vollständig unbeaufsichtigte Automationsabläufe verwenden, da Approval-Abfragen entfernt und Host-Exec-Schutzmechanismen abgeschwächt werden."
+    description: "Wenn EIN, erzwingt dies für OpenClaw-Host-Exec-Approvals security=full, ask=off, askFallback=full und richtet tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off und strictInlineEval=false aus. Dieser Fork setzt das standardmäßig auf EIN, damit Automationen nicht auf menschliche Freigaben warten. Nur AUS schalten, wenn du Approval-Abfragen wiederhaben willst."
 
   gateway_bind_mode:
     name: Gateway-Bindungsmodus

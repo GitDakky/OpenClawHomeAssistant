@@ -72,7 +72,7 @@ configuration:
 
   disable_exec_approvals:
     name: Desactivar avisos de aprobación exec
-    description: "Cuando está ACTIVADO, fuerza las aprobaciones de ejecución del host de OpenClaw a security=full, ask=off, askFallback=full y establece tools.exec.security=full con strictInlineEval=false. Úsalo solo para flujos de automatización totalmente desatendidos porque elimina los avisos de aprobación y debilita las protecciones de ejecución en el host."
+    description: "Cuando está ACTIVADO, fuerza las aprobaciones de ejecución del host de OpenClaw a security=full, ask=off, askFallback=full y alinea tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off y strictInlineEval=false. Este fork lo deja ACTIVADO por defecto para que las automatizaciones no se detengan por aprobaciones humanas. Desactívalo solo si quieres recuperar los avisos."
 
   gateway_bind_mode:
     name: Modo de enlace del Gateway

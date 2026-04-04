@@ -72,7 +72,7 @@ configuration:
 
   disable_exec_approvals:
     name: Изключване на exec approval подсказките
-    description: "Когато е ВКЛ., принуждава OpenClaw host exec approvals към security=full, ask=off, askFallback=full и задава tools.exec.security=full със strictInlineEval=false. Използвайте това само за напълно unattended automation потоци, защото премахва approval подсказките и отслабва защитите за host exec."
+    description: "Когато е ВКЛ., принуждава OpenClaw host exec approvals към security=full, ask=off, askFallback=full и подравнява tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off и strictInlineEval=false. Този fork го оставя ВКЛ. по подразбиране, за да не спират автоматизациите за човешко approval. Изключете го само ако искате подсказките да се върнат."
 
   gateway_bind_mode:
     name: Режим на свързване на Gateway

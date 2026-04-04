@@ -72,7 +72,7 @@ configuration:
 
   disable_exec_approvals:
     name: Disable Exec Approval Prompts
-    description: "When ON, forces OpenClaw host exec approvals to security=full, ask=off, askFallback=full and sets tools.exec.security=full with strictInlineEval=false. Use this only for fully unattended automation flows because it removes approval prompts and weakens host-exec guardrails."
+    description: "When ON, forces OpenClaw host exec approvals to security=full, ask=off, askFallback=full and aligns tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off, and strictInlineEval=false. This fork defaults it to ON so automations do not stop for human approval. Turn it OFF only if you want approval prompts restored."
 
   gateway_bind_mode:
     name: Gateway Bind Mode

@@ -300,7 +300,7 @@ All options are set via **Settings → Apps → OpenClaw Super Home Assistant �
 | `gateway_trusted_proxies` | string | _(empty)_ | Comma-separated trusted proxy IP/CIDR list used with `gateway_auth_mode: trusted-proxy`. |
 | `gateway_additional_allowed_origins` | string | _(empty)_ | Comma-separated additional origins merged into `gateway.controlUi.allowedOrigins` in `lan_https` mode (example: `https://ha.example.com:8443,capacitor://localhost`). |
 | `controlui_disable_device_auth` | bool | `true` | Controls `gateway.controlUi.dangerouslyDisableDeviceAuth` in `lan_https` mode. **ON (recommended):** skip per-device pairing approval, avoid error 1008 on LAN HTTPS, token auth still required. **OFF:** enforce per-device pairing prompts (stricter, but more friction). |
-| `disable_exec_approvals` | bool | `false` | Disable host exec approval prompts for unattended automations. When enabled, the add-on forces `/config/.openclaw/exec-approvals.json` defaults to `security=full`, `ask=off`, `askFallback=full` and sets `tools.exec.security=full` with `tools.exec.strictInlineEval=false` in `/config/.openclaw/openclaw.json`. **Warning:** this weakens host-exec safety guardrails and should only be used in trusted environments. |
+| `disable_exec_approvals` | bool | `true` | Disable host exec approval prompts for unattended automations. This fork now enables that by default. When enabled, the add-on forces `/config/.openclaw/exec-approvals.json` defaults to `security=full`, `ask=off`, `askFallback=full` and aligns `/config/.openclaw/openclaw.json` with `tools.exec.host=gateway`, `tools.exec.security=full`, `tools.exec.ask=off`, and `tools.exec.strictInlineEval=false`. Turn it OFF only if you explicitly want human approval prompts restored. |
 | `force_ipv4_dns` | bool | `true` | Force IPv4-first DNS ordering for Node network calls. **Recommended ON** — most HAOS VMs lack IPv6 egress, causing `web_fetch` and Telegram timeouts. Set to `false` only if your network has working IPv6. |
 | `gateway_env_vars` | list of `{name, value}` | `[]` | Environment variables exported to the gateway process at startup. UI format: list entries with `name` and `value` (example: `name=OPENAI_API_KEY`, `value=sk-...`). Limits: max 50 vars, key length 255, value length 10000. Reserved runtime keys are blocked (for example `PATH`, `HOME`, `NODE_OPTIONS`, `NODE_PATH`, `OPENCLAW_*`, proxy vars). Legacy string/object formats are still accepted for backward compatibility. |
 | `nginx_log_level` | `full` / `minimal` | `minimal` | Nginx access log verbosity. `minimal` suppresses repetitive Home Assistant health-check and polling requests (`GET /`, `GET /v1/models`). `full` logs everything. |
@@ -978,7 +978,7 @@ Go to **Settings → Apps → OpenClaw Super Home Assistant → Log** tab. Logs 
 **Cause**: OpenClaw host execution still honors exec approval policy even when the automation flow is otherwise configured correctly. For fully unattended automation, you must relax both layers together: `exec-approvals.json` defaults and `tools.exec` in `openclaw.json`.
 
 **Fix**:
-1. In **Settings → Apps → OpenClaw Super Home Assistant → Configuration**, turn **Disable Exec Approval Prompts** (`disable_exec_approvals`) **ON**
+1. In **Settings → Apps → OpenClaw Super Home Assistant → Configuration**, leave **Disable Exec Approval Prompts** (`disable_exec_approvals`) **ON**. This fork now defaults it to **ON**.
 2. Restart the add-on
 3. Verify in the embedded terminal:
    ```sh
@@ -991,7 +991,7 @@ Go to **Settings → Apps → OpenClaw Super Home Assistant → Log** tab. Logs 
 
 This add-on writes the policy to:
 - `/config/.openclaw/exec-approvals.json`
-- `/config/.openclaw/openclaw.json`
+- `/config/.openclaw/openclaw.json` with `tools.exec.host=gateway`, `tools.exec.security=full`, `tools.exec.ask=off`, and `tools.exec.strictInlineEval=false`
 
 > **Warning**: This disables host exec approval prompts and weakens safety guardrails. Use it only on trusted Home Assistant installs where unattended automation is intentional.
 4. Restart the add-on and hatch the TUI again.

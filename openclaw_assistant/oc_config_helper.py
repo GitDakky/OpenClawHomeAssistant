@@ -21,7 +21,9 @@ FORCED_EXEC_APPROVAL_DEFAULTS = {
     "askFallback": "full",
 }
 FORCED_TOOLS_EXEC = {
+    "host": "gateway",
     "security": "full",
+    "ask": "off",
     "strictInlineEval": False,
 }
 
@@ -314,7 +316,9 @@ def configure_exec_approval_policy(disable_exec_approvals: bool):
 
     When enabled, force:
       - ~/.openclaw/exec-approvals.json defaults to full/off/full
+      - tools.exec.host=gateway
       - tools.exec.security=full
+      - tools.exec.ask=off
       - tools.exec.strictInlineEval=false
 
     When disabled, remove only the repo-managed overrides, leaving any
