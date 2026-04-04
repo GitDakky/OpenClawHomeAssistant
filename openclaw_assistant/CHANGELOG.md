@@ -2,6 +2,12 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.5] - 2026-04-04
+
+### Fixed
+- The add-on now starts the local gateway with `openclaw gateway run --force` so stale listeners on the configured gateway port are cleared before the managed runtime launches.
+- This fixes the post-update/startup failure mode where `openclaw tui` and `openclaw doctor` could still hit `unauthorized: gateway token mismatch` because an old listener on `127.0.0.1:18790` survived and kept rejecting the current token from `/config/.openclaw/openclaw.json`.
+
 ## [0.7.4] - 2026-04-03
 
 ### Added

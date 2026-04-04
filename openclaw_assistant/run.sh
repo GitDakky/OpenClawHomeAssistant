@@ -1296,7 +1296,7 @@ PY
     # shellcheck disable=SC2086
     openclaw node run --host "$NODE_HOST" --port "$NODE_PORT" $NODE_TLS_FLAG &
   else
-    openclaw gateway run &
+    openclaw gateway run --force &
   fi
   GW_PID=$!
   return 0
