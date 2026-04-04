@@ -1301,8 +1301,9 @@ PY
     nohup env OPENCLAW_NO_RESPAWN=1 openclaw node run --host "$NODE_HOST" --port "$NODE_PORT" $NODE_TLS_FLAG \
       < /dev/null >>"$RUNTIME_WRAPPER_LOG_FILE" 2>&1 &
   else
+    clear_stale_gateway_listener
     echo "INFO: Managed gateway launch sets OPENCLAW_NO_RESPAWN=1 so the add-on supervises a single stable process."
-    nohup env OPENCLAW_NO_RESPAWN=1 openclaw gateway --force < /dev/null >>"$RUNTIME_WRAPPER_LOG_FILE" 2>&1 &
+    nohup env OPENCLAW_NO_RESPAWN=1 openclaw gateway < /dev/null >>"$RUNTIME_WRAPPER_LOG_FILE" 2>&1 &
   fi
   GW_PID=$!
   echo "INFO: Runtime wrapper log: ${RUNTIME_WRAPPER_LOG_FILE}"
@@ -1454,6 +1455,46 @@ start_dashboard_api() {
     echo "WARN: Dashboard API failed to start; file/schedule widgets may be unavailable"
     DASHBOARD_API_PID=""
   fi
+}
+
+clear_stale_gateway_listener() {
+  local listener_pid=""
+  local _i=0
+
+  if [ "$GATEWAY_MODE" = "remote" ]; then
+    return 0
+  fi
+
+  listener_pid="$(
+    ss -tlnp 2>/dev/null \
+      | awk -v port=":${GATEWAY_INTERNAL_PORT} " '
+          $0 ~ port {
+            if (match($0, /pid=[0-9]+/)) {
+              print substr($0, RSTART + 4, RLENGTH - 4)
+              exit
+            }
+          }
+        ' \
+      || true
+  )"
+
+  if [ -z "$listener_pid" ]; then
+    return 0
+  fi
+
+  echo "WARN: Gateway port ${GATEWAY_INTERNAL_PORT} is already occupied by PID ${listener_pid}; clearing stale listener before startup."
+  kill -TERM "$listener_pid" >/dev/null 2>&1 || true
+
+  for _i in 1 2 3 4 5; do
+    sleep 1
+    if ! ss -tlnp 2>/dev/null | grep -q ":${GATEWAY_INTERNAL_PORT} "; then
+      return 0
+    fi
+  done
+
+  echo "WARN: Gateway listener on ${GATEWAY_INTERNAL_PORT} did not exit after SIGTERM; forcing shutdown."
+  kill -KILL "$listener_pid" >/dev/null 2>&1 || true
+  sleep 1
 }
 
 # Find a running gateway daemon's PID using multiple detection methods.
@@ -1737,6 +1778,11 @@ while true; do
 
   if [ "$SHUTTING_DOWN" = "true" ]; then
     break
+  fi
+
+  if [ "$GW_EXIT_CODE" -ne 0 ] && [ -f "$RUNTIME_WRAPPER_LOG_FILE" ]; then
+    echo "WARN: Managed OpenClaw runtime log tail after exit:"
+    tail -n 40 "$RUNTIME_WRAPPER_LOG_FILE" 2>/dev/null || true
   fi
 
   if [ -f "$RUNTIME_RESTART_REQUEST_FILE" ]; then

@@ -2,6 +2,13 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.9] - 2026-04-04
+
+### Fixed
+- The add-on no longer starts the managed gateway with `--force`. Instead it clears any stale listener itself and then launches the plain `openclaw gateway` path that is known to work interactively in the Home Assistant terminal.
+- When the managed runtime still exits unexpectedly, the add-on now prints the tail of `/tmp/openclaw/openclaw-super-runtime-wrapper.log` into the main add-on log so the actual gateway failure is visible without extra shell debugging.
+- This targets the repeated boot-loop failure where the managed add-on startup exited with code `1` while a manual `openclaw gateway` command succeeded immediately on the same host.
+
 ## [0.7.8] - 2026-04-04
 
 ### Fixed
