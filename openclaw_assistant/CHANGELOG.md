@@ -2,6 +2,13 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.8] - 2026-04-04
+
+### Fixed
+- The add-on now launches the managed OpenClaw gateway with `OPENCLAW_NO_RESPAWN=1` so OpenClaw stays under one stable supervisor-owned PID inside the Home Assistant container instead of detaching into a fresh process tree.
+- The runtime supervisor no longer tries to re-discover detached gateway children after startup; it now tracks the managed child directly and restarts it cleanly when onboarding or configuration changes require a recycle.
+- This fixes the add-on-specific failure mode where `openclaw gateway` worked manually in the terminal but the automatically started gateway still died or appeared disconnected because the wrapper and OpenClaw were fighting over process supervision.
+
 ## [0.7.7] - 2026-04-04
 
 ### Fixed

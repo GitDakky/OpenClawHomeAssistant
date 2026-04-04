@@ -1296,11 +1296,13 @@ PY
     fi
 
     echo "INFO: gateway_mode=remote detected; starting node host to $NODE_HOST:$NODE_PORT ${NODE_TLS_FLAG}"
+    echo "INFO: Managed runtime launch sets OPENCLAW_NO_RESPAWN=1 so the add-on supervises a single stable process."
     # shellcheck disable=SC2086
-    nohup openclaw node run --host "$NODE_HOST" --port "$NODE_PORT" $NODE_TLS_FLAG \
+    nohup env OPENCLAW_NO_RESPAWN=1 openclaw node run --host "$NODE_HOST" --port "$NODE_PORT" $NODE_TLS_FLAG \
       < /dev/null >>"$RUNTIME_WRAPPER_LOG_FILE" 2>&1 &
   else
-    nohup openclaw gateway --force < /dev/null >>"$RUNTIME_WRAPPER_LOG_FILE" 2>&1 &
+    echo "INFO: Managed gateway launch sets OPENCLAW_NO_RESPAWN=1 so the add-on supervises a single stable process."
+    nohup env OPENCLAW_NO_RESPAWN=1 openclaw gateway --force < /dev/null >>"$RUNTIME_WRAPPER_LOG_FILE" 2>&1 &
   fi
   GW_PID=$!
   echo "INFO: Runtime wrapper log: ${RUNTIME_WRAPPER_LOG_FILE}"
@@ -1527,14 +1529,14 @@ request_managed_runtime_restart() {
   local reason="$1"
   local target_pid=""
 
-  if [ "$GATEWAY_MODE" = "remote" ]; then
-    target_pid="$(pgrep -f "openclaw.*node.*run" 2>/dev/null | head -1 || true)"
-  else
-    target_pid="$(find_gateway_daemon_pid 2>/dev/null || true)"
-  fi
-
   if [ -z "$target_pid" ] && [ -n "${GW_PID:-}" ] && kill -0 "${GW_PID}" >/dev/null 2>&1; then
     target_pid="$GW_PID"
+  fi
+
+  if [ -z "$target_pid" ] && [ "$GATEWAY_MODE" = "remote" ]; then
+    target_pid="$(pgrep -f "openclaw.*node.*run" 2>/dev/null | head -1 || true)"
+  elif [ -z "$target_pid" ]; then
+    target_pid="$(find_gateway_daemon_pid 2>/dev/null || true)"
   fi
 
   if [ -n "$target_pid" ] && kill -0 "$target_pid" >/dev/null 2>&1; then
@@ -1725,88 +1727,16 @@ else
   echo "WARN: nginx failed to start (PID $NGINX_PID exited); ingress UI may be unavailable"
 fi
 
-# Keep add-on alive even if gateway/node runtime restarts itself (e.g. during onboarding).
-# If runtime exits unexpectedly, restart it while nginx/ttyd stay up.
-#
-# Design notes:
-#   The add-on starts the local gateway with `openclaw gateway --force`, which is
-#   the stable foreground entrypoint on current OpenClaw builds. Older gateway
-#   flows and self-restarts can still leave behind a re-forked `openclaw-gateway`
-#   process, so the supervisor keeps the multi-tier PID re-discovery logic below.
-#
-#   The new daemon can take 20-30 seconds to initialise on low-power hardware
-#   (Pi / eMMC). During that time its process.title and port binding are not yet
-#   visible, but the process itself exists in /proc with "openclaw" in its cmdline.
-#
-#   Strategy:
-#     1. `wait` for our child (the wrapper). After it exits, use
-#        `find_gateway_daemon_pid` (port → pgrep → /proc scan) with retries
-#        to find the daemon. If found → re-track and poll with `kill -0`.
-#     2. When the re-tracked daemon eventually exits (crash or another restart),
-#        `kill -0` fails, we check again for a live daemon to re-track.
-#     3. Before any supervisor-initiated restart, do a final port-occupancy
-#        guard to prevent launching a duplicate.
-GW_IS_CHILD=true   # true only when GW_PID was started by us (can use `wait`)
-
+# Keep the add-on alive even if the managed OpenClaw runtime exits.
+# Important: we launch the runtime with OPENCLAW_NO_RESPAWN=1 so OpenClaw does
+# not detach into a fresh PID under the add-on supervisor. The wrapper now owns
+# one stable child process and simply restarts it if it exits.
 while true; do
-  if [ "$GW_IS_CHILD" = "true" ]; then
-    # Efficient blocking wait on our child process.
-    GW_EXIT_CODE=0
-    wait "${GW_PID}" 2>/dev/null || GW_EXIT_CODE=$?
-  else
-    # GW_PID is NOT our child (re-tracked after a self-restart).
-    # Poll with kill -0 until it exits.
-    while kill -0 "$GW_PID" 2>/dev/null; do
-      if [ "$SHUTTING_DOWN" = "true" ]; then break 2; fi
-      sleep 5
-    done
-    GW_EXIT_CODE=0
-  fi
+  GW_EXIT_CODE=0
+  wait "${GW_PID}" 2>/dev/null || GW_EXIT_CODE=$?
 
   if [ "$SHUTTING_DOWN" = "true" ]; then
     break
-  fi
-
-  # --- Detect self-restart ---------------------------------------------------
-  # Try up to 10 times (≈ 20 s) using all 3 tiers of find_gateway_daemon_pid.
-  # Tier 3 (/proc scan) usually finds the daemon on the very first attempt
-  # because the process exists immediately after fork, even before port bind
-  # or process.title. The retries cover edge cases on extremely slow I/O.
-  RESTARTED_PID=""
-  if [ "$GATEWAY_MODE" != "remote" ]; then
-    for _attempt in 1 2 3 4 5 6 7 8 9 10; do
-      RESTARTED_PID=$(find_gateway_daemon_pid 2>/dev/null || true)
-      [ -n "$RESTARTED_PID" ] && break
-      sleep 2
-    done
-  else
-    sleep 2
-    RESTARTED_PID=$(pgrep -f "openclaw.*node.*run" 2>/dev/null | head -1 || true)
-  fi
-
-  if [ -n "$RESTARTED_PID" ]; then
-    rm -f "$RUNTIME_RESTART_REQUEST_FILE"
-    echo "INFO: OpenClaw runtime active (PID $RESTARTED_PID); monitoring."
-    GW_PID="$RESTARTED_PID"
-    GW_IS_CHILD=false
-    continue
-  fi
-
-  # --- Final port guard ------------------------------------------------------
-  # Even if all detection methods missed the daemon during the loop above,
-  # the port may now be bound (the daemon finished initialising while we slept).
-  # Never launch a duplicate if the port is occupied.
-  if [ "$GATEWAY_MODE" != "remote" ] && \
-     ss -tlnp 2>/dev/null | grep -q ":${GATEWAY_INTERNAL_PORT} "; then
-    PORT_PID=$(ss -tlnp 2>/dev/null \
-      | grep ":${GATEWAY_INTERNAL_PORT} " \
-      | sed -n 's/.*pid=\([0-9]*\).*/\1/p' \
-      | head -1 || true)
-    rm -f "$RUNTIME_RESTART_REQUEST_FILE"
-    echo "INFO: Gateway port ${GATEWAY_INTERNAL_PORT} occupied by PID ${PORT_PID:-unknown}; monitoring."
-    GW_PID="${PORT_PID:-$GW_PID}"
-    GW_IS_CHILD=false
-    continue
   fi
 
   if [ -f "$RUNTIME_RESTART_REQUEST_FILE" ]; then
@@ -1828,7 +1758,6 @@ while true; do
     echo "ERROR: Failed to restart OpenClaw runtime; retrying in 5s..."
     sleep 5
   else
-    GW_IS_CHILD=true
     rm -f "$RUNTIME_RESTART_REQUEST_FILE"
     start_gw_relay
   fi
