@@ -16,23 +16,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Validate repo metadata
-        run: python3 scripts/validate_release_metadata.py
-
-      - name: Bash syntax check
-        run: bash -n openclaw_assistant/run.sh
-
-      - name: Python compile check
-        run: python3 -m py_compile openclaw_assistant/oc_config_helper.py openclaw_assistant/render_nginx.py
-
-      - name: SVG parse check
-        run: |
-          python3 - <<'PY'
-          import xml.etree.ElementTree as ET
-          ET.parse("assets/openclaw-hero.svg")
-          ET.parse("assets/openclaw-architecture.svg")
-          print("svg-ok")
-          PY
+      - name: Run baseline local validation
+        run: bash scripts/validate_local.sh
+        env:
+          VALIDATION_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
 
   docker-smoke-amd64:
     runs-on: ubuntu-latest

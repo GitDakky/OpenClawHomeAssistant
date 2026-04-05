@@ -43,6 +43,20 @@ def resolve_bundled_openclaw_version() -> str:
     return 'unknown'
 
 
+def resolve_gateway_public_url(public_url: str, enable_https: bool, https_port: str, lan_ip: str) -> str:
+    """Resolve the public gateway URL shown on the landing page."""
+    if public_url:
+        return public_url
+    if enable_https and https_port:
+        return f'https://{lan_ip}:{https_port}'
+    return ''
+
+
+def resolve_gateway_public_url_path(public_url: str) -> str:
+    """Match the landing-page path suffix logic for the gateway URL."""
+    return '' if public_url.endswith('/') else '/'
+
+
 def main():
     tpl = Path('/etc/nginx/nginx.conf.tpl').read_text()
     landing_tpl = Path('/etc/nginx/landing.html.tpl').read_text()
@@ -69,7 +83,7 @@ def main():
     # Token comes from environment (best-effort CLI query in run.sh)
     token = os.environ.get('GW_TOKEN', '')
 
-    gw_path = '' if public_url.endswith('/') else '/'
+    gw_path = resolve_gateway_public_url_path(public_url)
 
     # ── nginx.conf ──────────────────────────────────────────────
     # Build access_log directive (minimal suppresses HA health-check / polling noise)
@@ -138,8 +152,8 @@ def main():
             ).split()[0]
         except Exception:
             lan_ip = '127.0.0.1'
-        public_url = f'https://{lan_ip}:{https_port}'
-        gw_path = '/'
+        public_url = resolve_gateway_public_url(public_url, enable_https, https_port, lan_ip)
+        gw_path = resolve_gateway_public_url_path(public_url)
 
     landing = landing_tpl.replace('__GATEWAY_TOKEN__', token)
     landing = landing.replace('__GATEWAY_PUBLIC_URL__', public_url)

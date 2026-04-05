@@ -60,9 +60,11 @@ When you open the add-on page in Home Assistant, nginx serves a landing page wit
 
 ## 2. Installation
 
+[![Open your Home Assistant instance and add this repository.](https://my.home-assistant.io/badges/supervisor_repository.svg)](https://my.home-assistant.io/redirect/supervisor_repository/?repository_url=https%3A%2F%2Fgithub.com%2FGitDakky%2FOpenClawHomeAssistant)
+
 1. In Home Assistant, go to **Settings → Apps**
-2. Click **Install App** using the blue button in the bottom-right
-3. Paste:
+2. Click the button above to add the repository directly, or click **Install App** using the blue button in the bottom-right
+3. If you are adding it manually, paste:
    - `https://github.com/GitDakky/OpenClawHomeAssistant`
 4. Exit the dialog, select **OpenClaw Super Home Assistant**, and click **Install**
 5. Click **Start**
@@ -96,6 +98,15 @@ When the add-on starts for the first time, it automatically:
 2. Generates a minimal `openclaw.json` with a random gateway auth token
 3. Syncs built-in skills to persistent storage
 4. Starts the gateway, terminal, and nginx
+
+### Before you open the Gateway UI
+
+Pick the access path first so the first browser test matches the actual runtime wiring:
+
+1. If you are starting on the same Home Assistant host or just using the embedded terminal, the default local path is fine.
+2. If you want to use a phone, tablet, or another LAN browser, set `access_mode` to **lan_https** and restart before you test the button.
+3. If you are using a reverse proxy or Tailscale hostname, set the matching `access_mode` first and only set `gateway_public_url` when the browser-facing host differs from the Home Assistant host.
+4. If you are using `gateway_mode: remote`, keep `gateway_remote_url` as the backend `ws://` or `wss://` endpoint. Set `gateway_public_url` separately only if you want the landing page button to open a browser-facing `http://` or `https://` Control UI URL.
 
 ### Step 1 — Run onboarding
 
@@ -243,6 +254,11 @@ This is the practical flow users report as stable in HAOS.
 ### Setting up the "Open Gateway Web UI" button
 
 In most local installs you can leave `gateway_public_url` empty. The add-on now tries to derive the correct Gateway URL automatically from the Home Assistant host and access mode. Set `gateway_public_url` only when the externally reachable hostname differs from the host you are already using in Home Assistant.
+
+**Use the right field for the right job:**
+- `gateway_remote_url` is for backend remote-gateway connectivity and should stay `ws://` or `wss://`.
+- `gateway_public_url` is only for the browser launch URL shown on the landing page and should be `http://` or `https://`.
+- Do **not** paste a websocket URL into `gateway_public_url`.
 
 **Examples**:
 - LAN HTTPS (built-in): `https://192.168.1.119:18790`
@@ -452,7 +468,12 @@ Or manually: copy `custom_components/openclaw` from the repo into your HA config
 3. If the addon is running locally, it will be **auto-discovered** — just click Submit
 4. If connecting to a remote instance, fill in host, port, token, and SSL settings manually
 
-> **`lan_https` mode**: The integration auto-detects this and connects to the internal gateway port on loopback — no certificate setup needed for local addons.
+Use these connection rules so the integration matches the add-on's real access model:
+
+- **Same Home Assistant host + local gateway**: use auto-discovery or the local gateway details. This is the normal add-on path.
+- **Same Home Assistant host + `lan_https`**: the integration still connects to the internal local gateway path. The HTTPS certificate flow is for browsers, not for the local HA integration.
+- **Another Home Assistant instance or another machine**: use the actual reachable gateway host, port, token, and SSL settings. Do not use the Home Assistant ingress page URL.
+- **`gateway_mode: remote` in this add-on**: connect the integration to the remote gateway itself, not to this add-on's ingress page.
 
 **Step 4 — Set as conversation agent**
 
@@ -463,6 +484,24 @@ Or manually: copy `custom_components/openclaw` from the repo into your HA config
 **Step 5 — Expose entities**
 
 Go to **Settings → Voice Assistants → Expose** and toggle on the entities you want OpenClaw to control.
+
+#### Assist-first reliability baseline
+
+For the first production-safe voice path, keep the setup boring and explicit:
+
+1. Prefer the **native OpenClaw integration** over generic OpenAI wrappers when this add-on and Home Assistant are on the same host.
+2. Turn on `enable_openai_api`, then restart the add-on before testing the assistant.
+3. Expose only the entities you actually want voice control to touch.
+4. Keep `enable_ha_service_calls` **OFF** unless you explicitly want the built-in Home Assistant tool layer to make service calls after approval.
+5. If the integration is local, use auto-discovery or local connection details. Do not point Assist at the ingress page URL.
+6. Treat browser HTTPS setup and Assist setup as separate concerns: `lan_https` matters for browsers, but the same-host integration still uses the local gateway path.
+
+#### Capability expectations
+
+- The strongest first-use case is deterministic Home Assistant control and question answering with explicitly exposed entities.
+- Use the native integration when you want the Lovelace card, voice mode, sensors, and cleaner local wiring.
+- Keep broad autonomous write behavior behind explicit approval and exposed-entity boundaries.
+- Multi-channel outbound voice and call escalation are roadmap items, not current shipped behavior. See [VOICE_ESCALATION_POLICY.md](VOICE_ESCALATION_POLICY.md) and [JANUS_MEDIA_CONTROL_PLANE.md](JANUS_MEDIA_CONTROL_PLANE.md) for the planned boundary.
 
 **Step 6 — Add the chat card (optional)**
 
@@ -771,8 +810,11 @@ The ingress landing page now includes:
 - a file editor for the seeded workspace files and bundled skill files
 - live `openclaw cron` scheduler visibility
 - last-heartbeat visibility
+- read-only operator insight cards for homeowner summary, energy pressure, system drift, predictive maintenance, and security posture
 - integration status cards for Context7, Domotz, GitHub issue reporting, MQTT, BACnet, and MCP
 - system-graph metadata backed by SQLite at `/config/.openclaw/gitdakky-system-graph.sqlite3`
+
+The insight cards are intentionally advisory and read-only. They use the add-on's trusted Home Assistant API context plus local add-on settings to surface bounded operator actions instead of raw telemetry dumps.
 
 ### Reporting bugs and feature requests directly from the add-on
 
@@ -1073,6 +1115,29 @@ jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json
 > **Note**: Since OpenClaw v2026.2.22+ `openclaw config get` redacts sensitive values (returns `openclaw_redacted`). Use `jq` to read the token directly from the config file.
 
 Paste this token when the UI prompts for authentication, or append it to the URL: `http://<ip>:18790/?token=<your-token>`
+
+### "Open Gateway Web UI" points to the wrong place or stays disabled
+
+**Symptom**: The button opens the wrong host, opens nothing useful, or changes to **Configure Gateway URL**.
+
+**Cause**: The add-on only derives the browser URL automatically for the common local cases. Reverse-proxy, Tailscale, and remote-gateway setups need the browser-facing URL spelled out explicitly.
+
+**Fix**:
+1. Leave `gateway_public_url` empty for normal local installs where Home Assistant and the browser already agree on the host.
+2. For reverse proxy or Tailscale access, set `gateway_public_url` to the final browser-facing `https://...` URL and restart.
+3. For `gateway_mode: remote`, keep `gateway_remote_url` as the backend `ws://` or `wss://` endpoint and set `gateway_public_url` separately to the remote Control UI `http://` or `https://` URL if you want the button to open it.
+4. Do not reuse a websocket URL in `gateway_public_url`.
+
+### Companion integration cannot connect when pointed at the add-on page
+
+**Symptom**: The integration works poorly or not at all when configured with the Home Assistant add-on page URL.
+
+**Cause**: The Home Assistant ingress page is the operator surface. It is not the direct gateway endpoint the integration should use.
+
+**Fix**:
+1. If the integration is on the same HA host as this add-on, use auto-discovery or the local gateway path.
+2. If the integration is on another HA instance or machine, use the actual reachable gateway host, port, token, and SSL settings.
+3. If this add-on is in `gateway_mode: remote`, point the integration at the remote gateway itself.
 
 ### CLI shows unauthorized with `trusted_proxy_user_missing`
 

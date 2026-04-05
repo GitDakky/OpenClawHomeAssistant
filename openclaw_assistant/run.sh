@@ -22,6 +22,12 @@ RUNTIME_RESTART_REQUEST_FILE="/tmp/openclaw-runtime-restart.request"
 MANAGED_COMMAND_ACTIVE_FILE="/tmp/openclaw-managed-command.active"
 RUNTIME_WRAPPER_LOG_DIR="/tmp/openclaw"
 RUNTIME_WRAPPER_LOG_FILE="${RUNTIME_WRAPPER_LOG_DIR}/openclaw-super-runtime-wrapper.log"
+RUN_HELPERS_PATH="/opt/openclaw-super/run_helpers.sh"
+
+if [ -f "$RUN_HELPERS_PATH" ]; then
+  # shellcheck source=/dev/null
+  . "$RUN_HELPERS_PATH"
+fi
 
 if [ ! -f "$OPTIONS_FILE" ]; then
   echo "Missing $OPTIONS_FILE (add-on options)."
@@ -44,37 +50,30 @@ supervisor_api() {
     "$@"
 }
 
-config_dir_has_user_state() {
-  find /config -mindepth 1 -maxdepth 1 \
-    ! -name '.gitdakky-legacy-migration' \
-    ! -name '.gitdakky-migration-*' \
-    -print -quit 2>/dev/null | grep -q .
-}
-
 maybe_migrate_legacy_addon() {
   local legacy_addons_json legacy_slug legacy_repo legacy_ref legacy_dir legacy_info legacy_name legacy_state
   local legacy_options_json stop_ok=false
-
-  if [ -f "$MIGRATION_FLAG" ]; then
-    echo "INFO: Legacy migration already evaluated for this install."
-    return 0
-  fi
-
-  if config_dir_has_user_state; then
-    echo "INFO: Existing ${SELF_ADDON_NAME} state detected; skipping legacy migration."
-    printf 'skipped-existing\n' > "$MIGRATION_FLAG"
-    return 0
-  fi
-
-  if [ -z "${SUPERVISOR_TOKEN:-}" ]; then
-    echo "INFO: Supervisor API unavailable; skipping legacy migration."
-    return 0
-  fi
-
-  if [ ! -d /addon_configs ]; then
-    echo "INFO: /addon_configs is not mounted; skipping legacy migration."
-    return 0
-  fi
+  local migration_precheck
+  migration_precheck="$(legacy_migration_precheck "$MIGRATION_FLAG" /config "${SUPERVISOR_TOKEN:-}" /addon_configs)"
+  case "$migration_precheck" in
+    already-evaluated)
+      echo "INFO: Legacy migration already evaluated for this install."
+      return 0
+      ;;
+    skipped-existing)
+      echo "INFO: Existing ${SELF_ADDON_NAME} state detected; skipping legacy migration."
+      printf 'skipped-existing\n' > "$MIGRATION_FLAG"
+      return 0
+      ;;
+    skipped-no-supervisor)
+      echo "INFO: Supervisor API unavailable; skipping legacy migration."
+      return 0
+      ;;
+    skipped-no-addon-configs)
+      echo "INFO: /addon_configs is not mounted; skipping legacy migration."
+      return 0
+      ;;
+  esac
 
   legacy_addons_json="$(supervisor_api GET /addons 2>/dev/null || true)"
   if [ -z "$legacy_addons_json" ]; then
@@ -368,24 +367,10 @@ ensure_default_agent_layout() {
   chmod 700 "$DEFAULT_AGENT_ROOT" "$DEFAULT_AGENT_STATE_DIR" "$DEFAULT_AGENT_SESSIONS_DIR" 2>/dev/null || true
 }
 
-legacy_agent_state_needs_migration() {
-  if [ -d "$LEGACY_AGENT_STATE_DIR" ] && [ ! -f "$DEFAULT_AGENT_STATE_DIR/auth-profiles.json" ] && [ -f "$LEGACY_AGENT_STATE_DIR/auth-profiles.json" ]; then
-    return 0
-  fi
-
-  if [ -d "$LEGACY_SESSIONS_DIR" ] && find "$LEGACY_SESSIONS_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null | grep -q .; then
-    if ! find "$DEFAULT_AGENT_SESSIONS_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null | grep -q .; then
-      return 0
-    fi
-  fi
-
-  return 1
-}
-
 run_safe_doctor_state_migration() {
   local log_file="/tmp/openclaw-doctor-migration.log"
 
-  if ! legacy_agent_state_needs_migration; then
+  if ! legacy_agent_state_needs_migration "$LEGACY_AGENT_STATE_DIR" "$LEGACY_SESSIONS_DIR" "$DEFAULT_AGENT_STATE_DIR" "$DEFAULT_AGENT_SESSIONS_DIR"; then
     return 0
   fi
 
@@ -431,13 +416,13 @@ fallback_sync_default_agent_state() {
 reconcile_default_agent_state() {
   ensure_default_agent_layout
 
-  if ! legacy_agent_state_needs_migration; then
+  if ! legacy_agent_state_needs_migration "$LEGACY_AGENT_STATE_DIR" "$LEGACY_SESSIONS_DIR" "$DEFAULT_AGENT_STATE_DIR" "$DEFAULT_AGENT_SESSIONS_DIR"; then
     return 0
   fi
 
   run_safe_doctor_state_migration
 
-  if legacy_agent_state_needs_migration; then
+  if legacy_agent_state_needs_migration "$LEGACY_AGENT_STATE_DIR" "$LEGACY_SESSIONS_DIR" "$DEFAULT_AGENT_STATE_DIR" "$DEFAULT_AGENT_SESSIONS_DIR"; then
     echo "INFO: Legacy state still present after doctor; copying missing files into agents/${DEFAULT_AGENT_ID}/..."
     fallback_sync_default_agent_state
   fi
@@ -1045,7 +1030,7 @@ if [ -f "$OPENCLAW_CONFIG_PATH" ]; then
   if [ -f "$HELPER_PATH" ]; then
     # In lan_https mode the gateway uses an internal port; nginx owns the external one.
     EFFECTIVE_GW_PORT="$GATEWAY_INTERNAL_PORT"
-    if ! python3 "$HELPER_PATH" apply-gateway-settings "$GATEWAY_MODE" "$GATEWAY_REMOTE_URL" "$GATEWAY_BIND_MODE" "$EFFECTIVE_GW_PORT" "$ENABLE_OPENAI_API" "$GATEWAY_AUTH_MODE" "$GATEWAY_TRUSTED_PROXIES"; then
+    if ! sync_gateway_settings_from_options "$OPTIONS_FILE" "$HELPER_PATH" "$OPENCLAW_CONFIG_PATH" "$EFFECTIVE_GW_PORT"; then
       rc=$?
       echo "ERROR: Failed to apply gateway settings via oc_config_helper.py (exit code ${rc})."
       echo "ERROR: Gateway configuration may be incorrect; aborting startup."
@@ -1357,21 +1342,7 @@ start_openclaw_runtime() {
     NODE_HOST=""
     NODE_PORT=""
     NODE_TLS_FLAG=""
-    if ! eval "$(python3 - "$REMOTE_URL" <<'PY'
-import sys
-from urllib.parse import urlparse
-url = (sys.argv[1] or '').strip()
-p = urlparse(url)
-if p.scheme not in ('ws', 'wss') or not p.hostname:
-    print('echo "ERROR: Invalid gateway.remote.url (expected ws:// or wss://): %s"' % url.replace('"', '\\"'))
-    print('exit 1')
-    raise SystemExit(0)
-port = p.port or (443 if p.scheme == 'wss' else 80)
-print(f'NODE_HOST={p.hostname}')
-print(f'NODE_PORT={port}')
-print(f'NODE_TLS_FLAG={"--tls" if p.scheme == "wss" else ""}')
-PY
-)"; then
+    if ! eval "$(parse_remote_gateway_url "$REMOTE_URL")"; then
       echo "ERROR: Failed to parse gateway.remote.url: $REMOTE_URL"
       return 1
     fi

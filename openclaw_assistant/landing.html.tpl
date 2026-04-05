@@ -700,6 +700,10 @@
               In most local installs the launch URL is derived automatically. Set <code>gateway_public_url</code> only when you need to override the detected host or point at a reverse-proxy / Tailscale URL.
             </p>
             <p>
+              If this add-on is using a remote gateway, keep <code>gateway_remote_url</code> as the backend <code>ws://</code> or <code>wss://</code> endpoint.
+              Set <code>gateway_public_url</code> separately only when you want this page to open a browser-facing <code>http://</code> or <code>https://</code> Control UI URL.
+            </p>
+            <p>
               If the Gateway UI says <b>Unauthorized</b>, retrieve the token in the embedded terminal:
             </p>
             <pre>jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json</pre>
@@ -843,6 +847,23 @@ SSL tab:  Request a new SSL certificate</pre>
 
       <section class="panel ops-panel">
         <div class="ops-head">
+          <div class="eyebrow">Home Intelligence</div>
+          <h3>Read-only operator insights</h3>
+          <p>
+            These cards turn live Home Assistant state plus local add-on settings into a bounded operator summary:
+            homeowner changes, energy pressure, system drift, predictive maintenance, and security posture.
+          </p>
+        </div>
+        <div class="integration-grid" id="insightGrid">
+          <div class="integration-card">
+            <b>Loading insight cards...</b>
+            <div class="meta">The dashboard API is building a read-only snapshot from Home Assistant and the add-on runtime.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel ops-panel">
+        <div class="ops-head">
           <div class="eyebrow">Integration Rack</div>
           <h3>Research, broker, and network sources</h3>
           <p>
@@ -939,7 +960,13 @@ SSL tab:  Request a new SSL certificate</pre>
       gwButton.href = '#';
       gwButton.addEventListener('click', function(event) {
         event.preventDefault();
-        setBanner('errorBanner', 'The add-on could not derive a usable Gateway URL automatically for this access mode. Set gateway_public_url only if you are using a reverse proxy, Tailscale hostname, or another non-default path.', false);
+        setBanner(
+          'errorBanner',
+          GATEWAY_MODE !== 'local'
+            ? 'Remote gateway mode is active. Keep gateway_remote_url as the backend ws:// or wss:// endpoint, and set gateway_public_url only if you want this page to open a browser-facing http:// or https:// Control UI URL.'
+            : 'The add-on could not derive a usable Gateway URL automatically for this access mode. Set gateway_public_url only if you are using a reverse proxy, Tailscale hostname, or another non-default path.',
+          false
+        );
       });
     }
 
@@ -958,6 +985,10 @@ SSL tab:  Request a new SSL certificate</pre>
 
     (async function checkGateway() {
       const statusEl = $('statusGateway');
+      if (GATEWAY_MODE !== 'local' && !RESOLVED_GATEWAY_BASE_URL) {
+        statusEl.innerHTML = '<span class="icon">GW</span><span><span class="status-label">Gateway</span>Remote gateway mode is active. Set <b>gateway_public_url</b> if you want this page to open or probe the remote Control UI directly.</span>';
+        return;
+      }
       try {
         const url = RESOLVED_GATEWAY_BASE_URL
           ? RESOLVED_GATEWAY_BASE_URL + '/api/health' + (GW_TOKEN ? ('?token=' + encodeURIComponent(GW_TOKEN)) : '')
@@ -1047,7 +1078,17 @@ SSL tab:  Request a new SSL certificate</pre>
     const wizardEl = $('wizard');
     const wizardContent = $('wizardContent');
 
-    if (ACCESS_MODE === 'lan_https') {
+    if (GATEWAY_MODE !== 'local') {
+      wizardEl.classList.remove('hidden');
+      wizardContent.innerHTML = `
+        <div class="banner info">Remote gateway mode is active. This add-on stays the operator surface while the real gateway runs elsewhere.</div>
+        <ol>
+          <li>Keep <code>gateway_remote_url</code> as the backend <code>ws://</code> or <code>wss://</code> endpoint used by the add-on runtime.</li>
+          <li>If you want <b>Open Gateway Web UI</b> to open the remote Control UI, set <code>gateway_public_url</code> to the browser-facing <code>http://</code> or <code>https://</code> URL.</li>
+          <li>Use the remote gateway's auth token when the UI asks for it.</li>
+          <li>Do not paste a websocket URL into <code>gateway_public_url</code>.</li>
+        </ol>`;
+    } else if (ACCESS_MODE === 'lan_https') {
       wizardEl.classList.remove('hidden');
       wizardContent.innerHTML = `
         <div class="banner success">Built-in HTTPS proxy is active on port <b>${HTTPS_PORT}</b>.</div>
@@ -1212,6 +1253,39 @@ SSL tab:  Request a new SSL certificate</pre>
       grid.innerHTML = cards.join('');
     }
 
+    function renderInsights(insights) {
+      const grid = $('insightGrid');
+      const cards = [];
+      const order = ['homeowner', 'energy', 'system', 'maintenance', 'security'];
+      const buildList = (items, emptyLabel) => {
+        if (!items || !items.length) {
+          return `<div class="meta">${escapeHtml(emptyLabel)}</div>`;
+        }
+        return `<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+      };
+
+      order.forEach(key => {
+        const card = insights?.[key];
+        if (!card) {
+          return;
+        }
+        const statusClass = card.status === 'good' ? 'good' : card.status === 'warn' ? 'warn' : 'off';
+        cards.push(`
+          <div class="integration-card">
+            <b>${escapeHtml(card.title || key)}</b>
+            <div class="pill-row">
+              <span class="pill ${statusClass}">${escapeHtml((card.status || 'info').toUpperCase())}</span>
+              ${(card.pills || []).map(item => `<span class="pill">${escapeHtml(item)}</span>`).join('')}
+            </div>
+            <div class="meta">${escapeHtml(card.summary || '')}</div>
+            <div class="meta"><b>Highlights</b>${buildList(card.highlights, 'No notable signals right now.')}</div>
+            <div class="meta"><b>Next actions</b>${buildList(card.actions, 'No immediate operator action suggested.')}</div>
+          </div>`);
+      });
+
+      grid.innerHTML = cards.join('');
+    }
+
     let lastDashboardState = null;
     function renderLastState() {
       if (!lastDashboardState) return;
@@ -1228,6 +1302,7 @@ SSL tab:  Request a new SSL certificate</pre>
         $('cronJobsBlock').textContent = prettyJson(payload.schedule?.cronJobs?.error || payload.schedule?.cronJobs?.data);
         $('cronRunsBlock').textContent = prettyJson(payload.schedule?.cronRuns?.error || payload.schedule?.cronRuns?.data);
         $('heartbeatBlock').textContent = prettyJson(payload.schedule?.heartbeatLast?.error || payload.schedule?.heartbeatLast?.data);
+        renderInsights(payload.insights || {});
         renderIntegrations(payload.integrations || {}, payload.graph || {});
         if (!activeFileKey && payload.workspaceFiles?.length) {
           await openDashboardFile(payload.workspaceFiles[0].key);
@@ -1237,6 +1312,7 @@ SSL tab:  Request a new SSL certificate</pre>
         $('cronJobsBlock').textContent = 'Dashboard API unavailable.';
         $('cronRunsBlock').textContent = 'Dashboard API unavailable.';
         $('heartbeatBlock').textContent = 'Dashboard API unavailable.';
+        $('insightGrid').innerHTML = '<div class="integration-card"><b>Insight cards unavailable</b><div class="meta">Dashboard API unavailable.</div></div>';
       }
     }
 

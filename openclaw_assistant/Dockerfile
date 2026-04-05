@@ -154,6 +154,7 @@ if [ -z "${LS_COLORS+x}" ]; then
 fi
 EOF
 COPY run.sh /run.sh
+COPY run_helpers.sh /opt/openclaw-super/run_helpers.sh
 COPY oc_config_helper.py /oc_config_helper.py
 COPY render_nginx.py /render_nginx.py
 COPY dashboard_api.py /dashboard_api.py
@@ -166,7 +167,7 @@ COPY nginx.conf.tpl /etc/nginx/nginx.conf.tpl
 COPY landing.html.tpl /etc/nginx/landing.html.tpl
 COPY bootstrap-workspace /opt/openclaw-super/bootstrap-workspace
 COPY bundled-skills /opt/openclaw-super/bundled-skills
-RUN chmod +x /run.sh /oc_config_helper.py /render_nginx.py /dashboard_api.py /usr/local/bin/oc-managed-command /usr/local/bin/oc-report-issue /usr/local/bin/oc-cleanup /opt/openclaw-super/ha_mcp_server.cjs \
+RUN chmod +x /run.sh /opt/openclaw-super/run_helpers.sh /oc_config_helper.py /render_nginx.py /dashboard_api.py /usr/local/bin/oc-managed-command /usr/local/bin/oc-report-issue /usr/local/bin/oc-cleanup /opt/openclaw-super/ha_mcp_server.cjs \
     && ln -sf /usr/local/bin/oc-managed-command /usr/local/bin/oc-onboard \
     && ln -sf /usr/local/bin/oc-managed-command /usr/local/bin/oc-configure \
     && mkdir -p /run/nginx

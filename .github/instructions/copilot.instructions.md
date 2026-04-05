@@ -48,9 +48,7 @@ When changing landing/nginx placeholders:
 ## Validation Commands
 
 ```sh
-bash -n openclaw_assistant/run.sh
-python3 -m py_compile openclaw_assistant/oc_config_helper.py
-python3 -m py_compile openclaw_assistant/render_nginx.py
+bash scripts/validate_local.sh
 ```
 
 If behavior changes are user-visible, update `openclaw_assistant/CHANGELOG.md`.

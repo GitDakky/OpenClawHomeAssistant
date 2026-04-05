@@ -27,6 +27,17 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 - Ship a real CI/CD path: validate every change, build the add-on image in CI, and publish the multi-arch image from `main`.
 - Be unmistakably separate from the legacy add-on so users do not confuse the fork with the abandoned line.
 
+## Hardening priorities
+
+This fork is intentionally biased toward fixing the classes of problems that have slowed down or confused users in the older add-on line:
+
+- Stay current with upstream OpenClaw releases so users are not stranded on old gateway/auth behavior.
+- Keep startup config reconciliation complete and deterministic, especially for `remote` mode, proxy settings, persisted state, and generated `openclaw.json`.
+- Reduce LAN/Tailscale/HTTPS friction so the gateway URL, landing page, browser security model, and Home Assistant ingress story all agree.
+- Make local operator flows reliable inside the add-on container, including CLI-to-gateway calls, cron/runtime visibility, terminal recovery, and restart safety.
+- Preserve user state under `/config` and keep migration paths predictable when users move from the legacy add-on or older OpenClaw layouts.
+- Tighten validation so user-facing changes land with docs, metadata, translations, and image/release wiring already aligned.
+
 ## What this add-on gives you
 
 | Capability | What it gives you |
@@ -37,6 +48,7 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 | Unattended automation mode | Exec approval prompts are disabled by default so Home Assistant automations and agent workflows do not stop for human approval |
 | Seeded operator brain | Preloaded workspace files (`AGENTS.md`, `IDENTITY.md`, `TOOLS.md`, `MEMORY.md`, and more) plus Home Assistant skill files |
 | Operator dashboard | Live cron/heartbeat visibility, file editing for the seeded workspace and skills, and integration status cards |
+| Operator insight cards | Read-only homeowner, energy, system, predictive-maintenance, and security summaries from live HA state plus local runtime settings |
 | Live HA tool layer | Built-in Home Assistant tools for entities, devices, areas, automations, services, template rendering, and bounded history |
 | Matrix channel | Optional Matrix channel wiring from Home Assistant settings with homeserver auth, DM and room policies, allowlists, and ad-hoc room invites via `groupPolicy=open` + `autoJoin=always` |
 | External intelligence hooks | Optional Context7, Domotz, GitHub issue reporting, MQTT/HiveMQ, BACnet scout, and lightweight system graph scaffolding |
@@ -46,9 +58,11 @@ Do not buy me a coffee. Do not sponsor this repo. If you want to help, open an i
 
 ## Install in 60 seconds
 
+[![Open your Home Assistant instance and add this repository.](https://my.home-assistant.io/badges/supervisor_repository.svg)](https://my.home-assistant.io/redirect/supervisor_repository/?repository_url=https%3A%2F%2Fgithub.com%2FGitDakky%2FOpenClawHomeAssistant)
+
 1. In Home Assistant, open **Settings -> Apps**.
-2. Click **Install App** in the blue button at the bottom-right.
-3. Paste this repository URL:
+2. Click the button above to add the repository directly, or click **Install App** in the blue button at the bottom-right.
+3. If you are adding it manually, paste this repository URL:
    - `https://github.com/GitDakky/OpenClawHomeAssistant`
 4. Exit the dialog, select **OpenClaw Super Home Assistant** from the list, and click **Install**.
 5. Look for the GitDakky fork branding with the lobster-in-cape crest so you do not pick the legacy add-on by mistake.
@@ -66,6 +80,12 @@ oc-onboard
 ```sh
 jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json
 ```
+
+Before you test the Gateway UI:
+
+- If you are staying on the same HA host or just using the terminal first, the default local path is fine.
+- If you want to open the Control UI from a phone, tablet, or another LAN browser, switch `access_mode` to `lan_https` and restart before testing.
+- If you are using a reverse proxy, Tailscale hostname, or remote gateway, leave `gateway_public_url` empty unless you need to override the browser-facing host. In remote mode, keep `gateway_remote_url` as `ws://` or `wss://` and use `gateway_public_url` only for the browser launch URL.
 
 For later reconfiguration, use `oc-configure` instead of raw `openclaw configure` for the same reason.
 
@@ -99,6 +119,32 @@ In most local installs, leave `gateway_public_url` empty. The landing page now d
 - If you add a fine-grained GitHub token with `Issues: write` in add-on settings, the assistant can file bugs and feature requests directly to [this repository’s Issues](https://github.com/GitDakky/OpenClawHomeAssistant/issues) via `oc-report-issue`.
 - The dashboard now exposes those files directly so you can review or edit them without dropping into a shell unless you want to.
 
+## Roadmap
+
+This is the direction of the fork. Items below are roadmap work unless already called out as shipped elsewhere in this README or in the changelog.
+
+### Near-term hardening
+
+- Stay ahead of the legacy line on OpenClaw version bumps, gateway fixes, and release cadence.
+- Keep closing operational gaps around `remote` mode, Tailscale/HTTPS access, LAN gateway discovery, and CLI-to-gateway reliability.
+- Expand validation and smoke coverage for startup, nginx rendering, onboarding, migration, and persistence-sensitive changes.
+- Continue turning Home Assistant add-on options into safe, first-class runtime wiring instead of asking users to patch `openclaw.json` by hand.
+
+### Home intelligence
+
+- Predictive maintenance flows that look at device history, failures, battery patterns, climate/runtime drift, and service intervals before something breaks.
+- Homeowner insight packs that summarize what changed in the house, what is costing money, what is behaving oddly, and what should be automated next.
+- Energy optimization loops that use tariffs, solar/battery signals, occupancy, weather, and appliance patterns to recommend or trigger better schedules.
+- System optimization that watches Home Assistant, add-ons, network reachability, and automations for drift, dead integrations, noisy logs, and performance regressions.
+- Security insight layers that surface exposed services, risky automations, stale secrets, unexpected device behavior, and weak network posture in plain language.
+
+### Voice and communications
+
+- Richer Assist and voice-agent flows so OpenClaw becomes the practical operations brain behind Home Assistant conversations.
+- Multi-channel voice and call routing built around Janus so the assistant can reach the homeowner on the channel that actually matters at the time.
+- Channel targets under consideration include Matrix, 3CX, WhatsApp, and other voice-capable communications surfaces where escalation or acknowledgement matters.
+- Escalation logic should support notifying, calling, summarizing, and following up across channels when the house needs a human decision.
+
 ## Supported architectures
 
 | Architecture | Supported |
@@ -126,7 +172,10 @@ In most local installs, leave `gateway_public_url` empty. The landing page now d
 - [DOCS.md](DOCS.md): installation, configuration, access modes, MCP, persistence, troubleshooting
 - [SECURITY.md](SECURITY.md): risk model, exposure guidance, and safe operating practices
 - [openclaw_assistant/CHANGELOG.md](openclaw_assistant/CHANGELOG.md): release notes for add-on versions
+- [ROADMAP.md](ROADMAP.md): execution backlog for hardening, home intelligence, and voice/escalation work
 - [MAINTENANCE.md](MAINTENANCE.md): how this fork pins, bumps, validates, and releases OpenClaw updates
+- [VOICE_ESCALATION_POLICY.md](VOICE_ESCALATION_POLICY.md): target order, acknowledgement semantics, and escalation rules
+- [JANUS_MEDIA_CONTROL_PLANE.md](JANUS_MEDIA_CONTROL_PLANE.md): future media/control boundary for outbound voice sessions
 
 ## Companion integration
 
@@ -134,4 +183,10 @@ The companion integration lives here:
 
 - [OpenClawHomeAssistantIntegration](https://github.com/techartdev/OpenClawHomeAssistantIntegration)
 
-It can connect to this add-on or to any other reachable OpenClaw gateway.
+Use it with these connection rules:
+
+- If the integration and this add-on are on the same Home Assistant host, prefer auto-discovery or the local gateway path. Do not point it at the Home Assistant ingress page URL.
+- If the integration runs from another Home Assistant instance or another machine, point it at the real reachable gateway URL and use the gateway token.
+- If this add-on is set to `gateway_mode=remote`, connect the integration to the remote gateway itself. The add-on page stays the operator surface, not the gateway endpoint.
+
+The full connection guidance lives in [DOCS.md](DOCS.md).

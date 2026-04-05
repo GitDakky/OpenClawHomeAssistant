@@ -13,15 +13,15 @@ The add-on packages OpenClaw + nginx + ttyd and manages startup/configuration gl
   - `SECURITY.md`
   - `repository.yaml`
 - Runtime implementation (all add-on behavior lives here):
-  - `openclaw_assistant_dev/run.sh` (PID 1 orchestrator)
-  - `openclaw_assistant_dev/oc_config_helper.py` (safe JSON config edits)
-  - `openclaw_assistant_dev/render_nginx.py` (template rendering)
-  - `openclaw_assistant_dev/nginx.conf.tpl`
-  - `openclaw_assistant_dev/landing.html.tpl`
-  - `openclaw_assistant_dev/config.yaml` (HA options + schema)
-  - `openclaw_assistant_dev/translations/*.yaml` (all locale UI strings)
-  - `openclaw_assistant_dev/Dockerfile`
-  - `openclaw_assistant_dev/CHANGELOG.md`
+  - `openclaw_assistant/run.sh` (PID 1 orchestrator)
+  - `openclaw_assistant/oc_config_helper.py` (safe JSON config edits)
+  - `openclaw_assistant/render_nginx.py` (template rendering)
+  - `openclaw_assistant/nginx.conf.tpl`
+  - `openclaw_assistant/landing.html.tpl`
+  - `openclaw_assistant/config.yaml` (HA options + schema)
+  - `openclaw_assistant/translations/*.yaml` (all locale UI strings)
+  - `openclaw_assistant/Dockerfile`
+  - `openclaw_assistant/CHANGELOG.md`
 
 ## Core Rules
 
@@ -35,18 +35,18 @@ The add-on packages OpenClaw + nginx + ttyd and manages startup/configuration gl
 
 When adding/changing any add-on option, update **all** of the following in one change:
 
-1. `openclaw_assistant_dev/config.yaml`
+1. `openclaw_assistant/config.yaml`
    - `options:` default
    - `schema:` validation entry
    - comments/help text
-2. `openclaw_assistant_dev/translations/en.yaml`
-3. `openclaw_assistant_dev/translations/bg.yaml`
-4. `openclaw_assistant_dev/translations/de.yaml`
-5. `openclaw_assistant_dev/translations/es.yaml`
-6. `openclaw_assistant_dev/translations/pl.yaml`
-7. `openclaw_assistant_dev/translations/pt-BR.yaml`
+2. `openclaw_assistant/translations/en.yaml`
+3. `openclaw_assistant/translations/bg.yaml`
+4. `openclaw_assistant/translations/de.yaml`
+5. `openclaw_assistant/translations/es.yaml`
+6. `openclaw_assistant/translations/pl.yaml`
+7. `openclaw_assistant/translations/pt-BR.yaml`
 8. `DOCS.md` configuration reference / troubleshooting if user-facing
-9. `openclaw_assistant_dev/CHANGELOG.md`
+9. `openclaw_assistant/CHANGELOG.md`
 
 If any of these are skipped, the UX becomes inconsistent in HA.
 
@@ -72,8 +72,8 @@ If any of these are skipped, the UX becomes inconsistent in HA.
 ## Versioning and Changelog
 
 - User-visible changes should update:
-  - `openclaw_assistant_dev/CHANGELOG.md`
-  - `openclaw_assistant_dev/config.yaml` version
+  - `openclaw_assistant/CHANGELOG.md`
+  - `openclaw_assistant/config.yaml` version
 - Keep changelog entries user-facing and action-oriented.
 
 ## Coding Style
@@ -88,9 +88,7 @@ If any of these are skipped, the UX becomes inconsistent in HA.
 From repo root:
 
 ```sh
-bash -n openclaw_assistant_dev/run.sh
-python3 -m py_compile openclaw_assistant_dev/oc_config_helper.py
-python3 -m py_compile openclaw_assistant_dev/render_nginx.py
+bash scripts/validate_local.sh
 ```
 
 For option changes:

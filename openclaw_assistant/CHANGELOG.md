@@ -2,6 +2,23 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.13] - 2026-04-05
+
+### Added
+- Added a read-only Home Intelligence rack to the ingress dashboard with bounded homeowner, energy, system, predictive-maintenance, and security insight cards.
+- Added Home Assistant snapshot heuristics in the local dashboard API so the add-on can summarize recent changes, top live loads, unavailable entities, low batteries, update backlog, unstable sensors, and security-relevant setting tradeoffs.
+
+### Changed
+- Updated README and DOCS to document the new operator insight cards as part of the shipped dashboard surface.
+- Added explicit Assist-first setup guidance plus backlog/design artifacts for escalation policy and Janus media boundaries so future voice work stays bounded.
+
+## [0.7.12] - 2026-04-05
+
+### Changed
+- Tightened first-run operator guidance across the README, full docs, and ingress landing page so users pick the correct access path before testing the Gateway UI.
+- Clarified that `gateway_public_url` is only the browser-facing launch URL while `gateway_remote_url` remains the backend `ws://` or `wss://` remote-gateway endpoint.
+- Updated companion integration guidance so local add-on installs, `lan_https`, remote Home Assistant hosts, and `gateway_mode: remote` each point at the correct gateway path instead of implying the ingress page is a valid integration endpoint.
+
 ## [0.7.11] - 2026-04-05
 
 ### Added
