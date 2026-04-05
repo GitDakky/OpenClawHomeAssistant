@@ -2,6 +2,17 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.11] - 2026-04-05
+
+### Added
+- Added Matrix channel settings in the Home Assistant add-on configuration for homeserver URL, private-network allowance, bot user ID, access token or password auth, encryption, DM policy, room policy, room allowlist, and invite auto-join behavior.
+- Added runtime wiring that configures `channels.matrix` in OpenClaw automatically from add-on settings and persists Matrix secrets under `/config/secrets/`.
+- Added Matrix status visibility to the operator dashboard and system graph metadata.
+
+### Changed
+- The fork now defaults Matrix room handling to `groupPolicy=open` with `autoJoin=always` so users can invite the bot into rooms ad hoc without pre-whitelisting every room.
+- Matrix direct messages still default to `pairing` so the low-friction room flow does not silently remove the safer DM boundary.
+
 ## [0.7.10] - 2026-04-04
 
 ### Changed

@@ -74,6 +74,58 @@ configuration:
     name: Desactivar avisos de aprobación exec
     description: "Cuando está ACTIVADO, fuerza las aprobaciones de ejecución del host de OpenClaw a security=full, ask=off, askFallback=full y alinea tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off y strictInlineEval=false. Este fork lo deja ACTIVADO por defecto para que las automatizaciones no se detengan por aprobaciones humanas. Desactívalo solo si quieres recuperar los avisos."
 
+  enable_matrix:
+    name: Activar canal Matrix
+    description: "Activa el soporte de Matrix desde los ajustes de Home Assistant. Cuando está ACTIVADO, el add-on configura channels.matrix en OpenClaw e intenta asegurar que el plugin de Matrix esté disponible."
+
+  matrix_homeserver:
+    name: Homeserver de Matrix
+    description: "URL del homeserver de Matrix, por ejemplo https://matrix.example.org o http://matrix-synapse:8008 para un Synapse privado."
+
+  matrix_allow_private_network:
+    name: Permitir homeserver Matrix privado
+    description: "Cuando está ACTIVADO, permite homeservers de Matrix en localhost, LAN, Tailscale o nombres internos. Necesario para instalaciones privadas de Synapse/Dendrite."
+
+  matrix_user_id:
+    name: ID de usuario Matrix
+    description: "ID completo de usuario Matrix para la cuenta del bot, por ejemplo @openclaw:example.org."
+
+  matrix_access_token:
+    name: Token de acceso Matrix
+    description: "Método preferido de autenticación Matrix. Si está configurado, el add-on escribe channels.matrix.accessToken e ignora matrix_password."
+
+  matrix_password:
+    name: Contraseña Matrix
+    description: "Contraseña de inicio de sesión Matrix de respaldo cuando no se proporciona token. Usa token o contraseña."
+
+  matrix_encryption:
+    name: Cifrado Matrix
+    description: "Activa el cifrado de extremo a extremo de Matrix para la cuenta configurada."
+
+  matrix_dm_policy:
+    name: Política de DM de Matrix
+    description: "Política de acceso para mensajes directos de Matrix. pairing es el valor más seguro, open permite mensajes directos sin emparejamiento y allowlist restringe los DMs a usuarios aprobados."
+
+  matrix_dm_allow_from:
+    name: Lista permitida de DM de Matrix
+    description: "IDs de usuario Matrix separados por comas que pueden escribir al bot cuando la política de DM es allowlist."
+
+  matrix_group_policy:
+    name: Política de salas Matrix
+    description: "Política de acceso a salas de Matrix. open es la opción más fácil para invitaciones ad hoc, allowlist limita las respuestas a salas de Matrix Room Allowlist y disabled bloquea el tráfico de salas."
+
+  matrix_group_allow_from:
+    name: Lista permitida de usuarios en salas Matrix
+    description: "IDs de usuario Matrix separados por comas que pueden activar respuestas dentro de salas."
+
+  matrix_room_allowlist:
+    name: Lista permitida de salas Matrix
+    description: "IDs de sala o alias separados por comas usados para el modo de allowlist de salas y el modo de auto-join allowlist."
+
+  matrix_auto_join:
+    name: Auto-join de Matrix
+    description: "Política de auto-unión a invitaciones. always permite invitar al bot sin pre-whitelisting, allowlist solo une salas de Matrix Room Allowlist y off desactiva el auto-join."
+
   gateway_bind_mode:
     name: Modo de enlace del Gateway
     description: "Modo de enlace de red: loopback (solo 127.0.0.1, más seguro), lan (todas las interfaces) o tailnet (solo interfaz Tailscale). Se anula con las preselecciones del modo de acceso."

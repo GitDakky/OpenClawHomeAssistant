@@ -1,5 +1,5 @@
 name: OpenClaw Super Home Assistant
-version: "0.7.10"
+version: "0.7.11"
 slug: openclaw_super_home_assistant
 description: Run the GitDakky OpenClaw fork as a Home Assistant app with migration support.
 url: https://github.com/GitDakky/OpenClawHomeAssistant
@@ -175,6 +175,25 @@ options:
   # Use a fine-grained token with Issues: write on GitDakky/OpenClawHomeAssistant.
   github_issues_token: ""
 
+  # Matrix channel support.
+  # Current OpenClaw Matrix defaults are fail-closed for rooms, which is awkward for
+  # ad-hoc Home Assistant use. This add-on defaults Matrix rooms to groupPolicy=open
+  # and autoJoin=always when enabled so users can invite the bot without separately
+  # pre-whitelisting every room. Mention-gating still applies by default in OpenClaw.
+  enable_matrix: false
+  matrix_homeserver: ""
+  matrix_allow_private_network: false
+  matrix_user_id: ""
+  matrix_access_token: ""
+  matrix_password: ""
+  matrix_encryption: false
+  matrix_dm_policy: pairing
+  matrix_dm_allow_from: ""
+  matrix_group_policy: open
+  matrix_group_allow_from: ""
+  matrix_room_allowlist: ""
+  matrix_auto_join: always
+
   # Optional external MQTT broker details (for example HiveMQ Cloud).
   # broker URL examples: mqtt://broker.local:1883 or mqtts://cluster.s2.eu.hivemq.cloud:8883
   mqtt_broker_url: ""
@@ -225,6 +244,19 @@ schema:
   domotz_api_key: str?
   domotz_site_id: str?
   github_issues_token: str?
+  enable_matrix: bool?
+  matrix_homeserver: str?
+  matrix_allow_private_network: bool?
+  matrix_user_id: str?
+  matrix_access_token: str?
+  matrix_password: str?
+  matrix_encryption: bool?
+  matrix_dm_policy: list(pairing|allowlist|open|disabled)?
+  matrix_dm_allow_from: str?
+  matrix_group_policy: list(open|allowlist|disabled)?
+  matrix_group_allow_from: str?
+  matrix_room_allowlist: str?
+  matrix_auto_join: list(always|allowlist|off)?
   mqtt_broker_url: str?
   mqtt_username: str?
   mqtt_password: str?

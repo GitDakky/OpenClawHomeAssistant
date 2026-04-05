@@ -74,6 +74,58 @@ configuration:
     name: Disable Exec Approval Prompts
     description: "When ON, forces OpenClaw host exec approvals to security=full, ask=off, askFallback=full and aligns tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off, and strictInlineEval=false. This fork defaults it to ON so automations do not stop for human approval. Turn it OFF only if you want approval prompts restored."
 
+  enable_matrix:
+    name: Enable Matrix Channel
+    description: "Enable Matrix channel support from Home Assistant settings. When ON, the add-on configures channels.matrix in OpenClaw and will try to ensure the Matrix plugin is available."
+
+  matrix_homeserver:
+    name: Matrix Homeserver
+    description: "Matrix homeserver URL, for example https://matrix.example.org or http://matrix-synapse:8008 for a private Synapse deployment."
+
+  matrix_allow_private_network:
+    name: Allow Private Matrix Homeserver
+    description: "When ON, allows Matrix homeservers on localhost, LAN, Tailscale, or internal hostnames. Required for private Synapse/Dendrite installs."
+
+  matrix_user_id:
+    name: Matrix User ID
+    description: "Full Matrix user ID for the bot account, for example @openclaw:example.org."
+
+  matrix_access_token:
+    name: Matrix Access Token
+    description: "Preferred Matrix auth method. If set, the add-on writes channels.matrix.accessToken and ignores matrix_password."
+
+  matrix_password:
+    name: Matrix Password
+    description: "Fallback Matrix login password when no access token is supplied. Use either token or password."
+
+  matrix_encryption:
+    name: Matrix Encryption
+    description: "Enable Matrix end-to-end encryption support for the configured account."
+
+  matrix_dm_policy:
+    name: Matrix DM Policy
+    description: "DM access policy for Matrix. pairing is the safest default, open allows direct messages without pairing, allowlist restricts DMs to approved users."
+
+  matrix_dm_allow_from:
+    name: Matrix DM Allowlist
+    description: "Comma-separated Matrix user IDs allowed to DM the bot when DM policy is allowlist. Example: @alice:example.org,@bob:example.org"
+
+  matrix_group_policy:
+    name: Matrix Room Policy
+    description: "Room access policy for Matrix. open is the easiest mode for ad-hoc invites, allowlist restricts replies to rooms listed in Matrix Room Allowlist, disabled blocks room traffic."
+
+  matrix_group_allow_from:
+    name: Matrix Room User Allowlist
+    description: "Optional comma-separated Matrix user IDs allowed to trigger replies in rooms. Leave empty to accept any allowed room member under the chosen room policy."
+
+  matrix_room_allowlist:
+    name: Matrix Room Allowlist
+    description: "Comma-separated room IDs or aliases used for room allowlist mode and auto-join allowlist mode. Example: !roomid:example.org,#ops:example.org"
+
+  matrix_auto_join:
+    name: Matrix Auto-Join
+    description: "Invite auto-join policy. always lets users invite the bot into rooms without pre-whitelisting, allowlist only joins rooms from Matrix Room Allowlist, off disables invite auto-join."
+
   gateway_bind_mode:
     name: Gateway Bind Mode
     description: Network bind mode - loopback (127.0.0.1 only, most secure), lan (all interfaces), or tailnet (Tailscale interface only). Overridden by access_mode presets.

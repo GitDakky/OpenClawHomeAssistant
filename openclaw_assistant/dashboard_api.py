@@ -197,6 +197,15 @@ def refresh_graph_snapshot() -> dict[str, Any]:
                 {"configured": bool_env("DOMOTZ_ENABLED"), "siteId": os.environ.get("DOMOTZ_SITE_ID", "")},
             ),
             (
+                "matrix",
+                bool_env("MATRIX_ENABLED"),
+                {
+                    "configured": bool_env("MATRIX_ENABLED"),
+                    "homeserver": os.environ.get("MATRIX_HOMESERVER", ""),
+                    "userId": os.environ.get("MATRIX_USER_ID", ""),
+                },
+            ),
+            (
                 "mqtt",
                 bool_env("MQTT_ENABLED"),
                 {"configured": bool_env("MQTT_ENABLED"), "brokerUrl": os.environ.get("MQTT_BROKER_URL", "")},
@@ -274,6 +283,20 @@ def integration_status() -> dict[str, Any]:
             "configured": bool_env("DOMOTZ_ENABLED"),
             "siteId": os.environ.get("DOMOTZ_SITE_ID", ""),
             "secretPath": "/config/secrets/domotz.api_key",
+        },
+        "matrix": {
+            "configured": bool_env("MATRIX_ENABLED"),
+            "homeserver": os.environ.get("MATRIX_HOMESERVER", ""),
+            "userId": os.environ.get("MATRIX_USER_ID", ""),
+            "accessTokenConfigured": bool_env("MATRIX_ACCESS_TOKEN_CONFIGURED"),
+            "passwordConfigured": bool_env("MATRIX_PASSWORD_CONFIGURED"),
+            "dmPolicy": os.environ.get("MATRIX_DM_POLICY", ""),
+            "groupPolicy": os.environ.get("MATRIX_GROUP_POLICY", ""),
+            "autoJoin": os.environ.get("MATRIX_AUTO_JOIN", ""),
+            "secretPaths": [
+                "/config/secrets/matrix.access_token",
+                "/config/secrets/matrix.password",
+            ],
         },
         "mqtt": {
             "configured": bool_env("MQTT_ENABLED"),

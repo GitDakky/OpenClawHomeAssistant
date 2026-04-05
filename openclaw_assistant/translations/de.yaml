@@ -74,6 +74,58 @@ configuration:
     name: Exec-Approval-Abfragen deaktivieren
     description: "Wenn EIN, erzwingt dies für OpenClaw-Host-Exec-Approvals security=full, ask=off, askFallback=full und richtet tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off und strictInlineEval=false aus. Dieser Fork setzt das standardmäßig auf EIN, damit Automationen nicht auf menschliche Freigaben warten. Nur AUS schalten, wenn du Approval-Abfragen wiederhaben willst."
 
+  enable_matrix:
+    name: Matrix-Kanal aktivieren
+    description: "Aktiviert Matrix-Unterstützung aus den Home-Assistant-Einstellungen. Wenn EIN, konfiguriert das Add-on channels.matrix in OpenClaw und versucht, das Matrix-Plugin bereitzustellen."
+
+  matrix_homeserver:
+    name: Matrix-Homeserver
+    description: "Matrix-Homeserver-URL, zum Beispiel https://matrix.example.org oder http://matrix-synapse:8008 für eine private Synapse-Instanz."
+
+  matrix_allow_private_network:
+    name: Privaten Matrix-Homeserver erlauben
+    description: "Wenn EIN, erlaubt dies Matrix-Homeserver auf localhost, LAN, Tailscale oder internen Hostnamen. Erforderlich für private Synapse-/Dendrite-Installationen."
+
+  matrix_user_id:
+    name: Matrix-Benutzer-ID
+    description: "Vollständige Matrix-Benutzer-ID für das Bot-Konto, zum Beispiel @openclaw:example.org."
+
+  matrix_access_token:
+    name: Matrix-Access-Token
+    description: "Bevorzugte Matrix-Authentifizierung. Wenn gesetzt, schreibt das Add-on channels.matrix.accessToken und ignoriert matrix_password."
+
+  matrix_password:
+    name: Matrix-Passwort
+    description: "Fallback-Passwort für Matrix-Login, wenn kein Access-Token gesetzt ist. Nutze entweder Token oder Passwort."
+
+  matrix_encryption:
+    name: Matrix-Verschlüsselung
+    description: "Aktiviert Matrix-Ende-zu-Ende-Verschlüsselung für das konfigurierte Konto."
+
+  matrix_dm_policy:
+    name: Matrix-DM-Richtlinie
+    description: "DM-Zugriffsrichtlinie für Matrix. pairing ist der sicherste Standard, open erlaubt Direktnachrichten ohne Pairing, allowlist beschränkt DMs auf freigegebene Nutzer."
+
+  matrix_dm_allow_from:
+    name: Matrix-DM-Allowlist
+    description: "Kommagetrennte Matrix-Benutzer-IDs, die dem Bot schreiben dürfen, wenn die DM-Richtlinie allowlist ist."
+
+  matrix_group_policy:
+    name: Matrix-Raumrichtlinie
+    description: "Raumzugriffsrichtlinie für Matrix. open ist am einfachsten für ad-hoc Einladungen, allowlist beschränkt Antworten auf Räume aus der Matrix-Raum-Allowlist, disabled blockiert Raumverkehr."
+
+  matrix_group_allow_from:
+    name: Matrix-Raum-Benutzer-Allowlist
+    description: "Optionale kommagetrennte Matrix-Benutzer-IDs, die Antworten in Räumen auslösen dürfen."
+
+  matrix_room_allowlist:
+    name: Matrix-Raum-Allowlist
+    description: "Kommagetrennte Raum-IDs oder Aliase für Raum-Allowlist-Modus und Auto-Join-Allowlist-Modus."
+
+  matrix_auto_join:
+    name: Matrix-Auto-Join
+    description: "Einladungs-Auto-Join-Richtlinie. always erlaubt ad-hoc Einladungen ohne Vorab-Whitelist, allowlist tritt nur Räumen aus der Matrix-Raum-Allowlist bei, off deaktiviert Auto-Join."
+
   gateway_bind_mode:
     name: Gateway-Bindungsmodus
     description: Netzwerk-Bindungsmodus - loopback (nur 127.0.0.1, am sichersten), lan (alle Schnittstellen) oder tailnet (nur Tailscale-Schnittstelle). Wird durch Zugriffsmodus-Voreinstellungen überschrieben.

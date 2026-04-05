@@ -330,6 +330,19 @@ When `gateway_auth_mode: trusted-proxy` is used, the add-on sets `gateway.auth.t
 | `mqtt_broker_url` | string | _(empty)_ | Optional external MQTT broker URL such as `mqtt://broker.local:1883` or `mqtts://cluster.s2.eu.hivemq.cloud:8883`. Stored in `/config/secrets/mqtt.broker_url`. |
 | `mqtt_username` | string | _(empty)_ | Optional MQTT username. Stored in `/config/secrets/mqtt.username`. |
 | `mqtt_password` | string | _(empty)_ | Optional MQTT password. Stored in `/config/secrets/mqtt.password`. |
+| `enable_matrix` | bool | `false` | Enable Matrix channel support from Home Assistant settings. When ON, the add-on configures `channels.matrix` in OpenClaw and will try to ensure the Matrix plugin is installed. |
+| `matrix_homeserver` | string | _(empty)_ | Matrix homeserver URL such as `https://matrix.example.org` or `http://matrix-synapse:8008` for a private Synapse deployment. |
+| `matrix_allow_private_network` | bool | `false` | Allows private or internal Matrix homeservers on localhost, LAN, Tailscale, or internal hostnames. Turn ON for self-hosted Synapse/Dendrite installs. |
+| `matrix_user_id` | string | _(empty)_ | Full Matrix user ID for the bot account, for example `@openclaw:example.org`. |
+| `matrix_access_token` | string | _(empty)_ | Preferred Matrix auth method. If set, the add-on writes `channels.matrix.accessToken` and ignores `matrix_password`. Stored in `/config/secrets/matrix.access_token`. |
+| `matrix_password` | string | _(empty)_ | Fallback Matrix password when you do not want to use an access token. Stored in `/config/secrets/matrix.password`. |
+| `matrix_encryption` | bool | `false` | Enable Matrix end-to-end encryption for the configured account. Leave OFF unless you explicitly want encrypted-room support and have tested the account/device flow. |
+| `matrix_dm_policy` | `pairing` / `allowlist` / `open` / `disabled` | `pairing` | DM policy for Matrix. `pairing` is the safest default, `open` removes DM pairing friction, `allowlist` restricts DMs to approved users, and `disabled` blocks DMs. |
+| `matrix_dm_allow_from` | string | _(empty)_ | Comma-separated Matrix user IDs allowed to DM the bot when `matrix_dm_policy: allowlist`. |
+| `matrix_group_policy` | `open` / `allowlist` / `disabled` | `open` | Room policy for Matrix. `open` is the low-friction mode for ad-hoc room invites, `allowlist` restricts room replies to `matrix_room_allowlist`, and `disabled` blocks room traffic. |
+| `matrix_group_allow_from` | string | _(empty)_ | Optional comma-separated Matrix user IDs allowed to trigger replies inside rooms. Leave empty to allow any user in an allowed room under the chosen room policy. |
+| `matrix_room_allowlist` | string | _(empty)_ | Optional comma-separated Matrix room IDs allowed when `matrix_group_policy: allowlist` or `matrix_auto_join: allowlist`. |
+| `matrix_auto_join` | `always` / `allowlist` / `off` | `always` | Invite auto-join policy. `always` lets users invite the bot into rooms without pre-whitelisting, `allowlist` only joins rooms in `matrix_room_allowlist`, and `off` disables auto-join entirely. |
 | `enable_bacnet_scout` | bool | `false` | Enables BACnet/IP operator scaffolding and dashboard status. It does not silently probe the network by itself. |
 
 ### Router SSH
@@ -515,6 +528,46 @@ You can now use Assist (voice or text) and OpenClaw will handle conversations, c
 ### 6d. Browser Automation (Chromium)
 
 The add-on includes **Chromium** for browser-based automation tasks. OpenClaw can use it for web scraping, form filling, website testing, and other browser automation skills.
+
+### 6d. Matrix channel
+
+The add-on can provision Matrix directly from Home Assistant settings. This is the intended route if you want operators to invite OpenClaw into rooms without dropping into raw `openclaw config` commands.
+
+**Recommended low-friction setup**
+
+1. In **Settings -> Apps -> OpenClaw Super Home Assistant -> Configuration**
+2. Set:
+
+| Option | Value |
+|---|---|
+| `enable_matrix` | `true` |
+| `matrix_homeserver` | `https://matrix.example.org` |
+| `matrix_user_id` | `@openclaw:example.org` |
+| `matrix_access_token` | your bot token |
+| `matrix_group_policy` | `open` |
+| `matrix_auto_join` | `always` |
+| `matrix_dm_policy` | `pairing` |
+
+3. Restart the add-on
+
+This is the practical workaround for Matrix's usual room whitelist friction:
+- `matrix_group_policy: open` lets the bot respond in any joined room
+- `matrix_auto_join: always` lets users invite the bot into new rooms ad hoc
+- `matrix_dm_policy: pairing` keeps direct messages safer by default
+
+**When to use allowlists instead**
+
+Use these only if you want a tighter Matrix boundary:
+- `matrix_dm_allow_from` for a direct-message allowlist
+- `matrix_group_allow_from` for a room member allowlist
+- `matrix_room_allowlist` plus `matrix_group_policy: allowlist` for a strict room list
+
+**Private homeservers**
+
+If your Matrix server is self-hosted on LAN/Tailscale/internal DNS:
+- set `matrix_allow_private_network: true`
+
+Without that, the add-on will refuse private homeserver targets for safety.
 
 ### 6d-mcp. Built-in Home Assistant tool layer
 

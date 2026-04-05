@@ -223,6 +223,19 @@ CONTEXT7_API_KEY=$(jq -r '.context7_api_key // empty' "$OPTIONS_FILE")
 DOMOTZ_API_KEY=$(jq -r '.domotz_api_key // empty' "$OPTIONS_FILE")
 DOMOTZ_SITE_ID=$(jq -r '.domotz_site_id // empty' "$OPTIONS_FILE")
 GITHUB_ISSUES_TOKEN=$(jq -r '.github_issues_token // empty' "$OPTIONS_FILE")
+ENABLE_MATRIX=$(jq -r '.enable_matrix // false' "$OPTIONS_FILE")
+MATRIX_HOMESERVER=$(jq -r '.matrix_homeserver // empty' "$OPTIONS_FILE")
+MATRIX_ALLOW_PRIVATE_NETWORK=$(jq -r '.matrix_allow_private_network // false' "$OPTIONS_FILE")
+MATRIX_USER_ID=$(jq -r '.matrix_user_id // empty' "$OPTIONS_FILE")
+MATRIX_ACCESS_TOKEN=$(jq -r '.matrix_access_token // empty' "$OPTIONS_FILE")
+MATRIX_PASSWORD=$(jq -r '.matrix_password // empty' "$OPTIONS_FILE")
+MATRIX_ENCRYPTION=$(jq -r '.matrix_encryption // false' "$OPTIONS_FILE")
+MATRIX_DM_POLICY=$(jq -r '.matrix_dm_policy // "pairing"' "$OPTIONS_FILE")
+MATRIX_DM_ALLOW_FROM=$(jq -r '.matrix_dm_allow_from // empty' "$OPTIONS_FILE")
+MATRIX_GROUP_POLICY=$(jq -r '.matrix_group_policy // "open"' "$OPTIONS_FILE")
+MATRIX_GROUP_ALLOW_FROM=$(jq -r '.matrix_group_allow_from // empty' "$OPTIONS_FILE")
+MATRIX_ROOM_ALLOWLIST=$(jq -r '.matrix_room_allowlist // empty' "$OPTIONS_FILE")
+MATRIX_AUTO_JOIN=$(jq -r '.matrix_auto_join // "always"' "$OPTIONS_FILE")
 MQTT_BROKER_URL=$(jq -r '.mqtt_broker_url // empty' "$OPTIONS_FILE")
 MQTT_USERNAME=$(jq -r '.mqtt_username // empty' "$OPTIONS_FILE")
 MQTT_PASSWORD=$(jq -r '.mqtt_password // empty' "$OPTIONS_FILE")
@@ -767,6 +780,8 @@ configure_external_integrations() {
   write_secret_file /config/secrets/domotz.api_key "$DOMOTZ_API_KEY"
   write_secret_file /config/secrets/domotz.site_id "$DOMOTZ_SITE_ID"
   write_secret_file /config/secrets/github_issues.token "$GITHUB_ISSUES_TOKEN"
+  write_secret_file /config/secrets/matrix.access_token "$MATRIX_ACCESS_TOKEN"
+  write_secret_file /config/secrets/matrix.password "$MATRIX_PASSWORD"
   write_secret_file /config/secrets/mqtt.broker_url "$MQTT_BROKER_URL"
   write_secret_file /config/secrets/mqtt.username "$MQTT_USERNAME"
   write_secret_file /config/secrets/mqtt.password "$MQTT_PASSWORD"
@@ -775,6 +790,9 @@ configure_external_integrations() {
   export DOMOTZ_ENABLED=false
   export MQTT_ENABLED=false
   export BACNET_SCOUT_ENABLED=false
+  export MATRIX_ENABLED=false
+  export MATRIX_ACCESS_TOKEN_CONFIGURED=false
+  export MATRIX_PASSWORD_CONFIGURED=false
   export MQTT_USERNAME_CONFIGURED=false
   export MQTT_PASSWORD_CONFIGURED=false
   export HA_MCP_ENABLED=false
@@ -804,6 +822,23 @@ configure_external_integrations() {
   if [ -n "$GITHUB_ISSUES_TOKEN" ]; then
     export GITHUB_ISSUES_ENABLED=true
     export GITHUB_ISSUES_TOKEN_FILE=/config/secrets/github_issues.token
+  fi
+
+  if [ "$ENABLE_MATRIX" = "true" ] || [ "$ENABLE_MATRIX" = "1" ]; then
+    export MATRIX_ENABLED=true
+  fi
+  export MATRIX_HOMESERVER
+  export MATRIX_USER_ID
+  export MATRIX_DM_POLICY
+  export MATRIX_GROUP_POLICY
+  export MATRIX_AUTO_JOIN
+  if [ -n "$MATRIX_ACCESS_TOKEN" ]; then
+    export MATRIX_ACCESS_TOKEN_FILE=/config/secrets/matrix.access_token
+    export MATRIX_ACCESS_TOKEN_CONFIGURED=true
+  fi
+  if [ -n "$MATRIX_PASSWORD" ]; then
+    export MATRIX_PASSWORD_FILE=/config/secrets/matrix.password
+    export MATRIX_PASSWORD_CONFIGURED=true
   fi
 
   if [ -n "$MQTT_BROKER_URL" ]; then
@@ -845,6 +880,16 @@ configure_external_integrations() {
     "enabled": ${GITHUB_ISSUES_ENABLED},
     "repo": "GitDakky/OpenClawHomeAssistant"
   },
+  "matrix": {
+    "enabled": ${MATRIX_ENABLED},
+    "homeserver": $(printf '%s' "$MATRIX_HOMESERVER" | jq -Rs .),
+    "userId": $(printf '%s' "$MATRIX_USER_ID" | jq -Rs .),
+    "accessTokenConfigured": ${MATRIX_ACCESS_TOKEN_CONFIGURED},
+    "passwordConfigured": ${MATRIX_PASSWORD_CONFIGURED},
+    "dmPolicy": $(printf '%s' "$MATRIX_DM_POLICY" | jq -Rs .),
+    "groupPolicy": $(printf '%s' "$MATRIX_GROUP_POLICY" | jq -Rs .),
+    "autoJoin": $(printf '%s' "$MATRIX_AUTO_JOIN" | jq -Rs .)
+  },
   "mqtt": {
     "enabled": ${MQTT_ENABLED},
     "brokerUrl": $(printf '%s' "$MQTT_BROKER_URL" | jq -Rs .),
@@ -872,6 +917,8 @@ configure_external_integrations
 cat > /config/CONNECTION_NOTES.txt <<EOF
 Home Assistant token (if set): /config/secrets/homeassistant.token
 GitHub issues token (if set): /config/secrets/github_issues.token
+Matrix access token (if set): /config/secrets/matrix.access_token
+Matrix password (if set): /config/secrets/matrix.password
 Router SSH (generic):
   host=${ROUTER_HOST}
   user=${ROUTER_USER}
@@ -1022,6 +1069,40 @@ if [ -f "$HELPER_PATH" ]; then
   fi
 else
   echo "WARN: oc_config_helper.py not found, cannot configure exec approval policy"
+fi
+
+if [ "$ENABLE_MATRIX" = "true" ] || [ "$ENABLE_MATRIX" = "1" ]; then
+  if openclaw plugins inspect @openclaw/matrix --json >/dev/null 2>&1; then
+    echo "INFO: Matrix plugin is available."
+  else
+    echo "INFO: Installing Matrix plugin @openclaw/matrix ..."
+    if ! openclaw plugins install @openclaw/matrix >/tmp/openclaw-matrix-plugin-install.log 2>&1; then
+      echo "WARN: Failed to install Matrix plugin automatically."
+      tail -n 40 /tmp/openclaw-matrix-plugin-install.log 2>/dev/null || true
+    fi
+  fi
+fi
+
+if [ -f "$HELPER_PATH" ]; then
+  if ! python3 "$HELPER_PATH" configure-matrix-channel \
+      "$ENABLE_MATRIX" \
+      "$MATRIX_HOMESERVER" \
+      "$MATRIX_ALLOW_PRIVATE_NETWORK" \
+      "$MATRIX_USER_ID" \
+      "$MATRIX_PASSWORD" \
+      "$MATRIX_ACCESS_TOKEN" \
+      "$MATRIX_ENCRYPTION" \
+      "$MATRIX_AUTO_JOIN" \
+      "$MATRIX_DM_POLICY" \
+      "$MATRIX_DM_ALLOW_FROM" \
+      "$MATRIX_GROUP_POLICY" \
+      "$MATRIX_GROUP_ALLOW_FROM" \
+      "$MATRIX_ROOM_ALLOWLIST"; then
+    rc=$?
+    echo "ERROR: Failed to configure Matrix channel via oc_config_helper.py (exit code ${rc})."
+    echo "ERROR: Matrix configuration may be inconsistent; aborting startup."
+    exit "${rc}"
+  fi
 fi
 
 if [ "$GATEWAY_AUTH_MODE" = "trusted-proxy" ]; then

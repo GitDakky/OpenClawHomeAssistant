@@ -74,6 +74,58 @@ configuration:
     name: Изключване на exec approval подсказките
     description: "Когато е ВКЛ., принуждава OpenClaw host exec approvals към security=full, ask=off, askFallback=full и подравнява tools.exec.host=gateway, tools.exec.security=full, tools.exec.ask=off и strictInlineEval=false. Този fork го оставя ВКЛ. по подразбиране, за да не спират автоматизациите за човешко approval. Изключете го само ако искате подсказките да се върнат."
 
+  enable_matrix:
+    name: Включи Matrix канал
+    description: "Включва Matrix канал от настройките на Home Assistant. Когато е ВКЛ., add-on-ът конфигурира channels.matrix в OpenClaw и ще се опита да осигури Matrix plugin."
+
+  matrix_homeserver:
+    name: Matrix homeserver
+    description: "URL на Matrix homeserver, например https://matrix.example.org или http://matrix-synapse:8008 за частен Synapse."
+
+  matrix_allow_private_network:
+    name: Разреши частен Matrix homeserver
+    description: "Когато е ВКЛ., позволява Matrix homeserver на localhost, LAN, Tailscale или вътрешно име. Нужно е за частни Synapse/Dendrite инсталации."
+
+  matrix_user_id:
+    name: Matrix User ID
+    description: "Пълният Matrix user ID на бот акаунта, например @openclaw:example.org."
+
+  matrix_access_token:
+    name: Matrix access token
+    description: "Предпочитаният Matrix метод за вход. Ако е зададен, add-on-ът записва channels.matrix.accessToken и игнорира matrix_password."
+
+  matrix_password:
+    name: Matrix password
+    description: "Резервна Matrix парола, когато няма access token. Използвайте token или password."
+
+  matrix_encryption:
+    name: Matrix encryption
+    description: "Включва Matrix end-to-end encryption за конфигурирания акаунт."
+
+  matrix_dm_policy:
+    name: Matrix DM политика
+    description: "Политика за директни съобщения в Matrix. pairing е най-безопасната стойност по подразбиране, open позволява директни съобщения без pairing, allowlist ограничава DMs до одобрени потребители."
+
+  matrix_dm_allow_from:
+    name: Matrix DM allowlist
+    description: "Matrix user IDs, разделени със запетая, които могат да пишат на бота когато DM policy е allowlist."
+
+  matrix_group_policy:
+    name: Matrix room политика
+    description: "Политика за стаи в Matrix. open е най-лесният режим за ad-hoc покани, allowlist ограничава отговорите до стаите в Matrix Room Allowlist, disabled блокира room трафика."
+
+  matrix_group_allow_from:
+    name: Matrix room user allowlist
+    description: "Незадължителни Matrix user IDs, разделени със запетая, които могат да предизвикват отговори в стаи."
+
+  matrix_room_allowlist:
+    name: Matrix room allowlist
+    description: "Room IDs или aliases, разделени със запетая, използвани за room allowlist mode и auto-join allowlist mode."
+
+  matrix_auto_join:
+    name: Matrix auto-join
+    description: "Политика за автоматично приемане на покани. always позволява покани без предварително whitelist-ване, allowlist приема само стаи от Matrix Room Allowlist, off изключва auto-join."
+
   gateway_bind_mode:
     name: Режим на свързване на Gateway
     description: Режим на мрежово свързване - loopback (само 127.0.0.1, най-сигурен), lan (всички интерфейси) или tailnet (само Tailscale интерфейс). Пренебрегва се от предварителните режими на достъп.
