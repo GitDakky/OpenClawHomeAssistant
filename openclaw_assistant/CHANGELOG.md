@@ -2,6 +2,11 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.16] - 2026-04-08
+
+### Changed
+- Reworked the operator landing page into a cleaner single-column dashboard with a denser tactical visual style, smaller typography, clearer alert coloring, and less layout shift during async status updates.
+
 ## [0.7.15] - 2026-04-08
 
 ### Fixed

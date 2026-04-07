@@ -6,83 +6,83 @@
   <title>OpenClaw Super Home Assistant</title>
   <style>
     :root{
-      --bg:#04070d;
-      --bg-accent:#091322;
-      --panel:#0b1220cc;
-      --panel-strong:#0f1728;
-      --panel-soft:#111b2f;
-      --line:#20314b;
-      --line-strong:#32527a;
-      --text:#eef4ff;
-      --muted:#97a8c4;
-      --accent:#57a6ff;
-      --accent-strong:#2b7cff;
-      --accent-soft:#7ce7d2;
-      --warn:#ffb24a;
-      --danger:#ff6d6d;
-      --success:#51d9a6;
-      --code:#08111d;
-      --shadow:0 24px 80px rgba(0,0,0,.42);
-      --radius:24px;
+      --bg:#05080d;
+      --bg-accent:#0a1017;
+      --panel:#0d141ccc;
+      --panel-strong:#121a24;
+      --panel-soft:#16202b;
+      --line:#243240;
+      --line-strong:#35607b;
+      --text:#e9eef5;
+      --muted:#96a4b3;
+      --accent:#78a6c7;
+      --accent-strong:#9cc1dc;
+      --accent-soft:#6f8fa8;
+      --warn:#f2b84b;
+      --danger:#e36c6c;
+      --success:#58c18d;
+      --code:#0a1118;
+      --shadow:0 18px 48px rgba(0,0,0,.34);
+      --radius:18px;
     }
     *{box-sizing:border-box}
     html,body{margin:0;min-height:100%}
     body{
-      font-family:"Space Grotesk","Avenir Next","Segoe UI",sans-serif;
+      font-family:"IBM Plex Sans","Aptos","Segoe UI",sans-serif;
       color:var(--text);
       background:
-        radial-gradient(circle at top left, rgba(42,96,255,.22), transparent 34%),
-        radial-gradient(circle at top right, rgba(66,214,177,.12), transparent 28%),
-        linear-gradient(180deg, #07101c 0%, #04070d 55%, #020409 100%);
+        radial-gradient(circle at top left, rgba(90,126,156,.16), transparent 32%),
+        radial-gradient(circle at top right, rgba(56,84,106,.12), transparent 26%),
+        linear-gradient(180deg, #091018 0%, #05080d 58%, #03050a 100%);
       padding:28px 18px 36px;
+      font-size:14px;
     }
     a,button{font:inherit}
     code,pre{
-      font-family:"SFMono-Regular","JetBrains Mono","Cascadia Code",monospace;
+      font-family:"IBM Plex Mono","JetBrains Mono","Cascadia Code",monospace;
+      font-variant-numeric:tabular-nums;
     }
     .shell{
-      max-width:1280px;
+      max-width:1120px;
       margin:0 auto;
       display:grid;
-      gap:22px;
+      gap:18px;
     }
     .hero{
       display:grid;
-      grid-template-columns:minmax(0,1.28fr) minmax(320px,.92fr);
-      gap:20px;
-      align-items:stretch;
+      grid-template-columns:1fr;
+      gap:16px;
     }
     .panel{
       position:relative;
       overflow:hidden;
       border-radius:var(--radius);
-      border:1px solid rgba(110,145,190,.18);
-      background:linear-gradient(180deg, rgba(12,19,33,.96), rgba(8,14,24,.96));
+      border:1px solid rgba(97,123,145,.18);
+      background:linear-gradient(180deg, rgba(13,20,28,.97), rgba(9,14,20,.97));
       box-shadow:var(--shadow);
-      backdrop-filter:blur(14px);
+      backdrop-filter:blur(12px);
     }
     .panel::before{
       content:"";
       position:absolute;
       inset:0;
       pointer-events:none;
-      background:linear-gradient(140deg, rgba(87,166,255,.08), transparent 35%, rgba(124,231,210,.06));
+      background:linear-gradient(140deg, rgba(140,174,198,.06), transparent 38%, rgba(91,122,146,.05));
     }
     .hero-main{
-      padding:30px 30px 28px;
+      padding:26px 26px 24px;
       display:grid;
-      gap:22px;
-      min-height:360px;
+      gap:18px;
     }
     .eyebrow{
       display:inline-flex;
       align-items:center;
       gap:10px;
-      color:var(--accent-soft);
-      font-size:13px;
+      color:#b2c2d2;
+      font-size:11px;
       font-weight:700;
       text-transform:uppercase;
-      letter-spacing:.16em;
+      letter-spacing:.18em;
     }
     .eyebrow::before{
       content:"";
@@ -90,21 +90,21 @@
       height:2px;
       border-radius:999px;
       background:linear-gradient(90deg, var(--accent), var(--accent-soft));
-      box-shadow:0 0 18px rgba(87,166,255,.5);
+      box-shadow:0 0 12px rgba(120,166,199,.32);
     }
     h1{
       margin:0;
-      font-size:clamp(38px, 5vw, 64px);
-      line-height:.96;
-      letter-spacing:-.05em;
-      max-width:10ch;
+      font-size:clamp(30px, 4.2vw, 46px);
+      line-height:1;
+      letter-spacing:-.04em;
+      max-width:12ch;
     }
     .lede{
       margin:0;
       max-width:58ch;
-      color:#cad7ea;
-      font-size:17px;
-      line-height:1.65;
+      color:#c1ccd8;
+      font-size:14px;
+      line-height:1.6;
     }
     .hero-copy{
       display:grid;
@@ -121,96 +121,125 @@
       display:inline-flex;
       align-items:center;
       gap:10px;
-      min-height:42px;
-      padding:10px 14px;
+      min-height:36px;
+      padding:8px 12px;
       border-radius:999px;
-      background:rgba(9,18,32,.88);
-      border:1px solid rgba(103,137,179,.22);
+      background:rgba(12,18,26,.9);
+      border:1px solid rgba(88,110,129,.24);
       color:var(--muted);
-      font-size:13px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
     }
     .chip code{
       color:var(--text);
       background:transparent;
       padding:0;
-      font-size:13px;
+      font-size:11px;
     }
     .hero-note{
       display:grid;
       gap:10px;
       max-width:64ch;
       padding:18px 20px;
-      border-radius:20px;
-      background:linear-gradient(180deg, rgba(11,22,38,.84), rgba(8,16,29,.78));
-      border:1px solid rgba(87,166,255,.16);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(14,20,27,.9), rgba(10,15,21,.86));
+      border:1px solid rgba(94,119,139,.18);
     }
     .hero-note b{
       color:var(--text);
-      font-size:15px;
+      font-size:13px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
     }
     .hero-note p{
       margin:0;
       color:var(--muted);
-      line-height:1.65;
-      font-size:14px;
+      line-height:1.55;
+      font-size:12px;
     }
     .hero-side{
-      padding:24px;
+      padding:22px;
       display:grid;
-      gap:14px;
-      align-content:start;
+      gap:16px;
     }
     .mini-card{
       position:relative;
-      border-radius:20px;
-      padding:18px 18px 16px;
-      background:linear-gradient(180deg, rgba(14,24,40,.94), rgba(8,15,26,.9));
-      border:1px solid rgba(108,145,191,.18);
+      border-radius:16px;
+      padding:16px 16px 14px;
+      background:linear-gradient(180deg, rgba(14,21,28,.95), rgba(10,15,21,.92));
+      border:1px solid rgba(93,117,136,.18);
     }
     .mini-card h2{
       margin:0 0 6px;
-      font-size:15px;
-      letter-spacing:.08em;
+      font-size:12px;
+      letter-spacing:.14em;
       text-transform:uppercase;
-      color:#d3deee;
+      color:#d2d9e1;
     }
     .mini-card p{
       margin:0;
       color:var(--muted);
-      font-size:14px;
-      line-height:1.6;
+      font-size:12px;
+      line-height:1.55;
     }
     .status-grid{
       display:grid;
-      gap:12px;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:10px;
     }
     .status-item{
       display:grid;
       grid-template-columns:28px 1fr;
       gap:12px;
       align-items:start;
-      padding:16px 16px 15px;
-      border-radius:18px;
-      background:linear-gradient(180deg, rgba(12,19,33,.92), rgba(8,14,24,.88));
-      border:1px solid rgba(88,114,146,.18);
-      min-height:82px;
+      padding:14px 14px 13px;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(13,19,26,.94), rgba(9,14,20,.9));
+      border:1px solid rgba(77,99,117,.2);
       font-size:14px;
-      line-height:1.55;
+      line-height:1.45;
     }
     .status-item .icon{
       display:grid;
       place-items:center;
       width:28px;
       height:28px;
-      border-radius:10px;
-      background:rgba(87,166,255,.12);
-      font-size:15px;
+      border-radius:8px;
+      background:rgba(120,166,199,.1);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.08em;
+    }
+    .status-item.good{
+      border-color:rgba(88,193,141,.3);
+      background:linear-gradient(180deg, rgba(10,30,22,.95), rgba(8,18,14,.92));
+    }
+    .status-item.good .icon{
+      background:rgba(88,193,141,.18);
+      color:#d7ffe9;
+    }
+    .status-item.warn{
+      border-color:rgba(242,184,75,.32);
+      background:linear-gradient(180deg, rgba(45,30,12,.95), rgba(26,17,7,.92));
+    }
+    .status-item.warn .icon{
+      background:rgba(242,184,75,.18);
+      color:#ffe4b4;
+    }
+    .status-item.off{
+      border-color:rgba(227,108,108,.32);
+      background:linear-gradient(180deg, rgba(49,18,18,.95), rgba(26,10,10,.92));
+    }
+    .status-item.off .icon{
+      background:rgba(227,108,108,.18);
+      color:#ffd5d5;
     }
     .status-item b{color:var(--text)}
     .status-label{
-      font-size:12px;
+      font-size:10px;
       text-transform:uppercase;
-      letter-spacing:.12em;
+      letter-spacing:.14em;
       color:var(--muted);
       margin-bottom:6px;
       display:block;
@@ -220,25 +249,28 @@
       align-items:center;
       justify-content:center;
       gap:10px;
-      min-height:48px;
-      padding:0 18px;
+      min-height:42px;
+      padding:0 16px;
       border:0;
-      border-radius:16px;
+      border-radius:12px;
       text-decoration:none;
       cursor:pointer;
       transition:transform .18s ease, filter .18s ease, box-shadow .18s ease;
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
     }
     .btn:hover{transform:translateY(-1px);filter:brightness(1.07)}
     .btn.primary{
       color:#07111f;
       font-weight:700;
       background:linear-gradient(135deg, #64b3ff, #7ce7d2);
-      box-shadow:0 12px 28px rgba(87,166,255,.22);
+      box-shadow:0 10px 24px rgba(120,166,199,.18);
     }
     .btn.secondary{
       color:var(--text);
-      background:rgba(17,27,47,.92);
-      border:1px solid rgba(88,114,146,.22);
+      background:rgba(19,28,39,.92);
+      border:1px solid rgba(88,114,146,.24);
     }
     .btn.ghost{
       color:#d9f0ff;
@@ -250,11 +282,11 @@
       gap:14px;
     }
     .banner{
-      padding:16px 18px;
-      border-radius:18px;
+      padding:14px 16px;
+      border-radius:14px;
       border:1px solid transparent;
-      font-size:14px;
-      line-height:1.65;
+      font-size:12px;
+      line-height:1.55;
     }
     .banner.info{
       background:linear-gradient(180deg, rgba(18,35,57,.86), rgba(10,20,34,.82));
@@ -277,22 +309,22 @@
       color:#d8fff0;
     }
     .wizard{
-      padding:20px 22px;
-      border-radius:22px;
+      padding:18px 20px;
+      border-radius:16px;
       border:1px solid rgba(110,145,190,.18);
-      background:linear-gradient(180deg, rgba(12,19,33,.96), rgba(9,15,25,.94));
+      background:linear-gradient(180deg, rgba(12,18,24,.98), rgba(9,14,20,.96));
       box-shadow:var(--shadow);
     }
     .wizard h3{
       margin:0 0 10px;
-      font-size:18px;
+      font-size:16px;
       letter-spacing:-.02em;
     }
     .wizard p,
     .wizard li{
       color:var(--muted);
-      line-height:1.75;
-      font-size:14px;
+      line-height:1.65;
+      font-size:12px;
     }
     .wizard ol,
     .wizard ul{
@@ -301,19 +333,19 @@
     }
     .guides{
       display:grid;
-      grid-template-columns:repeat(2, minmax(0, 1fr));
+      grid-template-columns:1fr;
       gap:18px;
     }
     .ops-grid{
       display:grid;
-      grid-template-columns:minmax(0, 1.35fr) minmax(320px, .95fr);
+      grid-template-columns:1fr;
       gap:18px;
       align-items:start;
     }
     .ops-panel{
-      padding:22px;
+      padding:20px;
       display:grid;
-      gap:16px;
+      gap:14px;
     }
     .ops-panel.wide{
       grid-row:span 2;
@@ -326,7 +358,7 @@
     .stack-card h4,
     .file-group h4{
       margin:0;
-      font-size:20px;
+      font-size:17px;
       letter-spacing:-.03em;
     }
     .ops-head p,
@@ -334,17 +366,18 @@
     .file-group p{
       margin:0;
       color:var(--muted);
-      font-size:14px;
-      line-height:1.65;
+      font-size:12px;
+      line-height:1.55;
     }
     .editor-layout{
       display:grid;
-      grid-template-columns:minmax(220px, .8fr) minmax(0, 1.4fr);
+      grid-template-columns:1fr;
       gap:16px;
       align-items:start;
     }
     .file-groups{
       display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
       gap:16px;
     }
     .file-group{
@@ -354,7 +387,7 @@
     .file-list{
       display:grid;
       gap:8px;
-      max-height:280px;
+      max-height:220px;
       overflow:auto;
       padding-right:4px;
     }
@@ -364,8 +397,8 @@
       border:1px solid rgba(88,114,146,.18);
       background:rgba(9,17,30,.78);
       color:var(--text);
-      border-radius:14px;
-      padding:12px 14px;
+      border-radius:12px;
+      padding:10px 12px;
       cursor:pointer;
       transition:border-color .18s ease, transform .18s ease, background .18s ease;
     }
@@ -382,7 +415,7 @@
       display:block;
       margin-top:4px;
       color:var(--muted);
-      font-size:12px;
+      font-size:11px;
       line-height:1.5;
     }
     .editor-shell{
@@ -399,20 +432,20 @@
     }
     .editor-toolbar strong{
       display:block;
-      font-size:16px;
+      font-size:14px;
     }
     .editor{
       width:100%;
-      min-height:420px;
+      min-height:380px;
       resize:vertical;
-      border-radius:18px;
+      border-radius:14px;
       border:1px solid rgba(88,114,146,.22);
       background:var(--code);
       color:#e4efff;
       padding:16px;
       font-family:"SFMono-Regular","JetBrains Mono","Cascadia Code",monospace;
-      font-size:13px;
-      line-height:1.65;
+      font-size:12px;
+      line-height:1.6;
       outline:none;
     }
     .stack{
@@ -420,8 +453,8 @@
       gap:12px;
     }
     .stack-card{
-      padding:16px;
-      border-radius:18px;
+      padding:14px;
+      border-radius:14px;
       background:rgba(9,17,30,.76);
       border:1px solid rgba(88,114,146,.18);
       display:grid;
@@ -439,14 +472,14 @@
     .pill{
       display:inline-flex;
       align-items:center;
-      min-height:34px;
-      padding:0 12px;
+      min-height:30px;
+      padding:0 10px;
       border-radius:999px;
       background:rgba(14,27,46,.92);
       border:1px solid rgba(88,114,146,.18);
       color:#deebff;
-      font-size:12px;
-      letter-spacing:.04em;
+      font-size:10px;
+      letter-spacing:.1em;
       text-transform:uppercase;
     }
     .pill.good{
@@ -463,69 +496,75 @@
     }
     .integration-grid{
       display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
       gap:12px;
+      min-height:220px;
     }
     .integration-card{
-      border-radius:18px;
-      padding:16px;
+      border-radius:14px;
+      padding:14px;
       background:rgba(9,17,30,.76);
       border:1px solid rgba(88,114,146,.18);
       display:grid;
       gap:8px;
+      align-content:start;
+      min-height:200px;
     }
     .integration-card b{
       font-size:15px;
     }
     .integration-card .meta{
       color:var(--muted);
-      font-size:13px;
-      line-height:1.6;
+      font-size:12px;
+      line-height:1.5;
       word-break:break-word;
     }
     .guide-card{
-      padding:18px 18px 10px;
+      padding:22px;
+      display:grid;
+      gap:12px;
     }
     details{
-      border-radius:18px;
-      background:rgba(9,17,30,.72);
+      border-radius:14px;
+      background:rgba(11,17,23,.76);
       border:1px solid rgba(88,114,146,.18);
       overflow:hidden;
     }
     details > summary{
       cursor:pointer;
-      padding:16px 18px;
-      font-size:15px;
+      padding:14px 16px;
+      font-size:13px;
       font-weight:700;
       color:#dfe9f8;
       list-style:none;
     }
     details > summary::-webkit-details-marker{display:none}
     details > div{
-      padding:0 18px 18px;
+      padding:0 16px 16px;
       color:var(--muted);
-      font-size:14px;
-      line-height:1.7;
+      font-size:12px;
+      line-height:1.6;
     }
     pre{
       margin:10px 0 0;
       overflow:auto;
-      border-radius:16px;
-      padding:14px;
+      border-radius:12px;
+      padding:12px;
       background:var(--code);
       border:1px solid rgba(88,114,146,.18);
       color:#d8e8ff;
-      font-size:12px;
-      line-height:1.6;
+      font-size:11px;
+      line-height:1.55;
     }
     code{
       background:rgba(7,17,31,.9);
       padding:2px 6px;
       border-radius:8px;
       color:#d8e8ff;
-      font-size:12px;
+      font-size:11px;
     }
     .terminal-shell{
-      padding:22px;
+      padding:20px;
       display:grid;
       gap:16px;
     }
@@ -538,20 +577,20 @@
     }
     .terminal-head h3{
       margin:4px 0 0;
-      font-size:28px;
+      font-size:24px;
       letter-spacing:-.04em;
     }
     .terminal-head p{
       margin:0;
       color:var(--muted);
-      font-size:14px;
+      font-size:12px;
       max-width:64ch;
-      line-height:1.65;
+      line-height:1.55;
     }
     .term{
       height:64vh;
-      min-height:420px;
-      border-radius:20px;
+      min-height:400px;
+      border-radius:16px;
       border:1px solid rgba(84,121,166,.24);
       overflow:hidden;
       background:#020409;
@@ -574,7 +613,7 @@
       font-size:12px;
       font-weight:700;
       text-transform:uppercase;
-      letter-spacing:.12em;
+      letter-spacing:.14em;
     }
     .badge.secure{background:rgba(81,217,166,.16);color:#b4ffd9;border:1px solid rgba(81,217,166,.28)}
     .badge.insecure{background:rgba(255,109,109,.14);color:#ffc8c8;border:1px solid rgba(255,109,109,.26)}
@@ -585,16 +624,18 @@
       line-height:1.6;
     }
     @media (max-width: 1040px){
-      .hero{grid-template-columns:1fr}
       .guides{grid-template-columns:1fr}
-      .ops-grid{grid-template-columns:1fr}
       .ops-panel.wide{grid-row:auto}
       .editor-layout{grid-template-columns:1fr}
+      .status-grid{grid-template-columns:repeat(2, minmax(0, 1fr))}
+      .integration-grid{grid-template-columns:1fr}
     }
     @media (max-width: 720px){
       body{padding:18px 12px 24px}
       .hero-main,.hero-side,.terminal-shell{padding:18px}
       .status-item{min-height:unset}
+      .status-grid{grid-template-columns:1fr}
+      .file-groups{grid-template-columns:1fr}
       h1{max-width:none}
       .terminal-head h3{font-size:24px}
       .term{height:56vh;min-height:340px}
@@ -692,6 +733,14 @@
 
     <section class="guides">
       <div class="panel guide-card">
+        <div class="ops-head">
+          <div class="eyebrow">Operator Help</div>
+          <h3>Access, control, and recovery notes</h3>
+          <p>
+            Keep the guidance in one place. Open the section you need without turning the landing page into four competing documentation cards.
+          </p>
+        </div>
+
         <details>
           <summary>Token and access quick help</summary>
           <div>
@@ -712,9 +761,7 @@
             </p>
           </div>
         </details>
-      </div>
 
-      <div class="panel guide-card">
         <details>
           <summary>MCP setup (Home Assistant control)</summary>
           <div>
@@ -728,9 +775,7 @@
             <pre>mcporter call home-assistant.GetLiveContext</pre>
           </div>
         </details>
-      </div>
 
-      <div class="panel guide-card">
         <details>
           <summary>Reverse-proxy recipes (NPM / Caddy / Traefik / Tailscale)</summary>
           <div>
@@ -754,9 +799,7 @@ SSL tab:  Request a new SSL certificate</pre>
 # 4. Set gateway_public_url to https://&lt;machine-name&gt;.ts.net:18790</pre>
           </div>
         </details>
-      </div>
 
-      <div class="panel guide-card">
         <details>
           <summary>Operator notes</summary>
           <div>
@@ -917,6 +960,12 @@ SSL tab:  Request a new SSL certificate</pre>
 
     const $ = id => document.getElementById(id);
     const escapeHtml = value => String(value ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+    function setStatusCard(targetId, level, icon, label, message) {
+      const element = $(targetId);
+      if (!element) return;
+      element.className = `status-item ${level}`;
+      element.innerHTML = `<span class="icon">${icon}</span><span><span class="status-label">${label}</span>${message}</span>`;
+    }
     const prettyJson = value => {
       if (value === null || value === undefined || value === '') return 'No data.';
       if (typeof value === 'string') return value;
@@ -975,21 +1024,27 @@ SSL tab:  Request a new SSL certificate</pre>
 
     const isSecure = window.isSecureContext;
     const secureBadge = $('secureBadge');
-    const statusSecure = $('statusSecure');
     if (isSecure) {
       secureBadge.textContent = 'Secure';
       secureBadge.className = 'badge secure';
-      statusSecure.innerHTML = '<span class="icon">TLS</span><span><span class="status-label">Secure Context</span>Browser context is <b>ready</b> for device identity and Control UI auth.</span>';
+      setStatusCard('statusSecure', 'good', 'TLS', 'Secure Context', 'Browser context is <b>ready</b> for device identity and Control UI auth.');
     } else {
       secureBadge.textContent = 'Not Secure';
       secureBadge.className = 'badge insecure';
-      statusSecure.innerHTML = '<span class="icon">TLS</span><span><span class="status-label">Secure Context</span>Browser context is <b>not secure</b>. Control UI requires HTTPS or localhost.</span>';
+      setStatusCard('statusSecure', 'off', 'TLS', 'Secure Context', 'Browser context is <b>not secure</b>. Control UI requires HTTPS or localhost.');
     }
 
+    setStatusCard(
+      'statusAccess',
+      ACCESS_MODE === 'custom' ? 'warn' : 'good',
+      'CFG',
+      'Access Mode',
+      `<b>${escapeHtml(ACCESS_MODE)}</b>`
+    );
+
     (async function checkGateway() {
-      const statusEl = $('statusGateway');
       if (GATEWAY_MODE !== 'local' && !RESOLVED_GATEWAY_BASE_URL) {
-        statusEl.innerHTML = '<span class="icon">GW</span><span><span class="status-label">Gateway</span>Remote gateway mode is active. Set <b>gateway_public_url</b> if you want this page to open or probe the remote Control UI directly.</span>';
+        setStatusCard('statusGateway', 'warn', 'GW', 'Gateway', 'Remote gateway mode is active. Set <b>gateway_public_url</b> if you want this page to open or probe the remote Control UI directly.');
         return;
       }
       try {
@@ -998,12 +1053,12 @@ SSL tab:  Request a new SSL certificate</pre>
           : '/api/health';
         const r = await fetch(url, { mode: 'no-cors', cache: 'no-store' }).catch(() => null);
         if (r && (r.ok || r.type === 'opaque')) {
-          statusEl.innerHTML = '<span class="icon">GW</span><span><span class="status-label">Gateway</span>Gateway runtime looks <b>reachable</b>.</span>';
+          setStatusCard('statusGateway', 'good', 'GW', 'Gateway', 'Gateway runtime looks <b>reachable</b>.');
         } else {
-          statusEl.innerHTML = '<span class="icon">GW</span><span><span class="status-label">Gateway</span>Gateway is <b>still starting</b> or not yet reachable from this page.</span>';
+          setStatusCard('statusGateway', 'warn', 'GW', 'Gateway', 'Gateway is <b>still starting</b> or not yet reachable from this page.');
         }
       } catch {
-        statusEl.innerHTML = '<span class="icon">GW</span><span><span class="status-label">Gateway</span>Gateway is <b>unreachable</b> from this page right now.</span>';
+        setStatusCard('statusGateway', 'off', 'GW', 'Gateway', 'Gateway is <b>unreachable</b> from this page right now.');
       }
     })();
 
@@ -1053,21 +1108,21 @@ SSL tab:  Request a new SSL certificate</pre>
     if (DISK_PCT) {
       const pctNum = parseInt(DISK_PCT, 10);
       const diskIcon = $('diskIcon');
-      const statusDisk = $('statusDisk');
       if (pctNum >= 90) {
         diskIcon.textContent = 'WRN';
-        statusDisk.style.borderColor = 'rgba(255,109,109,.4)';
+        setStatusCard('statusDisk', 'off', 'WRN', 'Disk', `${escapeHtml(DISK_USED)} / ${escapeHtml(DISK_TOTAL)} (${escapeHtml(DISK_PCT)}) - ${escapeHtml(DISK_AVAIL)} free`);
         $('diskBanner').classList.remove('hidden');
         $('diskBannerText').textContent =
           `Disk is ${DISK_PCT} full (${DISK_AVAIL} free of ${DISK_TOTAL}).`;
       } else if (pctNum >= 75) {
         diskIcon.textContent = 'OBS';
-        statusDisk.style.borderColor = 'rgba(255,178,74,.42)';
+        setStatusCard('statusDisk', 'warn', 'OBS', 'Disk', `${escapeHtml(DISK_USED)} / ${escapeHtml(DISK_TOTAL)} (${escapeHtml(DISK_PCT)}) - ${escapeHtml(DISK_AVAIL)} free`);
         $('diskBanner').classList.remove('hidden');
         $('diskBannerText').textContent =
           `Disk is ${DISK_PCT} full (${DISK_AVAIL} free of ${DISK_TOTAL}). Consider cleanup before the next image update.`;
       } else {
         diskIcon.textContent = 'OK';
+        setStatusCard('statusDisk', 'good', 'OK', 'Disk', `${escapeHtml(DISK_USED)} / ${escapeHtml(DISK_TOTAL)} (${escapeHtml(DISK_PCT)}) - ${escapeHtml(DISK_AVAIL)} free`);
       }
     }
 
