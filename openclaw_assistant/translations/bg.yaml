@@ -76,7 +76,7 @@ configuration:
 
   enable_matrix:
     name: Включи Matrix канал
-    description: "Включва Matrix канал от настройките на Home Assistant. Когато е ВКЛ., add-on-ът конфигурира channels.matrix в OpenClaw и ще се опита да осигури Matrix plugin."
+    description: "Включва Matrix канал от настройките на Home Assistant. Когато е ВКЛ. и има конфигурирани homeserver и работещ вход, add-on-ът конфигурира channels.matrix в OpenClaw и ще се опита да осигури Matrix plugin."
 
   matrix_homeserver:
     name: Matrix homeserver

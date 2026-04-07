@@ -110,3 +110,33 @@ sync_gateway_settings_from_options() {
     "$gateway_auth_mode" \
     "$gateway_trusted_proxies"
 }
+
+matrix_startup_precheck() {
+  local enabled="${1:-}"
+  local homeserver="${2:-}"
+  local user_id="${3:-}"
+  local password="${4:-}"
+  local access_token="${5:-}"
+
+  if [ "$enabled" != "true" ] && [ "$enabled" != "1" ]; then
+    echo "disabled"
+    return 0
+  fi
+
+  if [ -z "${homeserver//[[:space:]]/}" ]; then
+    echo "missing-homeserver"
+    return 0
+  fi
+
+  if [ -n "${access_token//[[:space:]]/}" ]; then
+    echo "ready"
+    return 0
+  fi
+
+  if [ -n "${user_id//[[:space:]]/}" ] && [ -n "${password//[[:space:]]/}" ]; then
+    echo "ready"
+    return 0
+  fi
+
+  echo "missing-auth"
+}

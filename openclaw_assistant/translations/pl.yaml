@@ -69,7 +69,7 @@ configuration:
 
   enable_matrix:
     name: Włącz kanał Matrix
-    description: "Włącza obsługę Matrix z ustawień Home Assistant. Gdy WŁĄCZONE, dodatek konfiguruje channels.matrix w OpenClaw i spróbuje zapewnić dostępność wtyczki Matrix."
+    description: "Włącza obsługę Matrix z ustawień Home Assistant. Gdy WŁĄCZONE i skonfigurowano homeserver oraz działające dane logowania, dodatek konfiguruje channels.matrix w OpenClaw i spróbuje zapewnić dostępność wtyczki Matrix."
 
   matrix_homeserver:
     name: Homeserver Matrix

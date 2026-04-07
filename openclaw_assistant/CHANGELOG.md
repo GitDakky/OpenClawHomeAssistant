@@ -2,6 +2,11 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.15] - 2026-04-08
+
+### Fixed
+- Matrix startup now fails closed when the add-on toggle is enabled without a homeserver or usable credentials. The add-on skips plugin installation in that state, logs one clear warning, and leaves the Matrix channel disabled instead of churning through blocked plugin bootstrap work.
+
 ## [0.7.14] - 2026-04-07
 
 ### Added

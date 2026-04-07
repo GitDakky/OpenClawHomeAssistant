@@ -76,7 +76,7 @@ configuration:
 
   enable_matrix:
     name: Activar canal Matrix
-    description: "Activa el soporte de Matrix desde los ajustes de Home Assistant. Cuando está ACTIVADO, el add-on configura channels.matrix en OpenClaw e intenta asegurar que el plugin de Matrix esté disponible."
+    description: "Activa el soporte de Matrix desde los ajustes de Home Assistant. Cuando está ACTIVADO y hay un homeserver más credenciales válidas configuradas, el add-on configura channels.matrix en OpenClaw e intenta asegurar que el plugin de Matrix esté disponible."
 
   matrix_homeserver:
     name: Homeserver de Matrix

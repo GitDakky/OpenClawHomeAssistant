@@ -215,3 +215,28 @@ class RunHelpersTests(unittest.TestCase):
             result = run_helper_script(cmd)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Invalid gateway.remote.url", result.stdout)
+
+    def test_matrix_startup_precheck_skips_when_disabled(self) -> None:
+        result = run_helper_script('matrix_startup_precheck "false" "" "" "" ""')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "disabled")
+
+    def test_matrix_startup_precheck_requires_homeserver(self) -> None:
+        result = run_helper_script('matrix_startup_precheck "true" "" "@bot:example.org" "secret" ""')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "missing-homeserver")
+
+    def test_matrix_startup_precheck_requires_auth(self) -> None:
+        result = run_helper_script('matrix_startup_precheck "true" "https://matrix.example.org" "" "" ""')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "missing-auth")
+
+    def test_matrix_startup_precheck_accepts_access_token(self) -> None:
+        result = run_helper_script('matrix_startup_precheck "true" "https://matrix.example.org" "" "" "token"')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "ready")
+
+    def test_matrix_startup_precheck_accepts_user_and_password(self) -> None:
+        result = run_helper_script('matrix_startup_precheck "true" "https://matrix.example.org" "@bot:example.org" "secret" ""')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "ready")

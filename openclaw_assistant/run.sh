@@ -236,6 +236,15 @@ MATRIX_GROUP_POLICY=$(jq -r '.matrix_group_policy // "open"' "$OPTIONS_FILE")
 MATRIX_GROUP_ALLOW_FROM=$(jq -r '.matrix_group_allow_from // empty' "$OPTIONS_FILE")
 MATRIX_ROOM_ALLOWLIST=$(jq -r '.matrix_room_allowlist // empty' "$OPTIONS_FILE")
 MATRIX_AUTO_JOIN=$(jq -r '.matrix_auto_join // "always"' "$OPTIONS_FILE")
+MATRIX_STARTUP_STATE="$(matrix_startup_precheck "$ENABLE_MATRIX" "$MATRIX_HOMESERVER" "$MATRIX_USER_ID" "$MATRIX_PASSWORD" "$MATRIX_ACCESS_TOKEN")"
+MATRIX_EFFECTIVE_ENABLED="false"
+if [ "$MATRIX_STARTUP_STATE" = "ready" ]; then
+  MATRIX_EFFECTIVE_ENABLED="true"
+elif [ "$MATRIX_STARTUP_STATE" = "missing-homeserver" ]; then
+  echo "WARN: Matrix requested but matrix_homeserver is empty; skipping Matrix plugin install and leaving the Matrix channel disabled."
+elif [ "$MATRIX_STARTUP_STATE" = "missing-auth" ]; then
+  echo "WARN: Matrix requested but no usable auth is configured; skipping Matrix plugin install and leaving the Matrix channel disabled."
+fi
 MQTT_BROKER_URL=$(jq -r '.mqtt_broker_url // empty' "$OPTIONS_FILE")
 MQTT_USERNAME=$(jq -r '.mqtt_username // empty' "$OPTIONS_FILE")
 MQTT_PASSWORD=$(jq -r '.mqtt_password // empty' "$OPTIONS_FILE")
@@ -821,7 +830,7 @@ configure_external_integrations() {
     export GITHUB_ISSUES_TOKEN_FILE=/config/secrets/github_issues.token
   fi
 
-  if [ "$ENABLE_MATRIX" = "true" ] || [ "$ENABLE_MATRIX" = "1" ]; then
+  if [ "$MATRIX_EFFECTIVE_ENABLED" = "true" ]; then
     export MATRIX_ENABLED=true
   fi
   export MATRIX_HOMESERVER
@@ -1068,7 +1077,7 @@ else
   echo "WARN: oc_config_helper.py not found, cannot configure exec approval policy"
 fi
 
-if [ "$ENABLE_MATRIX" = "true" ] || [ "$ENABLE_MATRIX" = "1" ]; then
+if [ "$MATRIX_EFFECTIVE_ENABLED" = "true" ]; then
   if openclaw plugins inspect @openclaw/matrix --json >/dev/null 2>&1; then
     echo "INFO: Matrix plugin is available."
   else
@@ -1082,7 +1091,7 @@ fi
 
 if [ -f "$HELPER_PATH" ]; then
   if ! python3 "$HELPER_PATH" configure-matrix-channel \
-      "$ENABLE_MATRIX" \
+      "$MATRIX_EFFECTIVE_ENABLED" \
       "$MATRIX_HOMESERVER" \
       "$MATRIX_ALLOW_PRIVATE_NETWORK" \
       "$MATRIX_USER_ID" \

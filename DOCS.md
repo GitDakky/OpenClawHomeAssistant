@@ -352,7 +352,7 @@ When `gateway_auth_mode: trusted-proxy` is used, the add-on sets `gateway.auth.t
 | `mqtt_broker_url` | string | _(empty)_ | Optional external MQTT broker URL such as `mqtt://broker.local:1883` or `mqtts://cluster.s2.eu.hivemq.cloud:8883`. Stored in `/config/secrets/mqtt.broker_url`. |
 | `mqtt_username` | string | _(empty)_ | Optional MQTT username. Stored in `/config/secrets/mqtt.username`. |
 | `mqtt_password` | string | _(empty)_ | Optional MQTT password. Stored in `/config/secrets/mqtt.password`. |
-| `enable_matrix` | bool | `false` | Enable Matrix channel support from Home Assistant settings. When ON, the add-on configures `channels.matrix` in OpenClaw and will try to ensure the Matrix plugin is installed. |
+| `enable_matrix` | bool | `false` | Enable Matrix channel support from Home Assistant settings. When ON and a homeserver plus usable auth are configured, the add-on configures `channels.matrix` in OpenClaw and will try to ensure the Matrix plugin is installed. |
 | `matrix_homeserver` | string | _(empty)_ | Matrix homeserver URL such as `https://matrix.example.org` or `http://matrix-synapse:8008` for a private Synapse deployment. |
 | `matrix_allow_private_network` | bool | `false` | Allows private or internal Matrix homeservers on localhost, LAN, Tailscale, or internal hostnames. Turn ON for self-hosted Synapse/Dendrite installs. |
 | `matrix_user_id` | string | _(empty)_ | Full Matrix user ID for the bot account, for example `@openclaw:example.org`. |
