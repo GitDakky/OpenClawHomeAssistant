@@ -85,6 +85,31 @@ The `homeassistant_token` option stores a **long-lived access token** that grant
 - Revoke and regenerate the token if you suspect compromise
 - Monitor your HA logs for unexpected API activity
 
+### 4a. Live Home Assistant Filesystem Access
+
+This fork mounts the real Home Assistant configuration root inside the add-on at `/ha-config`.
+That means the assistant, shell, bundled skills, and operator workflows can inspect and modify:
+
+- `configuration.yaml`
+- `secrets.yaml`
+- `custom_components/`
+- `packages/` and include trees
+- `.storage/`
+
+This is intentional. The point of this fork is to operate on the real Home Assistant system in place rather than on a disconnected add-on sandbox.
+
+**Risks**:
+- A bad edit can break Home Assistant startup, integrations, or dashboards
+- Prompt injection or a malicious skill now has a more direct path to changing Home Assistant itself
+- `.storage/` edits can corrupt config entries, registries, or dashboards if done carelessly
+
+**Mitigations**:
+- Treat this add-on as a trusted operator tool, not a casual chatbot
+- Back up Home Assistant before allowing broad repair workflows
+- Prefer surgical, reviewed changes for `.storage/` and custom component edits
+- Keep the gateway private and authenticated so untrusted users cannot reach the assistant
+- Use the add-on logs and Home Assistant logs together after any filesystem repair
+
 ### 5. Third-Party Skills & Supply Chain
 
 OpenClaw supports installing skills from the community (ClawHub) and via npm. These are **third-party code** running inside the add-on container.
@@ -152,6 +177,7 @@ AI agents that process external content (web pages, documents, emails) are vulne
 | Use HTTPS for remote access | High |
 | Keep `gateway_bind_mode: loopback` unless network access is needed | High |
 | Prefer `gateway_bind_mode: tailnet` over `lan` for remote/private access | High |
+| Treat `/ha-config` as production Home Assistant state and back up before repair work | High |
 | Only install skills from trusted sources | High |
 | Review exposed entities in Assist pipeline | High |
 | Keep the add-on updated | High |

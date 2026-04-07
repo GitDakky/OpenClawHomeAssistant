@@ -20,6 +20,21 @@ def sample_entity(entity_id: str, state: str, *, attributes=None, hours_ago: int
 
 
 class DashboardInsightTests(unittest.TestCase):
+    def test_integration_status_reports_live_home_assistant_config_mount(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_root = Path(tmpdir)
+            previous = dashboard_api.HA_CONFIG_DIR
+            dashboard_api.HA_CONFIG_DIR = config_root
+            try:
+                status = dashboard_api.integration_status()
+            finally:
+                dashboard_api.HA_CONFIG_DIR = previous
+
+        self.assertTrue(status["homeAssistantConfig"]["configured"])
+        self.assertEqual(str(config_root), status["homeAssistantConfig"]["mountPath"])
+        self.assertEqual(str(config_root / "configuration.yaml"), status["homeAssistantConfig"]["configurationPath"])
+        self.assertEqual(str(config_root / ".storage"), status["homeAssistantConfig"]["storagePath"])
+
     def test_generate_insights_surfaces_home_energy_system_and_maintenance_signals(self) -> None:
         now = datetime(2026, 4, 5, 12, 0, tzinfo=timezone.utc)
         states = [

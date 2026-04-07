@@ -77,3 +77,21 @@ class OperatorGuidanceTests(unittest.TestCase):
             "Multi-channel outbound voice and call escalation are roadmap items, not current shipped behavior.",
             DOCS_TEXT,
         )
+
+    def test_landing_and_docs_explain_live_home_assistant_config_mount(self) -> None:
+        self.assertIn(
+            "This fork mounts the live Home Assistant config tree at <code>/ha-config</code>.",
+            LANDING_TEMPLATE,
+        )
+        self.assertIn(
+            "Dashboard editing targets the add-on workspace under /config. The live Home Assistant config root is mounted separately at /ha-config.",
+            LANDING_TEMPLATE,
+        )
+        self.assertIn(
+            "This fork also mounts the real Home Assistant configuration root into the add-on at:",
+            DOCS_TEXT,
+        )
+        self.assertIn(
+            "- `/ha-config` is the live Home Assistant config tree.",
+            DOCS_TEXT,
+        )

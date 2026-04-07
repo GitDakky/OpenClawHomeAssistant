@@ -27,6 +27,7 @@ GRAPH_DB_PATH = Path(
 )
 OPTIONS_FILE = Path(os.environ.get("OPENCLAW_OPTIONS_FILE", "/data/options.json"))
 SECRETS_DIR = Path(os.environ.get("OPENCLAW_SECRETS_DIR", "/config/secrets"))
+HA_CONFIG_DIR = Path(os.environ.get("HOME_ASSISTANT_CONFIG_DIR", "/ha-config"))
 SUPERVISOR_CORE_API = os.environ.get("OPENCLAW_SUPERVISOR_CORE_API", "http://supervisor/core/api")
 STALE_SECRET_DAYS = int(os.environ.get("OPENCLAW_STALE_SECRET_DAYS", "180"))
 RECENT_CHANGE_HOURS = int(os.environ.get("OPENCLAW_RECENT_CHANGE_HOURS", "18"))
@@ -699,6 +700,19 @@ def refresh_graph_snapshot() -> dict[str, Any]:
         )
         upsert_node(conn, "workspace", str(WORKSPACE_DIR), "OpenClaw Workspace", {"path": str(WORKSPACE_DIR)})
         upsert_edge(conn, "openclaw-super-home-assistant", "uses_workspace", str(WORKSPACE_DIR))
+        upsert_node(
+            conn,
+            "config-root",
+            str(HA_CONFIG_DIR),
+            "Home Assistant Config Root",
+            {
+                "path": str(HA_CONFIG_DIR),
+                "mounted": HA_CONFIG_DIR.exists(),
+                "configurationPath": str(HA_CONFIG_DIR / "configuration.yaml"),
+                "storagePath": str(HA_CONFIG_DIR / ".storage"),
+            },
+        )
+        upsert_edge(conn, "openclaw-super-home-assistant", "can_access_home_assistant_config", str(HA_CONFIG_DIR))
 
         for ip in system_ips():
             node_name = f"ip:{ip}"
@@ -838,6 +852,14 @@ def integration_status() -> dict[str, Any]:
         "homeAssistantMcp": {
             "configured": bool_env("HA_MCP_ENABLED"),
             "tokenPath": "/config/secrets/homeassistant.token",
+        },
+        "homeAssistantConfig": {
+            "configured": HA_CONFIG_DIR.exists(),
+            "mountPath": str(HA_CONFIG_DIR),
+            "configurationPath": str(HA_CONFIG_DIR / "configuration.yaml"),
+            "storagePath": str(HA_CONFIG_DIR / ".storage"),
+            "customComponentsPath": str(HA_CONFIG_DIR / "custom_components"),
+            "packagesPath": str(HA_CONFIG_DIR / "packages"),
         },
     }
 

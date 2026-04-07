@@ -770,6 +770,9 @@ SSL tab:  Request a new SSL certificate</pre>
             <p>
               For a full recovery pass, run <code>openclaw doctor --non-interactive</code> from the embedded terminal.
             </p>
+            <p>
+              This fork mounts the live Home Assistant config tree at <code>/ha-config</code>. Keep <code>/config</code> for OpenClaw workspace state and use <code>/ha-config</code> for <code>configuration.yaml</code>, <code>secrets.yaml</code>, <code>custom_components/</code>, <code>packages/</code>, and <code>.storage/</code>.
+            </p>
           </div>
         </details>
       </div>
@@ -802,7 +805,7 @@ SSL tab:  Request a new SSL certificate</pre>
             <div class="editor-toolbar">
               <div>
                 <strong id="editorTitle">Choose a file to inspect</strong>
-                <div class="subtle" id="editorPath">Files are loaded from persistent storage under /config.</div>
+                <div class="subtle" id="editorPath">Dashboard editing targets the add-on workspace under /config. The live Home Assistant config root is mounted separately at /ha-config.</div>
               </div>
               <div class="action-row">
                 <button class="btn secondary" id="reloadFileBtn" type="button">Reload</button>

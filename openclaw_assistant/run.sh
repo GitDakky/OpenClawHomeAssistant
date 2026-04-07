@@ -18,6 +18,7 @@ DEFAULT_DASHBOARD_API_PORT="48110"
 BOOTSTRAP_SOURCE_DIR="/opt/openclaw-super/bootstrap-workspace"
 BUNDLED_SKILLS_SOURCE_DIR="/opt/openclaw-super/bundled-skills"
 OPENCLAW_CONFIG_PATH="/config/.openclaw/openclaw.json"
+HOME_ASSISTANT_CONFIG_DIR="${HOME_ASSISTANT_CONFIG_DIR:-/ha-config}"
 RUNTIME_RESTART_REQUEST_FILE="/tmp/openclaw-runtime-restart.request"
 MANAGED_COMMAND_ACTIVE_FILE="/tmp/openclaw-managed-command.active"
 RUNTIME_WRAPPER_LOG_DIR="/tmp/openclaw"
@@ -244,6 +245,17 @@ GW_ENV_VARS_RAW=$(jq -r '.gateway_env_vars // empty' "$OPTIONS_FILE")
 GW_ENV_VARS_JSON=$(jq -c '.gateway_env_vars // []' "$OPTIONS_FILE")
 
 export TZ="$TZNAME"
+export HOME_ASSISTANT_CONFIG_DIR
+
+if [ -d "$HOME_ASSISTANT_CONFIG_DIR" ]; then
+  if [ -f "$HOME_ASSISTANT_CONFIG_DIR/configuration.yaml" ]; then
+    echo "INFO: Home Assistant config root mounted at ${HOME_ASSISTANT_CONFIG_DIR}."
+  else
+    echo "WARN: ${HOME_ASSISTANT_CONFIG_DIR} is mounted but configuration.yaml is missing."
+  fi
+else
+  echo "WARN: Home Assistant config root is not mounted at ${HOME_ASSISTANT_CONFIG_DIR}; in-place HA diagnosis will be limited."
+fi
 
 # ------------------------------------------------------------------------------
 # Access mode presets — override individual gateway settings for common scenarios

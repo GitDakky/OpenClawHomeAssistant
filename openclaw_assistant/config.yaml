@@ -1,5 +1,5 @@
 name: OpenClaw Super Home Assistant
-version: "0.7.13"
+version: "0.7.14"
 slug: openclaw_super_home_assistant
 description: Run the GitDakky OpenClaw fork as a Home Assistant app with migration support.
 url: https://github.com/GitDakky/OpenClawHomeAssistant
@@ -23,6 +23,9 @@ panel_icon: mdi:robot
 
 map:
   - type: addon_config
+    read_only: false
+  - type: homeassistant_config
+    path: /ha-config
     read_only: false
   - type: all_addon_configs
     read_only: false

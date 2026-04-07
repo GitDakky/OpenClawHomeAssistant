@@ -4,6 +4,8 @@
 
 OpenClaw Super Home Assistant is the GitDakky fork of the OpenClaw Home Assistant app. It runs **OpenClaw** inside **HAOS** with a secure gateway, embedded terminal, browser automation stack, and persistent workspace.
 
+This fork also mounts the live Home Assistant configuration root at `/ha-config` so the assistant can inspect and repair the actual HA system in place. `/config` remains the add-on's own persistent workspace.
+
 This fork exists to keep pace with OpenClaw releases and improve the operator experience around them. Faster updates. Cleaner docs. Better presentation. No leftover filler.
 
 [Documentation](DOCS.md) · [Security](SECURITY.md) · [Changelog](openclaw_assistant/CHANGELOG.md) · [Issues](https://github.com/GitDakky/OpenClawHomeAssistant/issues)
@@ -50,6 +52,7 @@ This fork is intentionally biased toward fixing the classes of problems that hav
 | Operator dashboard | Live cron/heartbeat visibility, file editing for the seeded workspace and skills, and integration status cards |
 | Operator insight cards | Read-only homeowner, energy, system, predictive-maintenance, and security summaries from live HA state plus local runtime settings |
 | Live HA tool layer | Built-in Home Assistant tools for entities, devices, areas, automations, services, template rendering, and bounded history |
+| Live HA config access | Direct access to the real Home Assistant config root at `/ha-config` for recovery, package/include diagnosis, and custom component inspection |
 | Matrix channel | Optional Matrix channel wiring from Home Assistant settings with homeserver auth, DM and room policies, allowlists, and ad-hoc room invites via `groupPolicy=open` + `autoJoin=always` |
 | External intelligence hooks | Optional Context7, Domotz, GitHub issue reporting, MQTT/HiveMQ, BACnet scout, and lightweight system graph scaffolding |
 | Browser tooling | Chromium bundled for automation and web-driven workflows |
@@ -99,6 +102,8 @@ In most local installs, leave `gateway_public_url` empty. The landing page now d
 - Read access is enabled by default inside the trusted add-on context.
 - Mutating Home Assistant service calls stay opt-in behind the `enable_ha_service_calls` option.
 - `homeassistant_token` is now mainly for your own scripts and legacy external MCP workflows. It is no longer required for the built-in live Home Assistant read tools.
+- The real Home Assistant config root is mounted at `/ha-config`. Use that path for `configuration.yaml`, `secrets.yaml`, `custom_components/`, `packages/`, and `.storage/`.
+- `/config` is still the add-on-owned persistent workspace for OpenClaw state, skills, keys, and tokens. Do not confuse it with the live HA config tree.
 
 ## Runtime
 

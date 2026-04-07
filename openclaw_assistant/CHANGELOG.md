@@ -2,6 +2,15 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.14] - 2026-04-07
+
+### Added
+- Mounted the live Home Assistant config root into the add-on at `/ha-config` so the assistant can inspect and repair `configuration.yaml`, `secrets.yaml`, `custom_components/`, `packages/`, and `.storage/` in place.
+
+### Changed
+- Exported `HOME_ASSISTANT_CONFIG_DIR=/ha-config`, added a startup self-check for the mount, and surfaced the mounted config root in the dashboard/system-graph metadata.
+- Updated the README, operator docs, landing page, and security guidance so `/config` remains the add-on workspace while `/ha-config` is clearly documented as the real Home Assistant config tree.
+
 ## [0.7.13] - 2026-04-05
 
 ### Added

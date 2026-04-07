@@ -2,6 +2,8 @@
 
 This GitDakky fork runs [OpenClaw](https://github.com/openclaw/openclaw) inside Home Assistant OS (HAOS). It provides a fully self-contained environment with a web terminal, gateway server, migration support, and the tools OpenClaw needs.
 
+This fork also mounts the live Home Assistant configuration root at `/ha-config` so the assistant can inspect and repair the actual HA system in place. `/config` remains the add-on's own persistent workspace.
+
 **Bundled OpenClaw version in this fork:** `2026.4.1`
 
 **Published app image:** `ghcr.io/gitdakky/openclaw-super-home-assistant`
@@ -52,9 +54,12 @@ When you open the add-on page in Home Assistant, nginx serves a landing page wit
 | `/config/keys/` | Yes | SSH keys (e.g., router SSH key) |
 | `/config/.linuxbrew/` | Yes | Homebrew install and brew-installed CLI tools |
 | `/config/gogcli/` | Yes | gog OAuth credentials for Google APIs |
+| `/ha-config/` | Yes | The real Home Assistant config root: `configuration.yaml`, `secrets.yaml`, `custom_components/`, `packages/`, `.storage/` |
 | `/usr/lib/node_modules/openclaw/` | No | OpenClaw installation (rebuilt with each image update) |
 
 > **Important**: Everything under `/config/` persists across add-on updates. The container filesystem (`/usr/`, `/opt/`, etc.) is rebuilt each time the image changes.
+>
+> **Important**: `/ha-config` is not another OpenClaw workspace. It is the live Home Assistant config tree. Changes there affect Home Assistant directly.
 
 ---
 
@@ -98,6 +103,7 @@ When the add-on starts for the first time, it automatically:
 2. Generates a minimal `openclaw.json` with a random gateway auth token
 3. Syncs built-in skills to persistent storage
 4. Starts the gateway, terminal, and nginx
+5. Verifies that `/ha-config/configuration.yaml` is reachable and logs a warning if the Home Assistant config mount is missing
 
 ### Before you open the Gateway UI
 
@@ -647,6 +653,29 @@ This add-on now ships with a **built-in Home Assistant MCP server** and enables 
 
 If those questions work without shell commands or file scraping, the built-in Home Assistant tool layer is active.
 
+#### Live Home Assistant filesystem access
+
+This fork also mounts the real Home Assistant configuration root into the add-on at:
+
+```sh
+/ha-config
+```
+
+Use `/ha-config` when you need to inspect or repair Home Assistant itself:
+
+- `/ha-config/configuration.yaml`
+- `/ha-config/secrets.yaml`
+- `/ha-config/custom_components/`
+- `/ha-config/packages/`
+- `/ha-config/.storage/`
+
+Keep the path split straight:
+
+- `/config` is the add-on's persistent OpenClaw workspace and secret store.
+- `/ha-config` is the live Home Assistant config tree.
+
+Because this fork is intended as a trusted, high-capability Home Assistant operator, `/ha-config` is mounted writable by default. Treat edits there with the same care you would use when editing Home Assistant directly on disk.
+
 #### Legacy external MCP path
 
 The old `homeassistant_token` + `auto_configure_mcp` path still exists as a compatibility mode for people who want to register Home Assistant's external MCP endpoint manually. It is no longer the recommended path, and it is ignored when `enable_builtin_ha_tools` is ON.
@@ -762,6 +791,7 @@ You should see your account listed with the `sheets` service.
 | Homebrew & brew-installed tools | `/config/.linuxbrew/` | Yes (synced on startup) |
 | gog OAuth credentials | `/config/gogcli/` | Yes |
 | TLS certificates (lan_https) | `/config/certs/` | Yes (CA persists; server cert regenerated if IP changes) |
+| Live Home Assistant config root | `/ha-config/` | Host-backed (the real HA config tree) |
 | OpenClaw binary | `/usr/lib/node_modules/openclaw/` | **No** — reinstalled from image |
 
 ### How built-in skills work
@@ -1285,4 +1315,6 @@ Yes. Set `access_mode` to `lan_https` (recommended) or `lan_reverse_proxy`. Any 
 **Where is my data stored on the host?**
 The add-on's `/config/` directory maps to `/addon_configs/<slug>/` on the Home Assistant host. This is included in HA backups automatically.
 
-The add-on also mounts Home Assistant `/share` and `/media` as writable paths inside the container (`/share`, `/media`) for file access workflows. These are separate from OpenClaw's default persistent workspace under `/config`.
+The add-on also mounts the live Home Assistant config root at `/ha-config`. That is where `configuration.yaml`, `secrets.yaml`, `custom_components/`, `packages/`, and `.storage/` live inside the container.
+
+The add-on also mounts Home Assistant `/share` and `/media` as writable paths inside the container (`/share`, `/media`) for file access workflows. These are separate from both OpenClaw's persistent workspace under `/config` and the live HA config tree under `/ha-config`.
