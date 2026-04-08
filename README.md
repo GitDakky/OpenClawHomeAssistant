@@ -60,6 +60,77 @@ This fork is intentionally biased toward fixing the classes of problems that hav
 | Persistent state | Config, skills, agent workspace, keys, and tokens survive add-on updates |
 | Useful CLI stack | `git`, `jq`, `python3`, `ripgrep`, `curl`, `pnpm`, Homebrew, and more |
 
+## Full feature list
+
+### Core runtime
+
+- Bundles upstream OpenClaw `2026.4.2` inside the add-on image.
+- Runs the OpenClaw gateway directly inside Home Assistant OS with a managed startup wrapper.
+- Exposes the OpenAI-compatible API surface for local agent and voice-assistant workflows.
+- Ships a browser automation stack with Chromium for web-driven tasks.
+- Includes a practical CLI toolkit in the container: `git`, `jq`, `python3`, `curl`, `ripgrep`, `fd`, `bat`, `pnpm`, Homebrew, and related operator tools.
+
+### Operator surfaces
+
+- Embedded `ttyd` terminal inside Home Assistant ingress.
+- Operator dashboard with terminal-first layout and tabbed sections.
+- Dashboard file editor for seeded workspace files and bundled skills.
+- Live scheduler and heartbeat visibility from `openclaw cron` and `openclaw system heartbeat`.
+- Integration rack for Context7, Domotz, GitHub issue reporting, MQTT, BACnet, MCP, and mounted HA config visibility.
+- Home intelligence cards for homeowner summary, energy, system, predictive maintenance, and security posture.
+- Home OS Memory tab with a persistent house journal, recent changes, incident queue, risk register, and first Doctor scorecard.
+
+### Home Assistant integration
+
+- Built-in Home Assistant tool layer for live entities, devices, areas, automations, templates, and bounded history reads.
+- Optional mutating Home Assistant service calls behind `enable_ha_service_calls`.
+- Direct writable mount of the real Home Assistant config root at `/ha-config`.
+- In-place access to `configuration.yaml`, `secrets.yaml`, `custom_components/`, `packages/`, and `.storage/`.
+- Dashboard and operator flows that can inspect the live HA system without relying only on shell scraping.
+
+### Access, auth, and networking
+
+- Token-auth gateway mode by default.
+- `lan_https` mode for built-in HTTPS access on local networks.
+- Reverse-proxy-friendly access patterns for NPM, Caddy, Traefik, and similar setups.
+- Tailnet-friendly access modes and explicit browser-facing `gateway_public_url` handling.
+- Loopback-only local mode for same-host operator workflows.
+- Trusted-proxy support with configured proxy CIDRs or IPs.
+- Deterministic gateway URL derivation on the landing page for common local cases.
+
+### Persistence and migration
+
+- Persistent OpenClaw workspace under `/config/clawd`.
+- Persistent OpenClaw state, skills, auth, tokens, and graph data under `/config/.openclaw/`.
+- Persistent global npm install redirection under `/config/.node_global/`.
+- Persistent Homebrew installation under `/config/.linuxbrew/`.
+- First-start migration path from the legacy OpenClaw Assistant add-on.
+- Reconciliation of older single-agent OpenClaw layouts into the current `agents/main/...` structure.
+- Restart-safe config reconciliation for gateway mode, auth mode, proxy state, and related runtime settings.
+
+### Seeded operator brain
+
+- Seeded workspace files: `AGENTS.md`, `BOOTSTRAP.md`, `HEARTBEAT.md`, `IDENTITY.md`, `MEMORY.md`, `SOUL.md`, `TOOLS.md`, and `USER.md`.
+- Seeded Home Assistant operator skills for operations, automations, voice, diagnostics, research, network mapping, MQTT, Domotz, BACnet, and repo issue reporting.
+- Prompt bootstrap that now explicitly teaches the default agent about `/ha-config`, Home OS Memory, and the Doctor/Memory dashboard surfaces.
+
+### External integrations and channels
+
+- Optional Matrix channel wiring from add-on settings.
+- Optional Context7 support for current technical documentation.
+- Optional Domotz integration support for network inventory and troubleshooting.
+- Optional MQTT / HiveMQ broker wiring.
+- Optional BACnet scout scaffolding and dashboard status.
+- Optional GitHub issue reporting directly into this fork.
+
+### Reliability and hardening
+
+- Local validation contract in `scripts/validate_local.sh`.
+- CI validation workflow plus multi-arch add-on image build/publish workflow.
+- Startup helpers and tests around gateway URL handling, migration safety, and config synchronization.
+- Matrix startup now fails closed when auth or homeserver settings are incomplete.
+- Home OS Memory and Doctor layers now surface current drift, unavailable entities, disk pressure, stale secrets, and config visibility.
+
 ## Install in 60 seconds
 
 [![Open your Home Assistant instance and add this repository.](https://my.home-assistant.io/badges/supervisor_repository.svg)](https://my.home-assistant.io/redirect/supervisor_repository/?repository_url=https%3A%2F%2Fgithub.com%2FGitDakky%2FOpenClawHomeAssistant)

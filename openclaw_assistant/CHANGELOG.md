@@ -2,6 +2,11 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.20] - 2026-04-08
+
+### Changed
+- Expanded the README to show the full shipped feature set by area and kept the bundled OpenClaw version prominent so operators can see exactly what the add-on includes before installing or upgrading.
+
 ## [0.7.19] - 2026-04-08
 
 ### Changed
