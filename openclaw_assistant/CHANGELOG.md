@@ -2,6 +2,11 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.17] - 2026-04-08
+
+### Changed
+- Moved the embedded terminal to the top of the operator page and replaced the long scrolling layout with tabbed operator sections for overview, help, workspace, runtime, insights, and integrations.
+
 ## [0.7.16] - 2026-04-08
 
 ### Changed

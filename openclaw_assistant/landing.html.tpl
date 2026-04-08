@@ -281,6 +281,72 @@
       display:grid;
       gap:14px;
     }
+    .tab-shell{
+      padding:18px 20px 20px;
+      display:grid;
+      gap:16px;
+    }
+    .tab-shell-head{
+      display:flex;
+      gap:14px;
+      justify-content:space-between;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .tab-shell-head h2{
+      margin:4px 0 0;
+      font-size:22px;
+      letter-spacing:-.04em;
+    }
+    .tab-shell-head p{
+      margin:0;
+      max-width:70ch;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.55;
+    }
+    .tab-bar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .tab-btn{
+      appearance:none;
+      border:1px solid rgba(88,114,146,.22);
+      background:rgba(10,17,24,.86);
+      color:#d6e2f0;
+      min-height:38px;
+      padding:0 14px;
+      border-radius:11px;
+      cursor:pointer;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
+    }
+    .tab-btn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(120,166,199,.32);
+    }
+    .tab-btn.active{
+      border-color:rgba(120,166,199,.4);
+      background:linear-gradient(180deg, rgba(18,38,58,.96), rgba(12,24,39,.94));
+      color:#eff7ff;
+      box-shadow:0 0 0 1px rgba(120,166,199,.14) inset;
+    }
+    .tab-panels{
+      display:grid;
+      gap:18px;
+    }
+    .tab-panel{
+      display:none;
+      gap:18px;
+      align-content:start;
+    }
+    .tab-panel.active{
+      display:grid;
+    }
     .banner{
       padding:14px 16px;
       border-radius:14px;
@@ -644,7 +710,48 @@
 </head>
 <body>
   <div class="shell">
-    <section class="hero">
+    <section class="panel terminal-shell">
+      <div class="terminal-head">
+        <div>
+          <div class="eyebrow">Embedded Terminal</div>
+          <h3>Direct operator console</h3>
+          <p>
+            Keep doctor runs, token inspection, migration recovery, and live debugging in the terminal first.
+            The rest of the page is split into tabs so the operator surface stays compact and predictable.
+          </p>
+        </div>
+        <div class="action-row">
+          <a class="btn secondary" href="./terminal/" target="_self">Open Terminal (full page)</a>
+        </div>
+      </div>
+      <div class="term">
+        <iframe src="./terminal/" title="Terminal"></iframe>
+      </div>
+    </section>
+
+    <section class="panel tab-shell">
+      <div class="tab-shell-head">
+        <div>
+          <div class="eyebrow">Operator Sections</div>
+          <h2>Jump to the surface you need</h2>
+        </div>
+        <p>
+          The operator page now keeps one work surface in view at a time: overview, help, workspace, runtime, insights, or integrations.
+        </p>
+      </div>
+      <div class="tab-bar" role="tablist" aria-label="Operator sections">
+        <button class="tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="tab-overview" data-tab-target="overview">Overview</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-help" data-tab-target="help">Help</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-workspace" data-tab-target="workspace">Workspace</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-runtime" data-tab-target="runtime">Runtime</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-insights" data-tab-target="insights">Insights</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-integrations" data-tab-target="integrations">Integrations</button>
+      </div>
+    </section>
+
+    <div class="tab-panels">
+      <section class="tab-panel active" id="tab-overview" data-tab-panel="overview" role="tabpanel">
+        <section class="hero">
       <div class="panel hero-main">
         <div class="hero-copy">
           <div class="eyebrow">GitDakky Fork Operator Console</div>
@@ -730,99 +837,102 @@
       <h3>Recommended next step</h3>
       <div id="wizardContent"></div>
     </section>
+      </section>
 
-    <section class="guides">
-      <div class="panel guide-card">
-        <div class="ops-head">
-          <div class="eyebrow">Operator Help</div>
-          <h3>Access, control, and recovery notes</h3>
-          <p>
-            Keep the guidance in one place. Open the section you need without turning the landing page into four competing documentation cards.
-          </p>
-        </div>
+      <section class="tab-panel" id="tab-help" data-tab-panel="help" role="tabpanel">
+        <section class="guides">
+          <div class="panel guide-card">
+            <div class="ops-head">
+              <div class="eyebrow">Operator Help</div>
+              <h3>Access, control, and recovery notes</h3>
+              <p>
+                Keep the guidance in one place. Open the section you need without turning the landing page into four competing documentation cards.
+              </p>
+            </div>
 
-        <details>
-          <summary>Token and access quick help</summary>
-          <div>
-            <p>
-              The Gateway UI opens in a separate tab to avoid Home Assistant ingress websocket quirks.
-              In most local installs the launch URL is derived automatically. Set <code>gateway_public_url</code> only when you need to override the detected host or point at a reverse-proxy / Tailscale URL.
-            </p>
-            <p>
-              If this add-on is using a remote gateway, keep <code>gateway_remote_url</code> as the backend <code>ws://</code> or <code>wss://</code> endpoint.
-              Set <code>gateway_public_url</code> separately only when you want this page to open a browser-facing <code>http://</code> or <code>https://</code> Control UI URL.
-            </p>
-            <p>
-              If the Gateway UI says <b>Unauthorized</b>, retrieve the token in the embedded terminal:
-            </p>
-            <pre>jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json</pre>
-            <p class="subtle">
-              Since OpenClaw v2026.2.22+, <code>openclaw config get</code> redacts secrets, so read the file directly.
-            </p>
-          </div>
-        </details>
+            <details>
+              <summary>Token and access quick help</summary>
+              <div>
+                <p>
+                  The Gateway UI opens in a separate tab to avoid Home Assistant ingress websocket quirks.
+                  In most local installs the launch URL is derived automatically. Set <code>gateway_public_url</code> only when you need to override the detected host or point at a reverse-proxy / Tailscale URL.
+                </p>
+                <p>
+                  If this add-on is using a remote gateway, keep <code>gateway_remote_url</code> as the backend <code>ws://</code> or <code>wss://</code> endpoint.
+                  Set <code>gateway_public_url</code> separately only when you want this page to open a browser-facing <code>http://</code> or <code>https://</code> Control UI URL.
+                </p>
+                <p>
+                  If the Gateway UI says <b>Unauthorized</b>, retrieve the token in the embedded terminal:
+                </p>
+                <pre>jq -r '.gateway.auth.token' /config/.openclaw/openclaw.json</pre>
+                <p class="subtle">
+                  Since OpenClaw v2026.2.22+, <code>openclaw config get</code> redacts secrets, so read the file directly.
+                </p>
+              </div>
+            </details>
 
-        <details>
-          <summary>MCP setup (Home Assistant control)</summary>
-          <div>
-            <p><b>MCP</b> lets OpenClaw control Home Assistant entities, services, and automations directly.</p>
-            <p><b>Automatic:</b> create a long-lived access token in Home Assistant, paste it into <code>homeassistant_token</code>, enable <code>auto_configure_mcp</code>, and restart the app.</p>
-            <p><b>Manual:</b></p>
-            <pre>mcporter config add HA "http://localhost:8123/api/mcp" \
+            <details>
+              <summary>MCP setup (Home Assistant control)</summary>
+              <div>
+                <p><b>MCP</b> lets OpenClaw control Home Assistant entities, services, and automations directly.</p>
+                <p><b>Automatic:</b> create a long-lived access token in Home Assistant, paste it into <code>homeassistant_token</code>, enable <code>auto_configure_mcp</code>, and restart the app.</p>
+                <p><b>Manual:</b></p>
+                <pre>mcporter config add HA "http://localhost:8123/api/mcp" \
   --header "Authorization=Bearer YOUR_LONG_LIVED_TOKEN" \
   --scope home</pre>
-            <p><b>After upgrades:</b></p>
-            <pre>mcporter call home-assistant.GetLiveContext</pre>
-          </div>
-        </details>
+                <p><b>After upgrades:</b></p>
+                <pre>mcporter call home-assistant.GetLiveContext</pre>
+              </div>
+            </details>
 
-        <details>
-          <summary>Reverse-proxy recipes (NPM / Caddy / Traefik / Tailscale)</summary>
-          <div>
-            <p><b>Nginx Proxy Manager</b></p>
-            <pre>Scheme:   https
+            <details>
+              <summary>Reverse-proxy recipes (NPM / Caddy / Traefik / Tailscale)</summary>
+              <div>
+                <p><b>Nginx Proxy Manager</b></p>
+                <pre>Scheme:   https
 Forward:  &lt;HA-IP&gt;:18790
 WS:       ON
 SSL tab:  Request a new SSL certificate</pre>
-            <p><b>Caddy</b></p>
-            <pre>openclaw.example.com {
+                <p><b>Caddy</b></p>
+                <pre>openclaw.example.com {
     reverse_proxy &lt;HA-IP&gt;:18790
 }</pre>
-            <p><b>Traefik</b></p>
-            <pre>- "traefik.http.routers.openclaw.rule=Host(`openclaw.example.com`)"
+                <p><b>Traefik</b></p>
+                <pre>- "traefik.http.routers.openclaw.rule=Host(`openclaw.example.com`)"
 - "traefik.http.routers.openclaw.tls.certresolver=le"
 - "traefik.http.services.openclaw.loadbalancer.server.port=18790"</pre>
-            <p><b>Tailscale HTTPS</b></p>
-            <pre># 1. Set access_mode to tailnet_https
+                <p><b>Tailscale HTTPS</b></p>
+                <pre># 1. Set access_mode to tailnet_https
 # 2. Enable Tailscale HTTPS certificates
 # 3. tailscale cert &lt;machine-name&gt;.ts.net
 # 4. Set gateway_public_url to https://&lt;machine-name&gt;.ts.net:18790</pre>
-          </div>
-        </details>
+              </div>
+            </details>
 
-        <details>
-          <summary>Operator notes</summary>
-          <div>
-            <p>
-              If you migrated from the older add-on line, the fork now reconciles legacy single-agent state into the current per-agent
-              OpenClaw layout so sessions, auth, and model state continue to work under <code>agents/main</code>.
-            </p>
-            <p>
-              Same-host CLI and TUI pairing requests are auto-approved on loopback-style installs to reduce local operator friction without opening remote pairing.
-            </p>
-            <p>
-              For a full recovery pass, run <code>openclaw doctor --non-interactive</code> from the embedded terminal.
-            </p>
-            <p>
-              This fork mounts the live Home Assistant config tree at <code>/ha-config</code>. Keep <code>/config</code> for OpenClaw workspace state and use <code>/ha-config</code> for <code>configuration.yaml</code>, <code>secrets.yaml</code>, <code>custom_components/</code>, <code>packages/</code>, and <code>.storage/</code>.
-            </p>
+            <details>
+              <summary>Operator notes</summary>
+              <div>
+                <p>
+                  If you migrated from the older add-on line, the fork now reconciles legacy single-agent state into the current per-agent
+                  OpenClaw layout so sessions, auth, and model state continue to work under <code>agents/main</code>.
+                </p>
+                <p>
+                  Same-host CLI and TUI pairing requests are auto-approved on loopback-style installs to reduce local operator friction without opening remote pairing.
+                </p>
+                <p>
+                  For a full recovery pass, run <code>openclaw doctor --non-interactive</code> from the embedded terminal.
+                </p>
+                <p>
+                  This fork mounts the live Home Assistant config tree at <code>/ha-config</code>. Keep <code>/config</code> for OpenClaw workspace state and use <code>/ha-config</code> for <code>configuration.yaml</code>, <code>secrets.yaml</code>, <code>custom_components/</code>, <code>packages/</code>, and <code>.storage/</code>.
+                </p>
+              </div>
+            </details>
           </div>
-        </details>
-      </div>
-    </section>
+        </section>
+      </section>
 
-    <section class="ops-grid">
-      <section class="panel ops-panel wide">
+      <section class="tab-panel" id="tab-workspace" data-tab-panel="workspace" role="tabpanel">
+        <section class="panel ops-panel wide">
         <div class="ops-head">
           <div class="eyebrow">Workspace and Skills</div>
           <h3>Editable operator bootstrap</h3>
@@ -858,9 +968,11 @@ SSL tab:  Request a new SSL certificate</pre>
             <textarea class="editor" id="fileEditor" spellcheck="false" placeholder="Select a workspace file or skill file to edit."></textarea>
           </div>
         </div>
+        </section>
       </section>
 
-      <section class="panel ops-panel">
+      <section class="tab-panel" id="tab-runtime" data-tab-panel="runtime" role="tabpanel">
+        <section class="panel ops-panel">
         <div class="ops-head">
           <div class="eyebrow">Automation Runtime</div>
           <h3>Cron and heartbeat visibility</h3>
@@ -889,9 +1001,11 @@ SSL tab:  Request a new SSL certificate</pre>
             <pre id="heartbeatBlock">Loading last heartbeat...</pre>
           </div>
         </div>
+        </section>
       </section>
 
-      <section class="panel ops-panel">
+      <section class="tab-panel" id="tab-insights" data-tab-panel="insights" role="tabpanel">
+        <section class="panel ops-panel">
         <div class="ops-head">
           <div class="eyebrow">Home Intelligence</div>
           <h3>Read-only operator insights</h3>
@@ -906,9 +1020,11 @@ SSL tab:  Request a new SSL certificate</pre>
             <div class="meta">The dashboard API is building a read-only snapshot from Home Assistant and the add-on runtime.</div>
           </div>
         </div>
+        </section>
       </section>
 
-      <section class="panel ops-panel">
+      <section class="tab-panel" id="tab-integrations" data-tab-panel="integrations" role="tabpanel">
+        <section class="panel ops-panel">
         <div class="ops-head">
           <div class="eyebrow">Integration Rack</div>
           <h3>Research, broker, and network sources</h3>
@@ -923,24 +1039,9 @@ SSL tab:  Request a new SSL certificate</pre>
             <div class="meta">The dashboard API is gathering runtime metadata.</div>
           </div>
         </div>
+        </section>
       </section>
-    </section>
-
-    <section class="panel terminal-shell">
-      <div class="terminal-head">
-        <div>
-          <div class="eyebrow">Embedded Terminal</div>
-          <h3>Direct operator console</h3>
-        </div>
-        <p>
-          Keep onboarding, doctor runs, token inspection, and migration recovery inside the add-on.
-          The terminal remains first-class here; the page around it just stops looking like a default admin stub.
-        </p>
-      </div>
-      <div class="term">
-        <iframe src="./terminal/" title="Terminal"></iframe>
-      </div>
-    </section>
+    </div>
   </div>
 
   <script>
@@ -960,12 +1061,53 @@ SSL tab:  Request a new SSL certificate</pre>
 
     const $ = id => document.getElementById(id);
     const escapeHtml = value => String(value ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+    const tabButtons = Array.from(document.querySelectorAll('[data-tab-target]'));
+    const tabPanels = Array.from(document.querySelectorAll('[data-tab-panel]'));
+    const TAB_STORAGE_KEY = 'openclaw.operatorTab';
     function setStatusCard(targetId, level, icon, label, message) {
       const element = $(targetId);
       if (!element) return;
       element.className = `status-item ${level}`;
       element.innerHTML = `<span class="icon">${icon}</span><span><span class="status-label">${label}</span>${message}</span>`;
     }
+    function activateTab(name, syncHash = true) {
+      let found = false;
+      tabButtons.forEach(button => {
+        const active = button.dataset.tabTarget === name;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', active ? 'true' : 'false');
+        if (active) found = true;
+      });
+      tabPanels.forEach(panel => {
+        const active = panel.dataset.tabPanel === name;
+        panel.classList.toggle('active', active);
+      });
+      if (!found) return;
+      try { window.localStorage.setItem(TAB_STORAGE_KEY, name); } catch {}
+      if (syncHash) {
+        const nextHash = `tab-${name}`;
+        if (window.location.hash !== `#${nextHash}`) {
+          history.replaceState(null, '', `#${nextHash}`);
+        }
+      }
+    }
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => activateTab(button.dataset.tabTarget));
+    });
+    const initialTab = (() => {
+      const hashMatch = window.location.hash.match(/^#tab-([a-z0-9_-]+)$/i);
+      if (hashMatch && tabButtons.some(button => button.dataset.tabTarget === hashMatch[1])) {
+        return hashMatch[1];
+      }
+      try {
+        const stored = window.localStorage.getItem(TAB_STORAGE_KEY);
+        if (stored && tabButtons.some(button => button.dataset.tabTarget === stored)) {
+          return stored;
+        }
+      } catch {}
+      return 'overview';
+    })();
+    activateTab(initialTab, false);
     const prettyJson = value => {
       if (value === null || value === undefined || value === '') return 'No data.';
       if (typeof value === 'string') return value;
