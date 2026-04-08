@@ -530,6 +530,18 @@
       margin:0;
       max-height:220px;
     }
+    .stack-card ul{
+      margin:0;
+      padding-left:18px;
+      display:grid;
+      gap:6px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.55;
+    }
+    .stack-card li{
+      margin:0;
+    }
     .pill-row{
       display:flex;
       gap:10px;
@@ -736,7 +748,7 @@
           <h2>Jump to the surface you need</h2>
         </div>
         <p>
-          The operator page now keeps one work surface in view at a time: overview, help, workspace, runtime, insights, or integrations.
+          The operator page now keeps one work surface in view at a time: overview, help, workspace, runtime, insights, integrations, or memory.
         </p>
       </div>
       <div class="tab-bar" role="tablist" aria-label="Operator sections">
@@ -746,6 +758,7 @@
         <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-runtime" data-tab-target="runtime">Runtime</button>
         <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-insights" data-tab-target="insights">Insights</button>
         <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-integrations" data-tab-target="integrations">Integrations</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="tab-memory" data-tab-target="memory">Memory</button>
       </div>
     </section>
 
@@ -1041,6 +1054,47 @@ SSL tab:  Request a new SSL certificate</pre>
         </div>
         </section>
       </section>
+
+      <section class="tab-panel" id="tab-memory" data-tab-panel="memory" role="tabpanel">
+        <section class="panel ops-panel">
+          <div class="ops-head">
+            <div class="eyebrow">Home OS Memory</div>
+            <h3>House journal and first doctor pass</h3>
+            <p>
+              A persistent operator log for what changed, what looks risky, and what the add-on would investigate first before making repairs.
+            </p>
+          </div>
+          <div class="stack">
+            <div class="stack-card">
+              <h4>Doctor verdict</h4>
+              <div class="pill-row" id="doctorSummaryPills">
+                <span class="pill">Loading</span>
+              </div>
+              <div class="meta" id="doctorSummaryText">Building the first operator verdict...</div>
+            </div>
+            <div class="stack-card">
+              <h4>Recent changes</h4>
+              <div class="meta" id="memoryRecentChanges">Loading memory changes...</div>
+            </div>
+            <div class="stack-card">
+              <h4>Incident queue</h4>
+              <div class="meta" id="memoryIncidents">Loading incident signals...</div>
+            </div>
+            <div class="stack-card">
+              <h4>Risk register</h4>
+              <div class="meta" id="memoryRisks">Loading risk register...</div>
+            </div>
+            <div class="stack-card">
+              <h4>Journal trail</h4>
+              <div class="meta" id="memoryJournal">Loading persistent journal...</div>
+            </div>
+            <div class="stack-card">
+              <h4>Storage paths</h4>
+              <pre id="memoryStorageBlock">Loading memory storage paths...</pre>
+            </div>
+          </div>
+        </section>
+      </section>
     </div>
   </div>
 
@@ -1112,6 +1166,16 @@ SSL tab:  Request a new SSL certificate</pre>
       if (value === null || value === undefined || value === '') return 'No data.';
       if (typeof value === 'string') return value;
       try { return JSON.stringify(value, null, 2); } catch { return String(value); }
+    };
+    const renderList = (targetId, items, emptyLabel, formatter) => {
+      const element = $(targetId);
+      if (!element) return;
+      if (!items || !items.length) {
+        element.innerHTML = `<div class="meta">${escapeHtml(emptyLabel)}</div>`;
+        return;
+      }
+      const renderItem = formatter || ((item) => escapeHtml(String(item)));
+      element.innerHTML = `<ul>${items.map(item => `<li>${renderItem(item)}</li>`).join('')}</ul>`;
     };
     const browserHost = window.location.hostname || '';
     const browserProtocol = window.location.protocol || 'http:';
@@ -1486,6 +1550,47 @@ SSL tab:  Request a new SSL certificate</pre>
       grid.innerHTML = cards.join('');
     }
 
+    function renderMemory(memory) {
+      const summary = memory?.summary || {};
+      const doctor = memory?.doctor || {};
+      const statusClass = summary.status === 'good' ? 'good' : summary.status === 'warn' ? 'warn' : 'off';
+      $('doctorSummaryPills').innerHTML = `
+        <span class="pill ${statusClass}">${escapeHtml(String(summary.status || 'info').toUpperCase())}</span>
+        <span class="pill">${escapeHtml(String(summary.score ?? '0'))}/100</span>
+        <span class="pill">${escapeHtml(String(summary.entryCount ?? 0))} journal entries</span>
+        <span class="pill">${escapeHtml(String(summary.customComponentCount ?? 0))} custom components</span>
+        <span class="pill">${escapeHtml(String(summary.packageCount ?? 0))} package files</span>`;
+      $('doctorSummaryText').textContent = doctor.summary || 'No doctor summary available yet.';
+
+      renderList('memoryRecentChanges', memory?.recentChanges || [], 'No config or runtime changes recorded yet.');
+      renderList(
+        'memoryIncidents',
+        memory?.incidents || [],
+        'No critical incident signals are active in the current snapshot.',
+        item => `<b>${escapeHtml(item.title || 'Incident')}</b><br>${escapeHtml(item.detail || '')}`
+      );
+      renderList(
+        'memoryRisks',
+        memory?.riskRegister || [],
+        'No risks are currently registered.',
+        item => {
+          const action = item.action ? `<br><span class="subtle">Next action: ${escapeHtml(item.action)}</span>` : '';
+          return `<b>${escapeHtml(item.title || 'Finding')}</b> <span class="pill ${item.severity === 'critical' ? 'off' : item.severity === 'high' || item.severity === 'medium' ? 'warn' : ''}">${escapeHtml(String(item.severity || 'info').toUpperCase())}</span><br>${escapeHtml(item.detail || '')}${action}`;
+        }
+      );
+      renderList(
+        'memoryJournal',
+        memory?.journalEntries || [],
+        'The persistent house journal has not recorded any entries yet.',
+        item => {
+          const changes = (item.changes || []).slice(0, 2).map(change => escapeHtml(change)).join('<br>');
+          const summaryText = escapeHtml(item.summary || '');
+          return `<b>${escapeHtml(item.timestamp || 'unknown time')}</b><br>${summaryText}${changes ? `<br><span class="subtle">${changes}</span>` : ''}`;
+        }
+      );
+      $('memoryStorageBlock').textContent = prettyJson(memory?.storage || {});
+    }
+
     let lastDashboardState = null;
     function renderLastState() {
       if (!lastDashboardState) return;
@@ -1504,6 +1609,7 @@ SSL tab:  Request a new SSL certificate</pre>
         $('heartbeatBlock').textContent = prettyJson(payload.schedule?.heartbeatLast?.error || payload.schedule?.heartbeatLast?.data);
         renderInsights(payload.insights || {});
         renderIntegrations(payload.integrations || {}, payload.graph || {});
+        renderMemory(payload.memory || {});
         if (!activeFileKey && payload.workspaceFiles?.length) {
           await openDashboardFile(payload.workspaceFiles[0].key);
         }
@@ -1513,6 +1619,14 @@ SSL tab:  Request a new SSL certificate</pre>
         $('cronRunsBlock').textContent = 'Dashboard API unavailable.';
         $('heartbeatBlock').textContent = 'Dashboard API unavailable.';
         $('insightGrid').innerHTML = '<div class="integration-card"><b>Insight cards unavailable</b><div class="meta">Dashboard API unavailable.</div></div>';
+        $('integrationGrid').innerHTML = '<div class="integration-card"><b>Integration rack unavailable</b><div class="meta">Dashboard API unavailable.</div></div>';
+        $('doctorSummaryPills').innerHTML = '<span class="pill off">Unavailable</span>';
+        $('doctorSummaryText').textContent = 'Dashboard API unavailable.';
+        $('memoryRecentChanges').innerHTML = '<div class="meta">Dashboard API unavailable.</div>';
+        $('memoryIncidents').innerHTML = '<div class="meta">Dashboard API unavailable.</div>';
+        $('memoryRisks').innerHTML = '<div class="meta">Dashboard API unavailable.</div>';
+        $('memoryJournal').innerHTML = '<div class="meta">Dashboard API unavailable.</div>';
+        $('memoryStorageBlock').textContent = 'Dashboard API unavailable.';
       }
     }
 

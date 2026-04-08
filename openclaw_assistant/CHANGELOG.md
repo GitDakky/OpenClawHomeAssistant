@@ -2,6 +2,14 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.18] - 2026-04-08
+
+### Added
+- Added Home OS Memory v1 to the operator dashboard with a persistent house journal under `/config/.openclaw/home-os-memory/`, a first Doctor score, recent-change tracking from `/ha-config`, incident summaries, and a bounded risk register.
+
+### Changed
+- The ingress dashboard now includes a dedicated `Memory` tab that writes and reads the persistent house journal so operators can flick through what changed, what broke, and what still looks risky without leaving Home Assistant.
+
 ## [0.7.17] - 2026-04-08
 
 ### Changed

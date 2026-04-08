@@ -7,6 +7,7 @@ import json
 import os
 import sqlite3
 import subprocess
+import hashlib
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
@@ -28,10 +29,14 @@ GRAPH_DB_PATH = Path(
 OPTIONS_FILE = Path(os.environ.get("OPENCLAW_OPTIONS_FILE", "/data/options.json"))
 SECRETS_DIR = Path(os.environ.get("OPENCLAW_SECRETS_DIR", "/config/secrets"))
 HA_CONFIG_DIR = Path(os.environ.get("HOME_ASSISTANT_CONFIG_DIR", "/ha-config"))
+MEMORY_DIR = Path(os.environ.get("OPENCLAW_MEMORY_DIR", "/config/.openclaw/home-os-memory"))
+MEMORY_STATE_FILE = MEMORY_DIR / "memory-state.json"
+MEMORY_JOURNAL_FILE = MEMORY_DIR / "house-journal.md"
 SUPERVISOR_CORE_API = os.environ.get("OPENCLAW_SUPERVISOR_CORE_API", "http://supervisor/core/api")
 STALE_SECRET_DAYS = int(os.environ.get("OPENCLAW_STALE_SECRET_DAYS", "180"))
 RECENT_CHANGE_HOURS = int(os.environ.get("OPENCLAW_RECENT_CHANGE_HOURS", "18"))
 LOW_BATTERY_THRESHOLD = float(os.environ.get("OPENCLAW_LOW_BATTERY_THRESHOLD", "25"))
+MAX_MEMORY_ENTRIES = int(os.environ.get("OPENCLAW_MEMORY_MAX_ENTRIES", "40"))
 
 WORKSPACE_FILES = [
     "AGENTS.md",
@@ -388,6 +393,487 @@ def disk_summary() -> tuple[int, str]:
     pct = int((usage.used / usage.total) * 100) if usage.total else 0
     free_gb = usage.free / (1024 ** 3)
     return pct, f"{free_gb:.1f} GB free"
+
+
+def relative_config_path(path: Path, root: Path) -> str:
+    try:
+        return str(path.relative_to(root))
+    except ValueError:
+        return str(path)
+
+
+def config_file_change_items(root: Path, now: datetime, limit: int = 6) -> list[str]:
+    if not root.exists():
+        return []
+
+    candidates: list[Path] = []
+    for name in ("configuration.yaml", "secrets.yaml", "automations.yaml", "scripts.yaml", "scenes.yaml"):
+        path = root / name
+        if path.exists():
+            candidates.append(path)
+
+    packages_dir = root / "packages"
+    if packages_dir.exists():
+        candidates.extend(path for path in packages_dir.rglob("*") if path.is_file() and path.suffix.lower() in {".yaml", ".yml"})
+
+    custom_components_dir = root / "custom_components"
+    if custom_components_dir.exists():
+        candidates.extend(custom_components_dir.glob("*/manifest.json"))
+
+    items: list[tuple[float, str]] = []
+    for path in candidates:
+        modified = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+        items.append(
+            (
+                path.stat().st_mtime,
+                f"{relative_config_path(path, root)} updated {format_age(modified, now)}",
+            )
+        )
+    items.sort(key=lambda item: item[0], reverse=True)
+    return [text for _, text in items[:limit]]
+
+
+def count_package_files(root: Path) -> int:
+    packages_dir = root / "packages"
+    if not packages_dir.exists():
+        return 0
+    return sum(1 for path in packages_dir.rglob("*") if path.is_file() and path.suffix.lower() in {".yaml", ".yml"})
+
+
+def custom_component_summaries(root: Path, limit: int = 6) -> list[str]:
+    custom_components_dir = root / "custom_components"
+    if not custom_components_dir.exists():
+        return []
+
+    summaries: list[str] = []
+    for manifest in sorted(custom_components_dir.glob("*/manifest.json")):
+        component_name = manifest.parent.name
+        title = component_name
+        version = ""
+        try:
+            payload = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            payload = {}
+        if isinstance(payload, dict):
+            title = str(payload.get("name") or payload.get("domain") or component_name)
+            version = str(payload.get("version") or "").strip()
+        summaries.append(f"{title}{f' ({version})' if version else ''}")
+    return summaries[:limit]
+
+
+def homeassistant_config_snapshot(now: datetime, root: Path = HA_CONFIG_DIR) -> dict[str, Any]:
+    mounted = root.exists()
+    configuration_path = root / "configuration.yaml"
+    secrets_path = root / "secrets.yaml"
+    storage_path = root / ".storage"
+    packages_dir = root / "packages"
+    custom_components_dir = root / "custom_components"
+
+    def file_age(path: Path) -> str | None:
+        if not path.exists():
+            return None
+        modified = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+        return format_age(modified, now)
+
+    return {
+        "mounted": mounted,
+        "rootPath": str(root),
+        "configurationExists": configuration_path.exists(),
+        "configurationAge": file_age(configuration_path),
+        "secretsExists": secrets_path.exists(),
+        "secretsAge": file_age(secrets_path),
+        "storageExists": storage_path.exists(),
+        "packagesExists": packages_dir.exists(),
+        "packageCount": count_package_files(root),
+        "customComponentsExists": custom_components_dir.exists(),
+        "customComponentCount": len(list(custom_components_dir.glob("*/manifest.json"))) if custom_components_dir.exists() else 0,
+        "customComponents": custom_component_summaries(root),
+        "recentConfigChanges": config_file_change_items(root, now),
+    }
+
+
+def doctor_finding(severity: str, title: str, detail: str, action: str | None = None) -> dict[str, str]:
+    finding = {"severity": severity, "title": title, "detail": detail}
+    if action:
+        finding["action"] = action
+    return finding
+
+
+def build_doctor_snapshot(
+    states: list[dict[str, Any]],
+    options: dict[str, Any],
+    schedule: dict[str, Any] | None = None,
+    *,
+    states_error: str | None = None,
+    now: datetime | None = None,
+    secret_dir: Path = SECRETS_DIR,
+    ha_config_dir: Path = HA_CONFIG_DIR,
+) -> dict[str, Any]:
+    now = now or datetime.now(timezone.utc)
+    schedule = schedule or {}
+    config_snapshot = homeassistant_config_snapshot(now, root=ha_config_dir)
+    disk_pct, disk_text = disk_summary()
+    stale_secrets = secret_age_findings(secret_dir, now)
+    unavailable_count, unavailable_names = unavailable_entities(states)
+    batteries = low_battery_entities(states)
+    cron_error = schedule.get("cronStatus", {}).get("error")
+
+    checks: list[dict[str, str]] = []
+    findings: list[dict[str, str]] = []
+    actions: list[str] = []
+    score = 100
+
+    if config_snapshot["mounted"]:
+        checks.append({"name": "HA config mount", "status": "good", "detail": f"Mounted at {config_snapshot['rootPath']}."})
+    else:
+        checks.append({"name": "HA config mount", "status": "off", "detail": "Live Home Assistant config root is not visible inside the add-on."})
+        findings.append(
+            doctor_finding(
+                "critical",
+                "Home Assistant config mount unavailable",
+                "The add-on cannot see /ha-config, so direct repair workflows are blocked.",
+                "Restart the add-on and verify the homeassistant_config mount is present.",
+            )
+        )
+        score -= 35
+
+    if config_snapshot["configurationExists"]:
+        detail = f"configuration.yaml visible ({config_snapshot['configurationAge'] or 'unknown age'})."
+        checks.append({"name": "Core config file", "status": "good", "detail": detail})
+    else:
+        checks.append({"name": "Core config file", "status": "off", "detail": "configuration.yaml is missing from the mounted HA config root."})
+        findings.append(
+            doctor_finding(
+                "critical",
+                "configuration.yaml missing",
+                "The mounted Home Assistant config root does not contain configuration.yaml.",
+                "Restore configuration.yaml before attempting in-place diagnosis or restart workflows.",
+            )
+        )
+        score -= 25
+
+    if config_snapshot["secretsExists"]:
+        checks.append({"name": "Secrets file", "status": "good", "detail": f"secrets.yaml visible ({config_snapshot['secretsAge'] or 'unknown age'})."})
+    else:
+        checks.append({"name": "Secrets file", "status": "warn", "detail": "secrets.yaml is not present in the mounted HA config root."})
+        findings.append(
+            doctor_finding(
+                "medium",
+                "secrets.yaml missing",
+                "The mounted config root does not include secrets.yaml.",
+                "Confirm secrets are still stored in secrets.yaml and not stranded in an include file.",
+            )
+        )
+        score -= 8
+
+    if config_snapshot["storageExists"]:
+        checks.append({"name": "Storage tree", "status": "good", "detail": ".storage is visible for advanced diagnosis."})
+    else:
+        checks.append({"name": "Storage tree", "status": "warn", "detail": ".storage is not visible in the mounted HA config root."})
+        findings.append(
+            doctor_finding(
+                "medium",
+                ".storage missing",
+                "The mounted config root does not expose .storage, so integration-state diagnosis is limited.",
+                "Verify the mounted HA config root is the real Home Assistant configuration directory.",
+            )
+        )
+        score -= 8
+
+    package_detail = (
+        f"{config_snapshot['packageCount']} package file{'s' if config_snapshot['packageCount'] != 1 else ''} visible."
+        if config_snapshot["packagesExists"]
+        else "packages/ directory is not present."
+    )
+    checks.append(
+        {
+            "name": "Package tree",
+            "status": "good" if config_snapshot["packagesExists"] else "warn",
+            "detail": package_detail,
+        }
+    )
+    if not config_snapshot["packagesExists"]:
+        findings.append(
+            doctor_finding(
+                "low",
+                "packages directory missing",
+                "No packages/ directory is visible in the mounted HA config root.",
+                "Ignore this if you keep all Home Assistant config in top-level files; otherwise restore the packages directory.",
+            )
+        )
+        score -= 4
+
+    checks.append(
+        {
+            "name": "Custom components",
+            "status": "good" if config_snapshot["customComponentsExists"] else "warn",
+            "detail": f"{config_snapshot['customComponentCount']} custom component manifest{'s' if config_snapshot['customComponentCount'] != 1 else ''} visible.",
+        }
+    )
+
+    if states_error:
+        checks.append({"name": "Home Assistant API snapshot", "status": "off", "detail": states_error})
+        findings.append(
+            doctor_finding(
+                "critical",
+                "Home Assistant API snapshot unavailable",
+                states_error,
+                "Check Supervisor token access and confirm Home Assistant Core is reachable from the add-on.",
+            )
+        )
+        score -= 30
+    else:
+        checks.append({"name": "Home Assistant API snapshot", "status": "good", "detail": f"{len(states)} entities visible to the add-on."})
+
+    if cron_error:
+        checks.append({"name": "Scheduler visibility", "status": "warn", "detail": cron_error})
+        findings.append(
+            doctor_finding(
+                "high",
+                "OpenClaw cron visibility degraded",
+                cron_error,
+                "Inspect cron status before relying on scheduled jobs or maintenance loops.",
+            )
+        )
+        score -= 14
+    else:
+        checks.append({"name": "Scheduler visibility", "status": "good", "detail": "Cron scheduler state is readable."})
+
+    if unavailable_count:
+        checks.append({"name": "Unavailable entities", "status": "warn", "detail": f"{unavailable_count} Home Assistant entities are unavailable or unknown."})
+        findings.append(
+            doctor_finding(
+                "high" if unavailable_count >= 5 else "medium",
+                "Unavailable Home Assistant entities detected",
+                f"{unavailable_count} entities are unavailable or unknown. Examples: {', '.join(unavailable_names[:3])}.",
+                "Repair unavailable entities before expanding automations or using them as doctor baselines.",
+            )
+        )
+        score -= min(18, 6 + unavailable_count)
+    else:
+        checks.append({"name": "Unavailable entities", "status": "good", "detail": "No unavailable or unknown entities in the current snapshot."})
+
+    if batteries:
+        lowest_value, lowest_name = batteries[0]
+        checks.append({"name": "Low battery watch", "status": "warn", "detail": f"{len(batteries)} battery-backed sensors are low. Lowest is {lowest_name} at {lowest_value:.0f}%."})
+        findings.append(
+            doctor_finding(
+                "medium",
+                "Predictive maintenance pressure visible",
+                f"{len(batteries)} battery-backed sensors are below the configured threshold.",
+                "Replace the lowest remaining batteries before they become availability incidents.",
+            )
+        )
+        score -= min(10, len(batteries) * 2)
+    else:
+        checks.append({"name": "Low battery watch", "status": "good", "detail": "No low-battery sensors crossed the configured threshold."})
+
+    if disk_pct >= 90:
+        checks.append({"name": "Add-on disk pressure", "status": "off", "detail": f"Disk usage is {disk_pct}% ({disk_text})."})
+        findings.append(
+            doctor_finding(
+                "critical",
+                "Disk pressure is near update failure territory",
+                f"Disk usage is {disk_pct}% with {disk_text}.",
+                "Run oc-cleanup before the next image update or large workspace operation.",
+            )
+        )
+        score -= 20
+    elif disk_pct >= 75:
+        checks.append({"name": "Add-on disk pressure", "status": "warn", "detail": f"Disk usage is {disk_pct}% ({disk_text})."})
+        findings.append(
+            doctor_finding(
+                "medium",
+                "Disk pressure is building",
+                f"Disk usage is {disk_pct}% with {disk_text}.",
+                "Plan cleanup before the next image update so operator workflows stay predictable.",
+            )
+        )
+        score -= 8
+    else:
+        checks.append({"name": "Add-on disk pressure", "status": "good", "detail": f"Disk usage is {disk_pct}% ({disk_text})."})
+
+    if stale_secrets:
+        findings.append(
+            doctor_finding(
+                "medium",
+                "Secret rotation candidates detected",
+                f"{len(stale_secrets)} stored secret file{'s are' if len(stale_secrets) != 1 else ' is'} older than {STALE_SECRET_DAYS} days.",
+                "Rotate old add-on and external-service secrets if they no longer match your current trust boundary.",
+            )
+        )
+        score -= min(12, len(stale_secrets) * 3)
+
+    for finding in findings:
+        action = finding.get("action", "")
+        if action and action not in actions:
+            actions.append(action)
+
+    score = max(score, 0)
+    if any(finding["severity"] == "critical" for finding in findings):
+        status = "off"
+    elif score < 80 or any(finding["severity"] == "high" for finding in findings):
+        status = "warn"
+    else:
+        status = "good"
+
+    summary = (
+        f"Doctor score {score}/100 with {len(findings)} finding{'s' if len(findings) != 1 else ''}; "
+        f"{config_snapshot['customComponentCount']} custom component{'s' if config_snapshot['customComponentCount'] != 1 else ''}, "
+        f"{config_snapshot['packageCount']} package file{'s' if config_snapshot['packageCount'] != 1 else ''}, "
+        f"and {unavailable_count} unavailable entity{'ies' if unavailable_count != 1 else ''} in the latest snapshot."
+    )
+
+    return {
+        "status": status,
+        "score": score,
+        "summary": summary,
+        "checks": checks,
+        "findings": findings,
+        "actions": actions[:4],
+        "configSnapshot": config_snapshot,
+    }
+
+
+def ensure_memory_store(memory_dir: Path = MEMORY_DIR) -> None:
+    memory_dir.mkdir(parents=True, exist_ok=True)
+    if not (memory_dir / "house-journal.md").exists():
+        (memory_dir / "house-journal.md").write_text(
+            "# Home OS Memory\n\nHuman-readable operating log for this Home Assistant install.\n",
+            encoding="utf-8",
+        )
+
+
+def load_memory_state(memory_state_file: Path = MEMORY_STATE_FILE) -> dict[str, Any]:
+    default = {"latestSignature": "", "entries": []}
+    if not memory_state_file.exists():
+        return default
+    try:
+        payload = json.loads(memory_state_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return default
+    if not isinstance(payload, dict):
+        return default
+    entries = payload.get("entries", [])
+    if not isinstance(entries, list):
+        entries = []
+    return {
+        "latestSignature": str(payload.get("latestSignature", "")),
+        "entries": entries,
+    }
+
+
+def save_memory_state(payload: dict[str, Any], memory_state_file: Path = MEMORY_STATE_FILE) -> None:
+    memory_state_file.parent.mkdir(parents=True, exist_ok=True)
+    memory_state_file.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def append_markdown_journal_entry(entry: dict[str, Any], journal_file: Path = MEMORY_JOURNAL_FILE) -> None:
+    journal_file.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        f"\n## {entry['timestamp']}",
+        f"- Status: {entry['status'].upper()}",
+        f"- Summary: {entry['summary']}",
+    ]
+    if entry.get("changes"):
+        lines.append("- Recent changes:")
+        lines.extend([f"  - {item}" for item in entry["changes"]])
+    if entry.get("findings"):
+        lines.append("- Findings:")
+        lines.extend([f"  - {item}" for item in entry["findings"]])
+    if entry.get("actions"):
+        lines.append("- Suggested actions:")
+        lines.extend([f"  - {item}" for item in entry["actions"]])
+    with journal_file.open("a", encoding="utf-8") as handle:
+        handle.write("\n".join(lines) + "\n")
+
+
+def build_memory_snapshot(
+    states: list[dict[str, Any]],
+    options: dict[str, Any],
+    schedule: dict[str, Any] | None = None,
+    *,
+    states_error: str | None = None,
+    now: datetime | None = None,
+    secret_dir: Path = SECRETS_DIR,
+    ha_config_dir: Path = HA_CONFIG_DIR,
+    memory_dir: Path = MEMORY_DIR,
+) -> dict[str, Any]:
+    now = now or datetime.now(timezone.utc)
+    schedule = schedule or {}
+    ensure_memory_store(memory_dir)
+    memory_state_file = memory_dir / "memory-state.json"
+    journal_file = memory_dir / "house-journal.md"
+
+    doctor = build_doctor_snapshot(
+        states,
+        options,
+        schedule,
+        states_error=states_error,
+        now=now,
+        secret_dir=secret_dir,
+        ha_config_dir=ha_config_dir,
+    )
+    config_snapshot = doctor["configSnapshot"]
+    recent_state_changes = [] if states_error else recent_changes(states, now, limit=4)
+    recent_changes_feed = (config_snapshot["recentConfigChanges"][:3] + recent_state_changes[:3])[:6]
+
+    incidents: list[dict[str, str]] = []
+    for finding in doctor["findings"]:
+        if finding["severity"] in {"critical", "high"}:
+            incidents.append(finding)
+
+    risk_register = doctor["findings"][:8]
+    signature_payload = {
+        "doctorStatus": doctor["status"],
+        "doctorScore": doctor["score"],
+        "findings": [f"{item['severity']}:{item['title']}:{item['detail']}" for item in doctor["findings"][:10]],
+        "recentChanges": recent_changes_feed,
+        "configSnapshot": {
+            "mounted": config_snapshot["mounted"],
+            "configurationExists": config_snapshot["configurationExists"],
+            "packageCount": config_snapshot["packageCount"],
+            "customComponentCount": config_snapshot["customComponentCount"],
+        },
+    }
+    signature = hashlib.sha256(json.dumps(signature_payload, sort_keys=True).encode("utf-8")).hexdigest()
+
+    state = load_memory_state(memory_state_file)
+    entries = state.get("entries", [])
+    if state.get("latestSignature") != signature:
+        entry = {
+            "timestamp": now.isoformat(),
+            "status": doctor["status"],
+            "summary": doctor["summary"],
+            "changes": recent_changes_feed[:5],
+            "findings": [item["title"] for item in doctor["findings"][:4]],
+            "actions": doctor["actions"][:3],
+        }
+        entries = (entries + [entry])[-MAX_MEMORY_ENTRIES:]
+        append_markdown_journal_entry(entry, journal_file)
+        save_memory_state({"latestSignature": signature, "entries": entries}, memory_state_file)
+    else:
+        save_memory_state({"latestSignature": signature, "entries": entries}, memory_state_file)
+
+    return {
+        "storage": {
+            "rootPath": str(memory_dir),
+            "statePath": str(memory_state_file),
+            "journalPath": str(journal_file),
+        },
+        "summary": {
+            "status": doctor["status"],
+            "score": doctor["score"],
+            "entryCount": len(entries),
+            "customComponentCount": config_snapshot["customComponentCount"],
+            "packageCount": config_snapshot["packageCount"],
+        },
+        "doctor": doctor,
+        "recentChanges": recent_changes_feed,
+        "incidents": incidents[:6],
+        "riskRegister": risk_register,
+        "journalEntries": list(reversed(entries[-8:])),
+    }
 
 
 def insight_card(
@@ -912,6 +1398,7 @@ class Handler(BaseHTTPRequestHandler):
             schedule = schedule_state()
             options = load_addon_options()
             states, states_error = fetch_homeassistant_states()
+            memory = build_memory_snapshot(states, options, schedule, states_error=states_error)
             payload = {
                 "generatedAt": datetime.now(timezone.utc).isoformat(),
                 "workspaceFiles": workspace_entries(),
@@ -920,6 +1407,7 @@ class Handler(BaseHTTPRequestHandler):
                 "schedule": schedule,
                 "graph": refresh_graph_snapshot(),
                 "insights": generate_insights(states, options, schedule, states_error=states_error),
+                "memory": memory,
             }
             self.send_json(HTTPStatus.OK, payload)
             return

@@ -49,8 +49,9 @@ This fork is intentionally biased toward fixing the classes of problems that hav
 | Automation runtime | OpenClaw gateway, skills, MCP support, and OpenAI-compatible API access |
 | Unattended automation mode | Exec approval prompts are disabled by default so Home Assistant automations and agent workflows do not stop for human approval |
 | Seeded operator brain | Preloaded workspace files (`AGENTS.md`, `IDENTITY.md`, `TOOLS.md`, `MEMORY.md`, and more) plus Home Assistant skill files |
-| Operator dashboard | Live cron/heartbeat visibility, file editing for the seeded workspace and skills, and integration status cards |
+| Operator dashboard | Live cron/heartbeat visibility, file editing for the seeded workspace and skills, integration status cards, and a persistent Home OS Memory tab |
 | Operator insight cards | Read-only homeowner, energy, system, predictive-maintenance, and security summaries from live HA state plus local runtime settings |
+| Home OS Memory | Persistent house journal, doctor score, config drift notes, incident summaries, and a human-readable risk register under `/config/.openclaw/home-os-memory/` |
 | Live HA tool layer | Built-in Home Assistant tools for entities, devices, areas, automations, services, template rendering, and bounded history |
 | Live HA config access | Direct access to the real Home Assistant config root at `/ha-config` for recovery, package/include diagnosis, and custom component inspection |
 | Matrix channel | Optional Matrix channel wiring from Home Assistant settings with homeserver auth, DM and room policies, allowlists, and ad-hoc room invites via `groupPolicy=open` + `autoJoin=always` |
@@ -113,7 +114,7 @@ In most local installs, leave `gateway_public_url` empty. The landing page now d
 - `nginx` + `ttyd` for browser-based setup and terminal access
 - OpenClaw gateway for chat, skills, MCP, and the OpenAI-compatible endpoint
 - Seeded OpenClaw workspace bootstrap files and GitDakky Home Assistant skill pack under persistent storage
-- A lightweight local dashboard API that powers file editing, cron/heartbeat visibility, integration status, and system-graph metadata on the ingress page
+- A lightweight local dashboard API that powers file editing, cron/heartbeat visibility, integration status, Home OS Memory / Doctor summaries, and system-graph metadata on the ingress page
 - First-start state reconciliation for older single-agent OpenClaw layouts so legacy auth/session data lands in `agents/main/...`
 - Persistent `/config` storage so updates do not wipe the working environment
 

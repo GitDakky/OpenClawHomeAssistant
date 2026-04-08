@@ -16,6 +16,7 @@ It separates what is already shipped from what is planned next, and it keeps the
 - Matrix channel wiring from add-on settings
 - Dashboard/API surface for operator visibility and seeded workspace editing
 - Initial read-only home intelligence rack for homeowner, energy, system, predictive-maintenance, and security summaries
+- Home OS Memory v1 with a persistent house journal, risk register, and first Doctor score on the operator dashboard
 - CI validation plus add-on image build/publish flow
 - Canonical local validation entrypoint in `scripts/validate_local.sh`
 - Regression coverage for remote gateway URL persistence and landing-page gateway URL derivation
@@ -43,24 +44,28 @@ Turn the add-on from a packaging shell into a house operations brain.
 
 ### Next slices
 
-1. Predictive maintenance primitives
+1. Doctor remediation beyond the first scorecard
+   - guided repair proposals
+   - bounded safe autofixes for high-confidence file/package problems
+   - post-repair journal entries written back into Home OS Memory
+2. Predictive maintenance primitives
    - battery decline summaries
    - device outage / flapping detection
    - climate runtime drift and filter/service interval reminders
-2. Homeowner insight summaries
+3. Homeowner insight summaries
    - what changed today
    - what is costing money
    - what is unusual
    - what should be automated next
-3. Energy optimization primitives
+4. Energy optimization primitives
    - tariff-aware scheduling inputs
    - solar / battery / EV coordination hooks
    - occupancy- and weather-aware recommendations
-4. System optimization
+5. System optimization
    - noisy automation detection
    - dead entity / integration drift checks
    - HA and add-on operational health summaries
-5. Security insight layer
+6. Security insight layer
    - exposed service review
    - stale secret / token hygiene checks
    - risky automation or device behavior summaries

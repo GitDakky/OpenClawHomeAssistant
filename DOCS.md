@@ -842,9 +842,12 @@ The ingress landing page now includes:
 - last-heartbeat visibility
 - read-only operator insight cards for homeowner summary, energy pressure, system drift, predictive maintenance, and security posture
 - integration status cards for Context7, Domotz, GitHub issue reporting, MQTT, BACnet, and MCP
+- a `Memory` tab with a persistent house journal, first-pass doctor score, recent config/runtime changes, incident summaries, and a risk register
 - system-graph metadata backed by SQLite at `/config/.openclaw/gitdakky-system-graph.sqlite3`
 
 The insight cards are intentionally advisory and read-only. They use the add-on's trusted Home Assistant API context plus local add-on settings to surface bounded operator actions instead of raw telemetry dumps.
+
+The Home OS Memory store lives at `/config/.openclaw/home-os-memory/`. The add-on keeps a structured `memory-state.json` for the dashboard and a human-readable `house-journal.md` so you can flick through what changed, what broke, and what still looks risky.
 
 ### Reporting bugs and feature requests directly from the add-on
 
