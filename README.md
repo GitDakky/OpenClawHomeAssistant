@@ -12,7 +12,7 @@ This fork exists to keep pace with OpenClaw releases and improve the operator ex
 
 ## Bundled version
 
-- Bundled OpenClaw: `2026.4.1`
+- Bundled OpenClaw: `2026.4.2`
 - Previous add-on lineage pin: `2026.3.13`
 - Check the live version inside the add-on with `openclaw --version`
 - Published image: `ghcr.io/gitdakky/openclaw-super-home-assistant`

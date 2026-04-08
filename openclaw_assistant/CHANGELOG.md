@@ -2,6 +2,12 @@
 
 All notable changes to the GitDakky OpenClaw Home Assistant fork will be documented in this file.
 
+## [0.7.19] - 2026-04-08
+
+### Changed
+- Updated the bundled OpenClaw runtime from `2026.4.1` to `2026.4.2` so the add-on stays current with the latest upstream release.
+- Updated the seeded operator prompt files so the default agent explicitly knows about `/ha-config`, the Home OS Memory store, and the dashboard Doctor / Memory surfaces.
+
 ## [0.7.18] - 2026-04-08
 
 ### Added

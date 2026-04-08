@@ -4,7 +4,7 @@ This GitDakky fork runs [OpenClaw](https://github.com/openclaw/openclaw) inside 
 
 This fork also mounts the live Home Assistant configuration root at `/ha-config` so the assistant can inspect and repair the actual HA system in place. `/config` remains the add-on's own persistent workspace.
 
-**Bundled OpenClaw version in this fork:** `2026.4.1`
+**Bundled OpenClaw version in this fork:** `2026.4.2`
 
 **Published app image:** `ghcr.io/gitdakky/openclaw-super-home-assistant`
 

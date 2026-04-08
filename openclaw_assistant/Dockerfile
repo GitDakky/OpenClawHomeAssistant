@@ -1,7 +1,7 @@
 ARG BUILD_ARCH=amd64
 FROM ghcr.io/home-assistant/${BUILD_ARCH}-base-debian:bookworm
 ARG BUILD_ARCH
-ARG OPENCLAW_VERSION=2026.4.1
+ARG OPENCLAW_VERSION=2026.4.2
 
 # Base image is Debian Bookworm (glibc). This avoids musl-related native module issues
 # that occur on Alpine (e.g. clipboard, node-llama-cpp).
